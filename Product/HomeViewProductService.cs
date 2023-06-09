@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BirdPlatFormEcommerce.Product
 {
-    public class HomeViewProductService :IHomeViewProductService
+    public class HomeViewProductService : IHomeViewProductService
     {
         private readonly SwpContext _context;
 
@@ -15,9 +15,9 @@ namespace BirdPlatFormEcommerce.Product
         {
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
-                        join c in _context.TbProductCategories on p.CateId equals c.CateId                     
+                        join c in _context.TbProductCategories on p.CateId equals c.CateId
                         orderby p.QuantitySold descending
-                        select new { p,c };
+                        select new { p, c };
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
@@ -31,7 +31,7 @@ namespace BirdPlatFormEcommerce.Product
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.p.Thumbnail
-              
+
             }).ToListAsync();
             return data;
 
@@ -42,9 +42,9 @@ namespace BirdPlatFormEcommerce.Product
         {
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
-                        join c in _context.TbProductCategories on p.CateId equals c.CateId                       
+                        join c in _context.TbProductCategories on p.CateId equals c.CateId
                         orderby p.Rate descending, p.QuantitySold descending
-                        select new { p,c };
+                        select new { p, c };
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
