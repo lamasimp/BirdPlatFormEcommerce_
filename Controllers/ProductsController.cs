@@ -28,6 +28,39 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(product);
         }
 
+        [HttpGet("Hot_Product")]
+        public async Task<IActionResult> GetProductByRateAndQuantitySold()
+        {
+            {
+                var product = await _homeViewProductService.GetProductByRateAndQuantitySold();
+                return Ok(product);
+            }
+
+        }
+
+        //[HttpGet("Detail_Product")]
+        //public async Task<IActionResult> GetProductById(int id)
+        //{
+        //    var product = await _homeViewProductService.GetProductById(id);
+        //    if (product == null)
+
+        //        return BadRequest("Cannot find product");
+
+        //    return Ok(product);
+        //}
+
+
+        [HttpGet("Product_ShopId")]
+        public async Task<IActionResult> GetProductByShopId(int shopId)
+        {
+            var product = await _homeViewProductService.GetProductByShopId(shopId);
+            if (product == null)
+
+                return BadRequest("Cannot find product");
+
+            return Ok(product);
+        }
+
 
     }
 }

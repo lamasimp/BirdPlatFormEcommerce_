@@ -29,6 +29,7 @@ namespace BirdPlatFormEcommerce
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
+
             builder.Services.AddAuthentication(option =>
             {
                 option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
