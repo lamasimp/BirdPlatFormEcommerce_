@@ -66,7 +66,7 @@ namespace BirdPlatFormEcommerce.Product
         //public async Task<DetailProductViewModel> GetProductById(int productId)
         //{
         //    var product = await _context.TbProducts.FindAsync(productId);
-            
+
 
         //    var detailProductViewModel = new DetailProductViewModel()
         //    {
@@ -98,9 +98,9 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
-                        
+
                         where p.ShopId.Equals(shopId)
-                        select new { p,c};
+                        select new { p, c };
 
 
 

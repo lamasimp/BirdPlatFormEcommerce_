@@ -5,7 +5,7 @@
         Task<List<HomeViewProductModel>> GetAllByQuantitySold();
         Task<List<HomeViewProductModel>> GetProductByRateAndQuantitySold();
 
-//        Task<DetailProductViewModel> GetProductById(int id);
+        //        Task<DetailProductViewModel> GetProductById(int id);
 
         Task<List<HomeViewProductModel>> GetProductByShopId(int shopId);
     }
