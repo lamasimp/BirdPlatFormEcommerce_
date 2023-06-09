@@ -26,7 +26,7 @@ namespace BirdPlatFormEcommerce
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
-         
+            builder.Services.AddScoped<IManageProductService, ManageProductService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

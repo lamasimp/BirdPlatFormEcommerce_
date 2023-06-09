@@ -11,14 +11,14 @@ namespace BirdPlatFormEcommerce.Controllers
     {
         private readonly SwpContext _context;
         private readonly IHomeViewProductService _homeViewProductService;
-  //      private readonly IManageProductService _manageProductService;
+        private readonly IManageProductService _manageProductService;
 
 
-        public ProductsController(SwpContext context, IHomeViewProductService homeViewProductService)
+        public ProductsController(SwpContext context, IHomeViewProductService homeViewProductService, IManageProductService manageProductService)
         {
             _context = context;
             _homeViewProductService = homeViewProductService;
-  //          _manageProductService = manageProductService;
+           _manageProductService = manageProductService;
         }
 
         [HttpGet("BestSeller_Product")]
@@ -27,6 +27,40 @@ namespace BirdPlatFormEcommerce.Controllers
             var product = await _homeViewProductService.GetAllByQuantitySold();
             return Ok(product);
         }
+
+        [HttpGet("Hot_Product")]
+        public async Task<IActionResult> GetProductByRateAndQuantitySold()
+        {
+            {
+                var product = await _homeViewProductService.GetProductByRateAndQuantitySold();
+                return Ok(product);
+            }
+
+        }
+
+        //[HttpGet("Detail_Product")]
+        //public async Task<IActionResult> GetProductById(int id)
+        //{
+        //    var product = await _homeViewProductService.GetProductById(id);
+        //    if (product == null)
+
+        //        return BadRequest("Cannot find product");
+
+        //    return Ok(product);
+        //}
+
+
+        [HttpGet("Product_ShopId")]
+        public async Task<IActionResult> GetProductByShopId(int shopId)
+        {
+            var product = await _homeViewProductService.GetProductByShopId(shopId);
+            if (product == null)
+
+                return BadRequest("Cannot find product");
+
+            return Ok(product);
+        }
+
 
 
     }
