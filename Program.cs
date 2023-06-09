@@ -1,6 +1,9 @@
 using BirdPlatFormEcommerce.Entities;
 using BirdPlatFormEcommerce.Product;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace BirdPlatFormEcommerce
 {
@@ -26,7 +29,24 @@ namespace BirdPlatFormEcommerce
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
-         
+            builder.Services.AddAuthentication(option =>
+            {
+                option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                option.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options => {
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = true;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["JWT:Audience"],
+                    ValidIssuer = builder.Configuration["JWT:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                };
+
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -40,7 +60,7 @@ namespace BirdPlatFormEcommerce
 
             app.UseAuthorization();
 
-
+            app.UseCors("BirdPlatform");
             app.MapControllers();
 
             app.Run();
