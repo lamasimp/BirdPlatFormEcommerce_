@@ -38,16 +38,16 @@ namespace BirdPlatFormEcommerce.Controllers
 
         }
 
-        //[HttpGet("Detail_Product")]
-        //public async Task<IActionResult> GetProductById(int id)
-        //{
-        //    var product = await _homeViewProductService.GetProductById(id);
-        //    if (product == null)
+        [HttpGet("detail_product")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            var product = await _homeViewProductService.GetProductById(id);
+            if (product == null)
 
-        //        return BadRequest("Cannot find product");
+                return BadRequest("cannot find product");
 
-        //    return Ok(product);
-        //}
+            return Ok(product);
+        }
 
 
         [HttpGet("Product_ShopId")]
