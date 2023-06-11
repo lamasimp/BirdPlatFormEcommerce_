@@ -11,14 +11,14 @@ namespace BirdPlatFormEcommerce.Controllers
     {
         private readonly SwpContext _context;
         private readonly IHomeViewProductService _homeViewProductService;
-  //      private readonly IManageProductService _manageProductService;
+       private readonly IManageProductService _manageProductService;
 
 
-        public ProductsController(SwpContext context, IHomeViewProductService homeViewProductService)
+        public ProductsController(SwpContext context, IHomeViewProductService homeViewProductService, IManageProductService manageProductService)
         {
             _context = context;
             _homeViewProductService = homeViewProductService;
-  //          _manageProductService = manageProductService;
+           _manageProductService = manageProductService;
         }
 
         [HttpGet("BestSeller_Product")]
@@ -38,18 +38,6 @@ namespace BirdPlatFormEcommerce.Controllers
 
         }
 
-        [HttpGet("detail_product")]
-        public async Task<IActionResult> GetProductById(int id)
-        {
-            var product = await _homeViewProductService.GetProductById(id);
-            if (product == null)
-
-                return BadRequest("cannot find product");
-
-            return Ok(product);
-        }
-
-
         [HttpGet("Product_ShopId")]
         public async Task<IActionResult> GetProductByShopId(int shopId)
         {
@@ -61,6 +49,27 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(product);
         }
 
+        [HttpGet("detail_product")]
+        public async Task<IActionResult> GetProductById(int id)
+        {
+            var product = await _homeViewProductService.GetProductById(id);
+            if (product == null)
+
+                return BadRequest("cannot find product");
+
+            return Ok(product);
+        }
+
+        [HttpPost]
+        [Route("Add_Product")]
+        public async Task<IActionResult> AddProduct([FromForm] CreateProductViewModel request)
+        {
+            var productId = await _manageProductService.Create(request);
+            if (productId == 0)
+                return BadRequest();
+            var product = await _homeViewProductService.GetProductById(productId);
+            return CreatedAtAction(nameof(GetProductById), new { id = productId }, product);
+        }
 
     }
 }

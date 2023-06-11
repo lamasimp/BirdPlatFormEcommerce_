@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BirdPlatFormEcommerce.Entities;
+namespace BirdPlatFormEcommerce.Etities;
 
 public partial class TbImage
 {
@@ -21,7 +21,7 @@ public partial class TbImage
 
     public int? SortOrder { get; set; }
 
-    public long FileSize { get; set; }
+    public long? FileSize { get; set; }
 
     public virtual TbProduct Product { get; set; } = null!;
 }
