@@ -1,5 +1,7 @@
-﻿using BirdPlatFormEcommerce.Entities;
+﻿using Azure.Core;
+using BirdPlatFormEcommerce.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace BirdPlatFormEcommerce.Product
 {
@@ -28,16 +30,12 @@ namespace BirdPlatFormEcommerce.Product
                 Status = x.p.Status,
                 Price = x.p.Price,
                 DiscountPercent = x.p.DiscountPercent,
-                SoldPrice = (int)Math.Round((decimal)(x.p.Price/100 * x.p.DiscountPercent + x.p.Price)),
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.p.Thumbnail
             }).ToListAsync();
             return data;
-
-
-
-
         }
 
 
@@ -58,7 +56,7 @@ namespace BirdPlatFormEcommerce.Product
                 Status = x.p.Status,
                 Price = x.p.Price,
                 DiscountPercent = x.p.DiscountPercent,
-                SoldPrice = (int)Math.Round((decimal)(x.p.Price / 100 * x.p.DiscountPercent + x.p.Price)),
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.p.Thumbnail
@@ -70,22 +68,28 @@ namespace BirdPlatFormEcommerce.Product
         public async Task<DetailProductViewModel> GetProductById(int productId)
         {
             var product = await _context.TbProducts.FindAsync(productId);
+     //       var post = await _context.TbPosts.FirstOrDefaultAsync(x=>x.ProductId == productId);
 
-
+            var image = await _context.TbImages.Where(x=>x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
             var detailProductViewModel = new DetailProductViewModel()
             {
-                ProductId = product.ProductId,
-                Name = product.Name,
-                //            CreateDate = post.CreateDate,
-                Status = product.Status,
+                ProductName = product.Name,          
                 Price = product.Price,
-                DiscountPercent = (int)product.Price,
+                 DiscountPercent = (int)product.Price,
+                SoldPrice = (int)Math.Round((decimal)(product.Price - product.Price / 100 * product.DiscountPercent)),
                 Decription = product != null ? product.Decription : null,
                 Detail = product != null ? product.Detail : null,
-                QuantitySold = product.QuantitySold,
+                Quantity = product.Quantity,
                 ShopId = product.ShopId,
-                Rate = product.Rate,
-               
+                CateId = product.CateId,
+                
+               CreateDate = DateTime.Now,
+               ThumbnailImage = image !=null ? image.ImagePath : "no-image.jpg",
+
+
+
+
+
             };
             return detailProductViewModel;
         }
@@ -112,7 +116,7 @@ namespace BirdPlatFormEcommerce.Product
                 Status = x.p.Status,
                 Price = x.p.Price,
                 DiscountPercent = x.p.DiscountPercent,
-                SoldPrice = (int)Math.Round((decimal)(x.p.Price / 100 * x.p.DiscountPercent + x.p.Price)),
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.p.Thumbnail
