@@ -1,4 +1,5 @@
-﻿using BirdPlatFormEcommerce.Entities;
+﻿
+using BirdPlatFormEcommerce.Etities;
 using BirdPlatFormEcommerce.Product;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,13 @@ namespace BirdPlatFormEcommerce.Controllers
 
                 return BadRequest("Cannot find product");
 
+            return Ok(product);
+        }
+
+        [HttpGet("All_Product")]
+        public async Task<IActionResult> GetAllProduct()
+        {
+            var product = await _homeViewProductService.GetAllProduct();
             return Ok(product);
         }
 

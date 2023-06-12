@@ -8,5 +8,7 @@
         Task<DetailProductViewModel> GetProductById(int id);
 
         Task<List<HomeViewProductModel>> GetProductByShopId(int shopId);
+
+        Task<List<HomeViewProductModel>> GetAllProduct();
     }
 }
