@@ -18,6 +18,8 @@ public partial class TbShop
     public bool? IsVerified { get; set; }
 
     public DateTime? CreateDate { get; set; }
+    public string Address { get; set; }
+    public string Phone { get; set; }
 
     public virtual TbUser Shop { get; set; } = null!;
 
