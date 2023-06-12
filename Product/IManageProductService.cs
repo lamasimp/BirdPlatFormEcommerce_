@@ -1,4 +1,6 @@
-﻿using BirdPlatFormEcommerce.Entities;
+﻿
+
+using BirdPlatFormEcommerce.Etities;
 
 namespace BirdPlatFormEcommerce.Product
 {
@@ -6,7 +8,7 @@ namespace BirdPlatFormEcommerce.Product
     {
         Task<int> Create(CreateProductViewModel request);
        
-        Task<int> AddImages(int productId, List<IFormFile> files);
+        Task<int> AddImages(int productId, ProductImageCreateRequest request);
 
         Task<int> RemoveImages(int imageId);
 

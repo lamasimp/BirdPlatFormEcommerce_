@@ -1,7 +1,7 @@
 ﻿
 using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
-using BirdPlatFormEcommerce.Entities;
+using BirdPlatFormEcommerce.Etities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

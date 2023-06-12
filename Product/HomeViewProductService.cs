@@ -1,7 +1,8 @@
 ﻿using Azure.Core;
-using BirdPlatFormEcommerce.Entities;
+using BirdPlatFormEcommerce.Etities;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BirdPlatFormEcommerce.Product
 {
@@ -18,9 +19,9 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
-
+                        join img in _context.TbImages on p.ProductId equals img.ProductId
                         orderby p.QuantitySold descending
-                        select new { p, c };
+                        select new { p, c ,img};
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
@@ -33,7 +34,7 @@ namespace BirdPlatFormEcommerce.Product
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
-                Thumbnail = x.p.Thumbnail
+                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
             }).ToListAsync();
             return data;
         }
@@ -44,9 +45,10 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
+                        join img in _context.TbImages on p.ProductId equals img.ProductId
                         orderby p.Rate descending, p.QuantitySold descending
                         where p.DiscountPercent >0
-                        select new { p, c };
+                        select new { p, c ,img};
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
@@ -59,7 +61,7 @@ namespace BirdPlatFormEcommerce.Product
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
-                Thumbnail = x.p.Thumbnail
+                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
 
             }).ToListAsync();
             return data;
@@ -71,16 +73,22 @@ namespace BirdPlatFormEcommerce.Product
      //       var post = await _context.TbPosts.FirstOrDefaultAsync(x=>x.ProductId == productId);
 
             var image = await _context.TbImages.Where(x=>x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
+            var shop = await( from s in _context.TbShops
+                             join p in _context.TbProducts on s.ShopId equals p.ShopId
+                             where p.ProductId == productId
+                             select  s.ShopName).FirstOrDefaultAsync();
+
             var detailProductViewModel = new DetailProductViewModel()
             {
-                ProductName = product.Name,          
+                ProductName = product.Name,
                 Price = product.Price,
-                 DiscountPercent = (int)product.Price,
+                DiscountPercent = (int)product.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(product.Price - product.Price / 100 * product.DiscountPercent)),
                 Decription = product != null ? product.Decription : null,
                 Detail = product != null ? product.Detail : null,
                 Quantity = product.Quantity,
                 ShopId = product.ShopId,
+                ShopName = shop,
                 CateId = product.CateId,
                 
                CreateDate = DateTime.Now,
@@ -101,9 +109,9 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
-
+                        join img in _context.TbImages on p.ProductId equals img.ProductId
                         where p.ShopId.Equals(shopId)
-                        select new { p, c };
+                        select new { p, c,img };
 
 
 
@@ -119,18 +127,36 @@ namespace BirdPlatFormEcommerce.Product
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
-                Thumbnail = x.p.Thumbnail
+                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
             }).ToListAsync();
             return data;
         }
 
+        public async Task<List<HomeViewProductModel>> GetAllProduct()
+        {
+            var query = from p in _context.TbProducts
+                        join s in _context.TbShops on p.ShopId equals s.ShopId
+                        join c in _context.TbProductCategories on p.CateId equals c.CateId
+                        join img in _context.TbImages on p.ProductId equals img.ProductId
+                    
+                        select new { p, c ,img};
 
+            var data = await query.Select(x => new HomeViewProductModel()
+            {
+                ProductId = x.p.ProductId,
+                ProductName = x.p.Name,
+                CateName = x.c.CateName,
+                Status = x.p.Status,
+                Price = x.p.Price,
+                DiscountPercent = x.p.DiscountPercent,
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
+                QuantitySold = x.p.QuantitySold,
+                Rate = x.p.Rate,
+                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
 
-
-
-
-
-
+            }).ToListAsync();
+            return data;
+        }
     }
 }
 

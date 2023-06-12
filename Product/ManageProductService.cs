@@ -1,4 +1,4 @@
-﻿using BirdPlatFormEcommerce.Entities;
+﻿
 using BirdPlatFormEcommerce.FileService;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Net.Http.Headers;
@@ -6,6 +6,11 @@ using System.Security.AccessControl;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using Microsoft.AspNetCore.Server.IISIntegration;
+using Microsoft.Data.SqlClient;
+using System;
+using BirdPlatFormEcommerce.Etities;
+using Azure.Core;
 
 namespace BirdPlatFormEcommerce.Product
 {
@@ -21,9 +26,29 @@ namespace BirdPlatFormEcommerce.Product
          
         }
 
-        public Task<int> AddImages(int productId, List<IFormFile> files)
+        public async Task<int> AddImages(int productId, ProductImageCreateRequest request)
         {
-            throw new NotImplementedException();
+           var image = new TbImage()
+                {
+                    
+                        Caption = "Image",
+                        CreateDate = DateTime.Now,
+                        IsDefault = request.IsDefault,
+                        SortOrder = request.SortOrder,
+                       ProductId = productId,
+                        
+                    
+                };
+            if(request.ImageFile != null)
+            {
+                image.ImagePath = await this.SaveFile(request.ImageFile);
+                image.FileSize = request.ImageFile.Length;
+            }
+            //}
+            _context.TbImages.Add(image);
+            await _context.SaveChangesAsync();
+            return image.ProductId;
+
         }
 
         public async Task<int> Create(CreateProductViewModel request)
@@ -40,17 +65,24 @@ namespace BirdPlatFormEcommerce.Product
               
                 Quantity = request.Quantity,
                 ShopId = request.ShopId,
+                
                 CateId = request.CateId,
-              
 
-                //TbPosts = new List<TbPost> { 
-                //    new TbPost()
-                //    {
-                //          CreateDate =  DateTime.Now
-                //    }
-                //}
-       
+
+                Shop = new TbShop()
+
+                {
+                    ShopName = request.ShopName,
+                    CreateDate =  DateTime.Now
+                    }
+                
+
             };
+            //_context.TbProducts.Add(product);
+            //await _context.SaveChangesAsync();
+
+            //          var  productId = product.ProductId;
+            //        var thumbnailImageDto = images.FirstOrDefault();
 
             //Save image
             if (request.ThumbnailImage != null)
@@ -68,8 +100,38 @@ namespace BirdPlatFormEcommerce.Product
                     }
                 };
             }
-                _context.TbProducts.Add(product);
-                 await _context.SaveChangesAsync();
+
+            //var thumbnailImage = new TbImage
+            //{
+            //    ProductId = productId,
+            //    ImagePath = thumbnailImageDto.ImagePath,
+            //    FileSize = thumbnailImageDto.FileSize,
+            //    Caption = thumbnailImageDto.Caption,
+            //    IsDefault = true
+            //};
+
+            //_context.TbImages.Add(thumbnailImage);
+            // await _context.SaveChangesAsync();
+
+            //var otherImages = images.Skip(1).Take(5);
+
+
+            //foreach(var imageDto in otherImages )
+            //{
+            //    var image = new TbImage
+            //    {
+
+            //        ProductId = productId,
+            //        ImagePath = imageDto.ImagePath,
+            //        FileSize = imageDto.FileSize,
+            //        Caption = imageDto.Caption,
+            //        IsDefault = true
+            //    };
+
+            //    _context.TbImages.Add(image);
+            //}
+            _context.TbProducts.Add(product);
+            await _context.SaveChangesAsync();
             return product.ProductId;
             }
 

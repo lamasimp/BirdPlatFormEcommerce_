@@ -1,4 +1,5 @@
-using BirdPlatFormEcommerce.Entities;
+
+using BirdPlatFormEcommerce.Etities;
 using BirdPlatFormEcommerce.FileService;
 using BirdPlatFormEcommerce.Product;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

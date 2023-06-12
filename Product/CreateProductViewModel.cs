@@ -22,11 +22,12 @@
         public int? Quantity { get; set; }
 
         public int? ShopId { get; set; }
+        public string ShopName { get; set; } = null!;
         public string CateId { get; set; } = null!;
         
 
      
-      //  public DateTime? CreateDate { get; set; }
+        public DateTime? CreateDate { get; set; }
 
         public IFormFile  ThumbnailImage { get; set; }
 
