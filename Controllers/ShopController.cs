@@ -63,7 +63,7 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpPost("registerShop")]
         public async Task<IActionResult> RegisterShop(string shopName,string address,string phone)
         {
-            int userId = GetLoggedInUserId();
+            var userId = User.Identity.Name;
             if (userId == null)
             {
                 return Ok(new ErrorRespon
