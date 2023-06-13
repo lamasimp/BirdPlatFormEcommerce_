@@ -49,10 +49,22 @@ namespace BirdPlatForm.Controllers
             });
         }
         [HttpPost]
-        [Route("api/logout")]
-       public async Task<IActionResult> Logout()
+        [Route("logout")]
+
+        public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(JwtBearerDefaults.AuthenticationScheme);
+
+            var userClaims = User.Claims.ToList();
+
+
+            var tokenClaim = userClaims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti);
+            if (tokenClaim != null)
+            {
+                userClaims.Remove(tokenClaim);
+            }
+
+
+
             return Ok();
         }
 
