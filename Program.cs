@@ -63,9 +63,9 @@ namespace BirdPlatFormEcommerce
             }
 
             app.UseHttpsRedirection();
-
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
+            
             app.UseCors("BirdPlatform");
             app.MapControllers();
 
