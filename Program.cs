@@ -2,6 +2,7 @@
 using BirdPlatFormEcommerce.Etities;
 using BirdPlatFormEcommerce.FileService;
 using BirdPlatFormEcommerce.Product;
+using BirdPlatFormEcommerce.TokenService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -29,7 +30,7 @@ namespace BirdPlatFormEcommerce
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
+            builder.Services.AddScoped<ITokenBlacklistService, TokenBlackList>();
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
             builder.Services.AddScoped<IManageProductService, ManageProductService>();
             builder.Services.AddScoped<IStorageService, FileStorageService>();
