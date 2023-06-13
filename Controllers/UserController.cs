@@ -4,6 +4,8 @@ using BirdPlatForm.ViewModel;
 
 using BirdPlatFormEcommerce.Etities;
 using BirdPlatFormEcommerce.TokenService;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -48,13 +50,9 @@ namespace BirdPlatForm.Controllers
         }
         [HttpPost]
         [Route("api/logout")]
-        [Authorize]
-        public IActionResult Logout([FromServices] ITokenBlacklistService tokenBlacklistService)
+       public async Task<IActionResult> Logout()
         {
-            string token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
-            tokenBlacklistService.revokeToken(token);
-
+            await HttpContext.SignOutAsync(JwtBearerDefaults.AuthenticationScheme);
             return Ok();
         }
 
@@ -80,7 +78,7 @@ namespace BirdPlatForm.Controllers
                 Issuer = _config["JWT:Issuer"],
                 Audience = _config["JWT:Audience"],
 
-                Expires = DateTime.UtcNow.AddDays(1),
+                Expires = DateTime.UtcNow.AddHours(3),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretkey), SecurityAlgorithms.HmacSha512)
 
 
