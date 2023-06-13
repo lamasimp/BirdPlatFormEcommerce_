@@ -39,6 +39,7 @@ namespace BirdPlatFormEcommerce
                 option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 option.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                option.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options => {
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = true;
@@ -64,7 +65,7 @@ namespace BirdPlatFormEcommerce
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            app.UseAuthentication();
             app.UseCors("BirdPlatform");
             app.MapControllers();
 
