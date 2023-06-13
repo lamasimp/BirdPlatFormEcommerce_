@@ -3,6 +3,8 @@ using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
 
 using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.TokenService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +46,17 @@ namespace BirdPlatForm.Controllers
                 Data = token
             });
         }
+        [HttpPost]
+        [Route("api/logout")]
+        [Authorize]
+        public IActionResult Logout([FromServices] ITokenBlacklistService tokenBlacklistService)
+        {
+            string token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            tokenBlacklistService.revokeToken(token);
+
+            return Ok();
+        }
 
         private async Task<TokenRespon> GeneratToken(TbUser user)
         {
@@ -67,7 +80,7 @@ namespace BirdPlatForm.Controllers
                 Issuer = _config["JWT:Issuer"],
                 Audience = _config["JWT:Audience"],
 
-                Expires = DateTime.UtcNow.AddDays(3),
+                Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretkey), SecurityAlgorithms.HmacSha512)
 
 
@@ -125,18 +138,13 @@ namespace BirdPlatForm.Controllers
             }
             var user = new TbUser
             {
-                Dob = register.Dob,
+                
                 Gender = register.Gender,
                 Email = register.Email,
                 Name = register.Name,
                 Password = register.Password,
                 RoleId = register.RoleId,
-                UpdateDate = register.UpdateDate,
-                CreateDate = register.CreateDate,
-                Avatar = register.Avatar,
-                Phone = register.Phone,
-                Address = register.Address,
-                ShopId = register.ShopId,
+               
 
             };
             await _context.TbUsers.AddAsync(user);
@@ -210,5 +218,11 @@ namespace BirdPlatForm.Controllers
 
             return Ok();
         }
+        //[HttpGet]
+        //public async Task<decimal> GetmoneyShop(int shopid)
+        //{
+        //    decimal totalsale = 0;
+        //    var p = _context.TbOrders.Where(x => x.)
+        //}
     }
 }
