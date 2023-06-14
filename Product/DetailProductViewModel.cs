@@ -1,7 +1,10 @@
-﻿namespace BirdPlatFormEcommerce.Product
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace BirdPlatFormEcommerce.Product
 {
     public class DetailProductViewModel
     {
+        public int ProductId { get; set; }
         public string ProductName { get; set; } = null!;
 
         //   public DateTime? CreateDate { get; set; }
@@ -18,12 +21,15 @@
 
 
         public int? Quantity { get; set; }
+        public int? QuantitySold { get; set; }
 
         public int? ShopId { get; set; }
         public string ShopName { get; set; } = null!;
+        public int? ShopRate { get; set; }
         public string CateId { get; set; } = null!;
-
+        public string? CateName { get; set; }
         public DateTime? CreateDate { get; set; }
+        public int? UserId { get; set; }
 
         public string? ThumbnailImage { get; set; }
     }
