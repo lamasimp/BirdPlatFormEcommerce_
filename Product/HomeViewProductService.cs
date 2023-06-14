@@ -70,16 +70,20 @@ namespace BirdPlatFormEcommerce.Product
         public async Task<DetailProductViewModel> GetProductById(int productId)
         {
             var product = await _context.TbProducts.FindAsync(productId);
-     //       var post = await _context.TbPosts.FirstOrDefaultAsync(x=>x.ProductId == productId);
-
             var image = await _context.TbImages.Where(x=>x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
-            var shop = await( from s in _context.TbShops
-                             join p in _context.TbProducts on s.ShopId equals p.ShopId
-                             where p.ProductId == productId
-                             select  s.ShopName).FirstOrDefaultAsync();
+            var shop = await (from s in _context.TbShops
+                              join p in _context.TbProducts on s.ShopId equals p.ShopId
+                              where p.ProductId == productId
+                              select s).FirstOrDefaultAsync();
+            var cate =  await (from c in _context.TbProductCategories 
+                       join p in _context.TbProducts on c.CateId equals p.CateId
+                       where p.ProductId == productId
+                       select c).FirstOrDefaultAsync();
+
 
             var detailProductViewModel = new DetailProductViewModel()
             {
+                ProductId = productId,
                 ProductName = product.Name,
                 Price = product.Price,
                 DiscountPercent = (int)product.DiscountPercent,
@@ -88,14 +92,14 @@ namespace BirdPlatFormEcommerce.Product
                 Detail = product != null ? product.Detail : null,
                 Quantity = product.Quantity,
                 ShopId = product.ShopId,
-                ShopName = shop,
+               ShopName = shop.ShopName,
+               UserId = shop.UserId,
                 CateId = product.CateId,
-                
+                CateName = cate.CateName,
                CreateDate = DateTime.Now,
+               QuantitySold = product.QuantitySold,
+               ShopRate = shop.Rate,
                ThumbnailImage = image !=null ? image.ImagePath : "no-image.jpg",
-
-
-
 
 
             };

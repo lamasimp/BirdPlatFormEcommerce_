@@ -11,6 +11,7 @@ using Microsoft.Data.SqlClient;
 using System;
 using BirdPlatFormEcommerce.Etities;
 using Azure.Core;
+using Newtonsoft.Json;
 
 namespace BirdPlatFormEcommerce.Product
 {
@@ -18,7 +19,10 @@ namespace BirdPlatFormEcommerce.Product
     {
         private readonly SwpContext _context;
         private readonly IStorageService _storageService;
-        
+        private readonly string datajson;
+        private const string USER_CONTENT_FOLDER_NAME = "user-content";
+
+
         public ManageProductService(SwpContext context, IStorageService storageService)
         {
             _context = context;
@@ -53,37 +57,37 @@ namespace BirdPlatFormEcommerce.Product
 
         public async Task<int> Create(CreateProductViewModel request)
         {
+
+      //   var product = JsonConvert.DeserializeObject<TbProduct>(datajson);
+            var tbShops = new List<TbShop>();
+            tbShops.Add(new TbShop()
+            {
+
+                UserId = request.UserId,
+                ShopName = request.ShopName,
+                CreateDate = DateTime.Now
+            });
+            //var findP = _context.TbProducts.Find(request.ProductId);
+            //if (findP != null) throw new Exception("Product has existed!!");
+            
             var product = new TbProduct()
             {
                 Name = request.ProductName,
-             
+
                 Price = request.Price,
                 DiscountPercent = request.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * request.DiscountPercent)),
                 Decription = request.Decription,
                 Detail = request.Detail,
-              
+
                 Quantity = request.Quantity,
                 ShopId = request.ShopId,
-                
-                CateId = request.CateId,
 
-
-                Shop = new TbShop()
-
-                {
-                    ShopName = request.ShopName,
-                    CreateDate =  DateTime.Now
-                    }
-                
-
+                CateId = request.CateId
             };
-            //_context.TbProducts.Add(product);
-            //await _context.SaveChangesAsync();
 
-            //          var  productId = product.ProductId;
-            //        var thumbnailImageDto = images.FirstOrDefault();
-
+;
+          
             //Save image
             if (request.ThumbnailImage != null)
             {
@@ -101,35 +105,10 @@ namespace BirdPlatFormEcommerce.Product
                 };
             }
 
-            //var thumbnailImage = new TbImage
-            //{
-            //    ProductId = productId,
-            //    ImagePath = thumbnailImageDto.ImagePath,
-            //    FileSize = thumbnailImageDto.FileSize,
-            //    Caption = thumbnailImageDto.Caption,
-            //    IsDefault = true
-            //};
+         
+          
 
-            //_context.TbImages.Add(thumbnailImage);
-            // await _context.SaveChangesAsync();
-
-            //var otherImages = images.Skip(1).Take(5);
-
-
-            //foreach(var imageDto in otherImages )
-            //{
-            //    var image = new TbImage
-            //    {
-
-            //        ProductId = productId,
-            //        ImagePath = imageDto.ImagePath,
-            //        FileSize = imageDto.FileSize,
-            //        Caption = imageDto.Caption,
-            //        IsDefault = true
-            //    };
-
-            //    _context.TbImages.Add(image);
-            //}
+            
             _context.TbProducts.Add(product);
             await _context.SaveChangesAsync();
             return product.ProductId;
@@ -157,7 +136,7 @@ namespace BirdPlatFormEcommerce.Product
             var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim();
             var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
             await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
-            return fileName;
+            return "/"+ USER_CONTENT_FOLDER_NAME + "/"+ fileName;
         }
     }
 }
