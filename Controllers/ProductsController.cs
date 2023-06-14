@@ -1,13 +1,17 @@
 ﻿
+using Azure.Core;
 using BirdPlatFormEcommerce.Etities;
 using BirdPlatFormEcommerce.FileService;
+using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Product;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using static System.Net.Mime.MediaTypeNames;
+
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -20,6 +24,7 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IManageProductService _manageProductService;
         private readonly IWebHostEnvironment _enviroment;
         private readonly IStorageService _storageService;
+
 
         public ProductsController(SwpContext context, IHomeViewProductService homeViewProductService, IManageProductService manageProductService,
             IWebHostEnvironment environment, IStorageService storageService)
@@ -97,6 +102,7 @@ namespace BirdPlatFormEcommerce.Controllers
         [Route("Add_Product_Image")]
         public async Task<IActionResult> AddProductImage([FromForm] ProductImageCreateRequest request, int productId)
         {
+            APIResponse response = new APIResponse();
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -106,7 +112,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 var image = new TbImage()
                 {
                    
-                    Caption = "Image",
+                    Caption = "Thumbnail",
                     CreateDate = DateTime.Now,
                     IsDefault = request.IsDefault,
                     SortOrder = request.SortOrder,
@@ -131,7 +137,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 using (FileStream stream = System.IO.File.Create(imagepath))
                 {
                     await request.ImageFile.CopyToAsync(stream);
-
+                    response.ResponseCode = 200;
+                    response.Result = "pass";
 
                 }
                 _context.Add(image);
@@ -139,9 +146,68 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             catch (Exception ex)
             {
+                response.Errormessage= ex.Message;
 
             }
-            return Ok();
+            return Ok(response);
+        }
+
+        [HttpPut("List_Upload_Image")]
+        public async Task<IActionResult> ListUploadImage(IFormFileCollection filecollection, int productId, [FromForm] ListProductImageCreateRequest request)
+        {
+            APIResponse response = new APIResponse();
+            int passcount = 0;
+            int errorcount = 0;
+            try
+            {
+
+                string Filepath = GetFilePath(productId);
+                if(!Directory.Exists(Filepath))
+                {
+                    Directory.CreateDirectory(Filepath);
+                }
+                foreach(var file in filecollection)
+                {
+
+                    var image = new TbImage()
+                    {
+
+                        Caption = "Image",
+                        CreateDate = DateTime.Now,
+                        IsDefault = request.IsDefault,
+                        SortOrder = request.SortOrder,
+                        ProductId = productId,
+
+                        ImagePath = GetImagePath(productId),
+
+
+
+                    };
+                    string imagepath = Path.Combine(Filepath, file.FileName);
+                    if(System.IO.File.Exists(imagepath))
+                    {
+                        System.IO.File.Delete(imagepath);
+                    }
+                    using(FileStream stream = System.IO.File.Create(imagepath))
+                    { 
+                        await file.CopyToAsync(stream);
+                        passcount++;
+                    }
+                    _context.Add(image);
+                   
+                }
+                await _context.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                errorcount++;
+                response.Errormessage= ex.Message;
+            }
+
+            response.ResponseCode = 200;
+            response.Result = passcount + "File uploaded &" + errorcount + "File failed";
+            return Ok(response);
         }
 
 
@@ -186,11 +252,68 @@ namespace BirdPlatFormEcommerce.Controllers
             return NotFound();
 
 
-
-
         }
 
-        [NonAction]
+        [HttpGet("List_Image_ProductID")]
+        public async Task<IActionResult> GetListImageById(int productId)
+        {
+            List<string> Imageurl = new List<string>();
+            //        var image = await _context.TbImages.FindAsync(productId);
+            //         var tb_image = await _context.TbImages.Where(x => x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
+            string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+
+
+            try
+            {
+
+                string Filepath = GetFilePath(productId);
+
+                if (System.IO.Directory.Exists(Filepath))
+                {
+                    DirectoryInfo directoryInfo = new DirectoryInfo(Filepath);
+                    FileInfo[] fileInfos = directoryInfo.GetFiles();
+                    foreach (FileInfo fileInfo in fileInfos)
+                    {
+                        string filename = fileInfo.Name;
+                        string imagepath = Filepath + "\\" + filename;
+                        if (System.IO.File.Exists(imagepath))
+                        {
+                            string _Imageurl = hosturl + "/user-content/" + productId + "/" + filename;
+                            Imageurl.Add(_Imageurl);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return Ok(Imageurl);
+            //            var productImageVM = new ProductImageVM()
+            //            {
+            //                ImageId = tb_image.Id,
+            //                ProductId = productId,
+            //                FileSize = image.FileSize,
+            //                IsDefault = image.IsDefault,
+            //                SortOrder = image.SortOrder,
+            //                ImagePath = hosturl + "/user-content/" + productId + "/" + productId + ".png"
+
+            //            };
+            //            return Ok(productImageVM);
+            //        }
+
+
+
+            //    }
+            //    catch (Exception ex)
+            //    {
+
+            //    }
+            //    return NotFound();
+
+
+            //}
+        }
         private string GetFilePath(int productId)
         {
             return this._enviroment.WebRootPath + "\\user-content\\" + productId.ToString();

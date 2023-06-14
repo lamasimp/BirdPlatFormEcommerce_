@@ -19,7 +19,8 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
-                        join img in _context.TbImages on p.ProductId equals img.ProductId
+                        join img in _context.TbImages on p.ProductId equals img.ProductId 
+                        where img.Caption=="Thumbnail"
                         orderby p.QuantitySold descending
                         select new { p, c ,img};
 
@@ -142,7 +143,7 @@ namespace BirdPlatFormEcommerce.Product
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId
-                    
+                        where img.Caption == "Thumbnail"
                         select new { p, c ,img};
 
             var data = await query.Select(x => new HomeViewProductModel()
