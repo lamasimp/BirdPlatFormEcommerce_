@@ -1,7 +1,6 @@
 ﻿
 using Azure.Core;
 using BirdPlatFormEcommerce.Etities;
-using BirdPlatFormEcommerce.FileService;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Product;
 using Microsoft.AspNetCore.Http;
@@ -23,17 +22,16 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IHomeViewProductService _homeViewProductService;
         private readonly IManageProductService _manageProductService;
         private readonly IWebHostEnvironment _enviroment;
-        private readonly IStorageService _storageService;
-
+      
 
         public ProductsController(SwpContext context, IHomeViewProductService homeViewProductService, IManageProductService manageProductService,
-            IWebHostEnvironment environment, IStorageService storageService)
+            IWebHostEnvironment environment)
         {
             _context = context;
             _homeViewProductService = homeViewProductService;
             _manageProductService = manageProductService;
             _enviroment = environment;
-            _storageService = storageService;
+         
         }
 
         [HttpGet("BestSeller_Product")]
