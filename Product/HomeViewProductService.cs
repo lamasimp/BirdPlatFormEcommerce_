@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using BirdPlatFormEcommerce.Etities;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -48,7 +49,7 @@ namespace BirdPlatFormEcommerce.Product
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId
                         orderby p.Rate descending, p.QuantitySold descending
-                        where p.DiscountPercent >0
+                        where p.DiscountPercent >0 && img.Caption == "Thumbnail"
                         select new { p, c ,img};
 
             var data = await query.Select(x => new HomeViewProductModel()

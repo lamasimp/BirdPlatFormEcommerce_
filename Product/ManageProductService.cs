@@ -1,5 +1,5 @@
 ﻿
-using BirdPlatFormEcommerce.FileService;
+
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Net.Http.Headers;
 using System.Security.AccessControl;
@@ -18,15 +18,15 @@ namespace BirdPlatFormEcommerce.Product
     public class ManageProductService : IManageProductService
     {
         private readonly SwpContext _context;
-        private readonly IStorageService _storageService;
+
         private readonly string datajson;
         private const string USER_CONTENT_FOLDER_NAME = "user-content";
 
 
-        public ManageProductService(SwpContext context, IStorageService storageService)
+        public ManageProductService(SwpContext context)
         {
             _context = context;
-            _storageService = storageService;
+          
          
         }
 
@@ -45,7 +45,7 @@ namespace BirdPlatFormEcommerce.Product
                 };
             if(request.ImageFile != null)
             {
-                image.ImagePath = await this.SaveFile(request.ImageFile);
+      //          image.ImagePath = await this.SaveFile(request.ImageFile);
                 image.FileSize = request.ImageFile.Length;
             }
             //}
@@ -98,7 +98,7 @@ namespace BirdPlatFormEcommerce.Product
                         Caption = "Thumbnail image",
                         CreateDate = DateTime.Now,
                          FileSize = request.ThumbnailImage.Length,
-                         ImagePath = await this.SaveFile(request.ThumbnailImage),
+                     //    ImagePath = await this.SaveFile(request.ThumbnailImage),
                         IsDefault = true,
                         SortOrder =1
                     }
@@ -131,12 +131,12 @@ namespace BirdPlatFormEcommerce.Product
             throw new NotImplementedException();
         }
 
-        private async Task<string> SaveFile(IFormFile file)
-        {
-            var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim();
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
-            await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
-            return "/"+ USER_CONTENT_FOLDER_NAME + "/"+ fileName;
-        }
+        //private async Task<string> SaveFile(IFormFile file)
+        //{
+        //    var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim();
+        //    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
+        //    await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
+        //    return "/"+ USER_CONTENT_FOLDER_NAME + "/"+ fileName;
+        //}
     }
 }

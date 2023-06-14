@@ -1,6 +1,6 @@
 
 using BirdPlatFormEcommerce.Etities;
-using BirdPlatFormEcommerce.FileService;
+
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.TokenService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -33,7 +33,7 @@ namespace BirdPlatFormEcommerce
             builder.Services.AddScoped<ITokenBlacklistService, TokenBlackList>();
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
             builder.Services.AddScoped<IManageProductService, ManageProductService>();
-            builder.Services.AddScoped<IStorageService, FileStorageService>();
+       
             builder.Services.AddAuthentication(option =>
             {
                 option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
