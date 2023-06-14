@@ -72,11 +72,8 @@ namespace BirdPlatFormEcommerce.Product
         public async Task<DetailProductViewModel> GetProductById(int productId)
         {
             var product = await _context.TbProducts.FindAsync(productId);
-            var image = await _context.TbImages.Where(x=>x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
-            var shop = await (from s in _context.TbShops
-                              join p in _context.TbProducts on s.ShopId equals p.ShopId
-                              where p.ProductId == productId
-                              select s).FirstOrDefaultAsync();
+            var image = await _context.TbImages.Where(x=>x.ProductId == productId && x.IsDefault == true).Select(x=>x.ImagePath).ToArrayAsync();
+            
             var cate =  await (from c in _context.TbProductCategories 
                        join p in _context.TbProducts on c.CateId equals p.CateId
                        where p.ProductId == productId
@@ -94,14 +91,14 @@ namespace BirdPlatFormEcommerce.Product
                 Detail = product != null ? product.Detail : null,
                 Quantity = product.Quantity,
                 ShopId = product.ShopId,
-               ShopName = shop.ShopName,
-               UserId = shop.UserId,
+           
+             Rate = product.Rate,   
                 CateId = product.CateId,
                 CateName = cate.CateName,
                CreateDate = DateTime.Now,
                QuantitySold = product.QuantitySold,
-               ShopRate = shop.Rate,
-               ThumbnailImage = image !=null ? image.ImagePath : "no-image.jpg",
+
+                ThumbnailImage = image.Length > 0 ? image.ToList() : new List<string> { "no-image.jpg" },
 
 
             };
