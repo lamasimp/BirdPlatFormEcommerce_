@@ -9,7 +9,7 @@ using System.IO;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Data.SqlClient;
 using System;
-using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.Entity;
 using Azure.Core;
 using Newtonsoft.Json;
 

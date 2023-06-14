@@ -1,6 +1,6 @@
 ﻿
 using Azure.Core;
-using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.Entity;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Product;
 using Microsoft.AspNetCore.Http;
