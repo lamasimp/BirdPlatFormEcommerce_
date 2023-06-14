@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BirdPlatFormEcommerce.Etities;
+namespace BirdPlatFormEcommerce.Entity;
 
 public partial class TbUser
 {
@@ -29,7 +29,7 @@ public partial class TbUser
 
     public string? Address { get; set; }
 
-    public int? ShopId { get; set; }
+    public bool? IsShop { get; set; }
 
     public virtual TbRole Role { get; set; } = null!;
 
@@ -41,7 +41,7 @@ public partial class TbUser
 
     public virtual ICollection<TbPayment> TbPayments { get; set; } = new List<TbPayment>();
 
-    public virtual TbShop? TbShop { get; set; }
+    public virtual ICollection<TbShop> TbShops { get; set; } = new List<TbShop>();
 
     public virtual ICollection<TbToken> TbTokens { get; set; } = new List<TbToken>();
 

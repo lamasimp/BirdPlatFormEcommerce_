@@ -1,6 +1,6 @@
 ﻿
 
-using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.Entity;
 
 namespace BirdPlatFormEcommerce.Product
 {

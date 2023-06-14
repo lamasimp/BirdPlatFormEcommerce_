@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Entity\" />
     <Folder Include="wwwroot\user-content\" />
   </ItemGroup>
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BirdPlatFormEcommerce.Etities;
+namespace BirdPlatFormEcommerce.Entity;
 
 public partial class TbRole
 {

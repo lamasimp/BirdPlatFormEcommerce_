@@ -1,5 +1,5 @@
 ﻿using Azure.Core;
-using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using static System.Net.Mime.MediaTypeNames;

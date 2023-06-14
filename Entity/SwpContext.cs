@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace BirdPlatFormEcommerce.Etities;
+namespace BirdPlatFormEcommerce.Entity;
 
 public partial class SwpContext : DbContext
 {
@@ -47,7 +47,7 @@ public partial class SwpContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=ADMIN-PC\\SQLEXPRESS;Initial Catalog=BirdTradingPlat;Integrated Security=True;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=ADMIN-PC\\;Initial Catalog=swp;Integrated Security=True;TrustServerCertificate =True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -279,9 +279,7 @@ public partial class SwpContext : DbContext
 
             entity.ToTable("tb_Shop");
 
-            entity.Property(e => e.ShopId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("ShopID");
+            entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
             entity.Property(e => e.Description).HasColumnType("ntext");
             entity.Property(e => e.IsVerified).HasColumnName("Is_verified");
@@ -290,10 +288,9 @@ public partial class SwpContext : DbContext
             entity.Property(e => e.Address).HasColumnType("ntext");
             entity.Property(e => e.Phone).HasColumnType("ntext");
 
-            entity.HasOne(d => d.Shop).WithOne(p => p.TbShop)
-                .HasForeignKey<TbShop>(d => d.ShopId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_tb_Shop_tb_User");
+            entity.HasOne(d => d.User).WithMany(p => p.TbShops)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_tb_Shop_tb_User1");
         });
 
         modelBuilder.Entity<TbToken>(entity =>
@@ -326,6 +323,7 @@ public partial class SwpContext : DbContext
             entity.Property(e => e.Dob).HasColumnType("datetime");
             entity.Property(e => e.Email).HasMaxLength(50);
             entity.Property(e => e.Gender).HasMaxLength(50);
+            entity.Property(e => e.IsShop).HasColumnName("isShop");
             entity.Property(e => e.Name).HasMaxLength(250);
             entity.Property(e => e.Password)
                 .HasMaxLength(100)
@@ -336,7 +334,6 @@ public partial class SwpContext : DbContext
             entity.Property(e => e.RoleId)
                 .HasMaxLength(50)
                 .HasColumnName("RoleID");
-            entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.UpdateDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Role).WithMany(p => p.TbUsers)

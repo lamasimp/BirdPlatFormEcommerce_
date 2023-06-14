@@ -1,5 +1,6 @@
 ﻿
-using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.Entity;
+
 using BirdPlatFormEcommerce.Product;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

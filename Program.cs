@@ -1,5 +1,5 @@
 
-using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.Entity;
 using BirdPlatFormEcommerce.FileService;
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.TokenService;

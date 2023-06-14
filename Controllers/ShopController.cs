@@ -1,8 +1,13 @@
 ﻿using BirdPlatForm.UserRespon;
-using BirdPlatFormEcommerce.Etities;
+using BirdPlatFormEcommerce.Entity;
+
+using BirdPlatFormEcommerce.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace BirdPlatFormEcommerce.Controllers
@@ -12,129 +17,69 @@ namespace BirdPlatFormEcommerce.Controllers
     public class ShopController : ControllerBase
     {
         private readonly SwpContext _context;
+        
 
         public ShopController(SwpContext swp)
         {
             _context = swp;
-
+            
         }
-        //[HttpPost("registerShop")]
-        //public async Task<IActionResult> RegisterShop(int userID,string shopName)
-        //{
-        // var account = await _context.TbUsers.FirstOrDefaultAsync(a => a.UserId == userID);
-        //    if(account == null)
-        //    {
-        //        return Ok(new ErrorRespon
-        //        {
-        //            Error = true,
-        //            Message = "Userid Have to shop"
-        //        }) ;
-        //    }
-        //    var isShop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userID);
-        //    if(isShop != null)
-        //    {
-        //        return Ok(new ErrorRespon
-        //        {
-        //            Error = false,
-        //            Message ="UserId have to shop"
-        //        });
-        //    }
-        //    var shop = new TbShop
-        //    {
-        //        ShopName = shopName,
-        //        UserId = account.UserId
-        //    };
-        //    await _context.TbShops.AddAsync(shop);
-        //    await _context.SaveChangesAsync();
-        //    int shopid = shop.ShopId;
-        //    var accountUser = await _context.TbUsers.FirstOrDefaultAsync(u => u.UserId == userID);
-        //    if(accountUser != null)
-        //    {
-        //        accountUser.ShopId = shopid;
-        //        await _context.SaveChangesAsync();
-        //    }
-
-
-        //    return Ok(new ErrorRespon
-        //    {
-        //        Message = "Register shop Success"
-        //    });
-        //}
         [HttpPost("registerShop")]
-        public async Task<IActionResult> RegisterShop(string shopName,string address,string phone)
+        
+        public async Task<IActionResult> RegisterShop(ShopModel shopmodel)
         {
-            var userId = User.Identity.Name;
-            if (userId == null)
+            int userId = getuserIDfromtoken();
+            var isShop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (isShop != null)
             {
                 return Ok(new ErrorRespon
                 {
-                    Message = "User Not Login"
-                });
-            }
-            var user = await _context.TbShops.FirstOrDefaultAsync(u => u.UserId == userId);
-            if (user != null)
-            {
-                return Ok(new ErrorRespon
-                {
-                    Error = true,
-                    Message = "User already has a shop account"
+                    Error = false,
+                    Message = "UserId have to shop"
                 });
             }
             var shop = new TbShop
             {
+                ShopName = shopmodel.shopName,
+                Address = shopmodel.Address,
+                Phone = shopmodel.Phone,
+                
                 UserId = userId,
-                ShopName = shopName,
-                Address = address,
-                Phone = phone
+
             };
-            await _context.TbShops.AddAsync(shop);
+             _context.TbShops.Add(shop);
             await _context.SaveChangesAsync();
-            int shopId = shop.ShopId;
-
-
-            var accountUser = await _context.TbUsers.FirstOrDefaultAsync(s => s.UserId == userId);
-            if (accountUser != null)
+            var user = await _context.TbUsers.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (user != null)
             {
-                accountUser.ShopId = shopId;
+                user.IsShop = true; // hoặc user.IsShop = 1; tùy theo kiểu dữ liệu
                 await _context.SaveChangesAsync();
-
-
             }
             return Ok(new ErrorRespon
-            {
-                Error = false,
-                Message = "Shop account registered successfully "
+            {   
+
+                Message = "Register shop Success"
+                
             });
         }
 
-        private int GetLoggedInUserId()
+        private int getuserIDfromtoken()
         {
-
-            if (!User.Identity.IsAuthenticated)
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (authHeader != null && authHeader.StartsWith("Bearer "))
             {
-
-                return -1;
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadJwtToken(token);               
+                var accountIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "UserId");
+                if (accountIdClaim != null && int.TryParse(accountIdClaim.Value, out int UserId))
+                {
+                    return UserId;
+                }
             }
-
-
-            string userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-
-            if (string.IsNullOrEmpty(userIdClaim))
-            {
-
-                return -1;
-            }
-
-
-            if (!int.TryParse(userIdClaim, out int userId))
-            {
-
-                return -1;
-            }
-
-
-            return userId;
+            throw new InvalidOperationException("Invalid token or missing accountId claim.");
         }
+
+        
     }
 }
