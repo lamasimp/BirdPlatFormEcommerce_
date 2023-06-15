@@ -32,6 +32,6 @@ namespace BirdPlatFormEcommerce.Product
         //  public int? UserId { get; set; }
 
         public int? Rate { get; set; }
-        public List<string> ThumbnailImage { get; set; }
+        public List<string> Images { get; set; }
     }
 }
