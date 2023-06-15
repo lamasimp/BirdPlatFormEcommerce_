@@ -34,13 +34,7 @@ namespace BirdPlatFormEcommerce.Controllers
          
         }
 
-        [HttpGet("BestSeller_Product")]
-        public async Task<IActionResult> GetByQuantitySold()
-        {
-            var product = await _homeViewProductService.GetAllByQuantitySold();
-            return Ok(product);
-        }
-
+      
         [HttpGet("Hot_Product")]
         public async Task<IActionResult> GetProductByRateAndQuantitySold()
         {
@@ -80,6 +74,18 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(product);
         }
 
+        [HttpGet("Shop_Detail_Product")]
+        public async Task<IActionResult> GetShopById(int id)
+        {
+            var shop = await _homeViewProductService.GetShopById(id);
+            if (shop == null)
+
+                return BadRequest("cannot find product");
+
+            return Ok(shop);
+        }
+
+
         [HttpPost]
         [Route("Add_Product")]
         public async Task<IActionResult> AddProduct([FromForm] CreateProductViewModel request)
@@ -116,13 +122,11 @@ namespace BirdPlatFormEcommerce.Controllers
                     SortOrder = request.SortOrder,
                     ProductId = productId,
 
-                    ImagePath = GetImagePath(productId),
+                    ImagePath = GetImageProductPath(productId),
 
-
-
-                };
-                string Filepath = GetFilePath(productId);
-                if (!System.IO.File.Exists(Filepath))
+                };  
+                string Filepath = GetFileProductPath(productId);
+                if (!System.IO.Directory.Exists(Filepath))
                 {
                     System.IO.Directory.CreateDirectory(Filepath);
                 }
@@ -159,7 +163,7 @@ namespace BirdPlatFormEcommerce.Controllers
             try
             {
 
-                string Filepath = GetFilePath(productId);
+                string Filepath = GetFileProductPath(productId);
                 if(!Directory.Exists(Filepath))
                 {
                     Directory.CreateDirectory(Filepath);
@@ -176,7 +180,7 @@ namespace BirdPlatFormEcommerce.Controllers
                         SortOrder = request.SortOrder,
                         ProductId = productId,
 
-                        ImagePath = GetImagePath(productId),
+                        ImagePath = GetImageProductPath(productId),
 
 
 
@@ -212,18 +216,18 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("Image_ProductID")]
         public async Task<IActionResult> GetImageById(int productId)
         {
-            var image = await _context.TbImages.FindAsync(productId);
+         //   var image = await _context.TbImages.FindAsync(productId);
             var tb_image = await _context.TbImages.Where(x => x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
 
-            if (image == null)
-
-                throw new Exception("can not find an image with id");
+      //      if (image == null)
+      
+      //          throw new Exception("can not find an image with id");
 
             string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
             try
             {
 
-                string Filepath = GetFilePath(productId);
+                string Filepath = GetFileProductPath(productId);
                 string imageUrl = Path.Combine(Filepath, productId + ".png");
                 if (System.IO.File.Exists(imageUrl))
                 {
@@ -231,10 +235,10 @@ namespace BirdPlatFormEcommerce.Controllers
                     {
                         ImageId = tb_image.Id,
                         ProductId = productId,
-                        FileSize = image.FileSize,
-                        IsDefault = image.IsDefault,
-                        SortOrder = image.SortOrder,
-                        ImagePath = hosturl + "/user-content/" + productId + "/" + productId + ".png"
+                        FileSize = tb_image.FileSize,
+                        IsDefault = tb_image.IsDefault,
+                        SortOrder = tb_image.SortOrder,
+                        ImagePath = hosturl + "/user-content/product/" + productId + "/" + productId + ".png"
 
                     };
                     return Ok(productImageVM);
@@ -256,15 +260,13 @@ namespace BirdPlatFormEcommerce.Controllers
         public async Task<IActionResult> GetListImageById(int productId)
         {
             List<string> Imageurl = new List<string>();
-            //        var image = await _context.TbImages.FindAsync(productId);
-            //         var tb_image = await _context.TbImages.Where(x => x.ProductId == productId && x.IsDefault == true).FirstOrDefaultAsync();
             string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
 
 
             try
             {
 
-                string Filepath = GetFilePath(productId);
+                string Filepath = GetFileProductPath(productId);
 
                 if (System.IO.Directory.Exists(Filepath))
                 {
@@ -276,7 +278,7 @@ namespace BirdPlatFormEcommerce.Controllers
                         string imagepath = Filepath + "\\" + filename;
                         if (System.IO.File.Exists(imagepath))
                         {
-                            string _Imageurl = hosturl + "/user-content/" + productId + "/" + filename;
+                            string _Imageurl = hosturl + "/user-content/product/" + productId + "/" + filename;
                             Imageurl.Add(_Imageurl);
                         }
                     }
@@ -287,42 +289,136 @@ namespace BirdPlatFormEcommerce.Controllers
 
             }
             return Ok(Imageurl);
-            //            var productImageVM = new ProductImageVM()
-            //            {
-            //                ImageId = tb_image.Id,
-            //                ProductId = productId,
-            //                FileSize = image.FileSize,
-            //                IsDefault = image.IsDefault,
-            //                SortOrder = image.SortOrder,
-            //                ImagePath = hosturl + "/user-content/" + productId + "/" + productId + ".png"
-
-            //            };
-            //            return Ok(productImageVM);
-            //        }
-
-
-
-            //    }
-            //    catch (Exception ex)
-            //    {
-
-            //    }
-            //    return NotFound();
-
-
-            //}
+         
         }
-        private string GetFilePath(int productId)
+       
+
+        [HttpPut]
+        [Route("Add_User_Image")]
+
+        public async Task<IActionResult> AddUserImage([FromForm] CreateAvatarUserVm request, int userId)
         {
-            return this._enviroment.WebRootPath + "\\user-content\\" + productId.ToString();
+            APIResponse response = new APIResponse();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                
+
+                    
+                     
+
+                
+                string Filepath = GetFileUserPath(userId);
+                if (!System.IO.Directory.Exists(Filepath))
+                {
+                    System.IO.Directory.CreateDirectory(Filepath);
+                }
+
+                string imagepath = Path.Combine(Filepath, userId + ".png");
+                if (System.IO.File.Exists(imagepath))
+                {
+                    System.IO.File.Delete(imagepath);
+                }
+                using (FileStream stream = System.IO.File.Create(imagepath))
+                {
+                    await request.Avatar.CopyToAsync(stream);
+                    response.ResponseCode = 200;
+                    response.Result = "pass";
+
+                }
+                var user = await _context.TbUsers.FindAsync(userId);
+                if(user != null)
+                {
+                    user.Avatar = imagepath;
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    response.Errormessage = "User not found.";
+                    return NotFound(response);
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                response.Errormessage = ex.Message;
+
+            }
+            return Ok(response);
         }
 
-        private string GetImagePath(int productId)
+
+        [HttpGet("Image_UserID")]
+        public async Task<IActionResult> GetImageByUserId(int userId)
+        {
+            //   var image = await _context.TbImages.FindAsync(productId);
+            var tb_User = await _context.TbUsers.Where(x => x.UserId == userId).FirstOrDefaultAsync();
+            var shop = await _context.TbShops.Where(x => x.UserId == userId).FirstOrDefaultAsync();
+            //      if (image == null)
+
+            //          throw new Exception("can not find an image with id");
+
+            string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            try
+            {
+
+                string Filepath = GetFileUserPath(userId);
+                string imageUrl = Path.Combine(Filepath, userId + ".png");
+                if (System.IO.File.Exists(imageUrl))
+                {
+                    var DetailShop = new DetailShopViewProduct()
+                    {
+                        
+                        ShopId = shop.ShopId,
+                        ShopName = shop.ShopName,
+                        Avatar = hosturl + "/user-content/user/" + userId + "/" + userId + ".png"
+
+                    };
+                    return Ok(DetailShop);
+                }
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return NotFound();
+
+
+        }
+
+        private string GetFileProductPath(int productId)
+        {
+            return this._enviroment.WebRootPath + "\\user-content\\product\\" + productId.ToString();
+        }
+
+
+        private string GetImageProductPath(int productId)
         {
             string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
-            return hosturl + "/user-content/" + productId + "/" + productId + ".png";
+            return hosturl + "/user-content/product/" + productId + "/" + productId + ".png";
+        
         }
 
+        private string GetImageUserPath(int userId)
+        {
+            string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            return hosturl + "/user-content/user/" + userId + "/" + userId + ".png";
+
+        }
+
+        private string GetFileUserPath(int userId)
+        {
+            return this._enviroment.WebRootPath + "\\user-content\\user\\" + userId.ToString();
+        }
     }
+    
+
 }
 

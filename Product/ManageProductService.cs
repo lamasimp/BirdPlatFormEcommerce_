@@ -19,8 +19,7 @@ namespace BirdPlatFormEcommerce.Product
     {
         private readonly SwpContext _context;
 
-        private readonly string datajson;
-        private const string USER_CONTENT_FOLDER_NAME = "user-content";
+      
 
 
         public ManageProductService(SwpContext context)
@@ -58,7 +57,7 @@ namespace BirdPlatFormEcommerce.Product
         public async Task<int> Create(CreateProductViewModel request)
         {
 
-      //   var product = JsonConvert.DeserializeObject<TbProduct>(datajson);
+    
             var tbShops = new List<TbShop>();
             tbShops.Add(new TbShop()
             {
@@ -67,8 +66,7 @@ namespace BirdPlatFormEcommerce.Product
                 ShopName = request.ShopName,
                 CreateDate = DateTime.Now
             });
-            //var findP = _context.TbProducts.Find(request.ProductId);
-            //if (findP != null) throw new Exception("Product has existed!!");
+            
             
             var product = new TbProduct()
             {
@@ -85,28 +83,6 @@ namespace BirdPlatFormEcommerce.Product
 
                 CateId = request.CateId
             };
-
-;
-          
-            //Save image
-            if (request.ThumbnailImage != null)
-            {
-                product.TbImages = new List<TbImage>()
-                {
-                    new TbImage()
-                    {
-                        Caption = "Thumbnail image",
-                        CreateDate = DateTime.Now,
-                         FileSize = request.ThumbnailImage.Length,
-                     //    ImagePath = await this.SaveFile(request.ThumbnailImage),
-                        IsDefault = true,
-                        SortOrder =1
-                    }
-                };
-            }
-
-         
-          
 
             
             _context.TbProducts.Add(product);
@@ -131,12 +107,6 @@ namespace BirdPlatFormEcommerce.Product
             throw new NotImplementedException();
         }
 
-        //private async Task<string> SaveFile(IFormFile file)
-        //{
-        //    var originalFileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim();
-        //    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(originalFileName)}";
-        //    await _storageService.SaveFileAsync(file.OpenReadStream(), fileName);
-        //    return "/"+ USER_CONTENT_FOLDER_NAME + "/"+ fileName;
-        //}
+        
     }
 }

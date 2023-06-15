@@ -29,7 +29,7 @@
 
         public DateTime? CreateDate { get; set; }
 
-        public IFormFile  ThumbnailImage { get; set; }
+       
 
 
        
