@@ -3,6 +3,8 @@ using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
 
 using BirdPlatFormEcommerce.Entity;
+using BirdPlatFormEcommerce.Helper;
+using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.TokenService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,11 +26,12 @@ namespace BirdPlatForm.Controllers
     {
         private readonly SwpContext _context;
         private readonly IConfiguration _config;
-
-        public UserController(SwpContext bird, IConfiguration config)
+        private readonly IWebHostEnvironment _enviroment;
+        public UserController(SwpContext bird, IConfiguration config, IWebHostEnvironment enviroment)
         {
             _context = bird;
             _config = config;
+            _enviroment = enviroment;
         }
         [HttpPost("Login")]
         public async Task<IActionResult> Login(UserView model)
@@ -165,6 +168,119 @@ namespace BirdPlatForm.Controllers
                 Message = "Success"
             });
         }
-       
+
+
+
+        [HttpPut]
+        [Route("Add_User_Image")]
+
+        public async Task<IActionResult> AddUserImage([FromForm] CreateAvatarUserVm request, int userId)
+        {
+            APIResponse response = new APIResponse();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+
+
+
+
+
+
+                string Filepath = GetFileUserPath(userId);
+                if (!System.IO.Directory.Exists(Filepath))
+                {
+                    System.IO.Directory.CreateDirectory(Filepath);
+                }
+
+                string imagepath = Path.Combine(Filepath, userId + ".png");
+                if (System.IO.File.Exists(imagepath))
+                {
+                    System.IO.File.Delete(imagepath);
+                }
+                using (FileStream stream = System.IO.File.Create(imagepath))
+                {
+                    await request.Avatar.CopyToAsync(stream);
+                    response.ResponseCode = 200;
+                    response.Result = "pass";
+
+                }
+                var user = await _context.TbUsers.FindAsync(userId);
+                if (user != null)
+                {
+                    user.Avatar = imagepath;
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    response.Errormessage = "User not found.";
+                    return NotFound(response);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                response.Errormessage = ex.Message;
+
+            }
+            return Ok(response);
+        }
+
+
+        [HttpGet("Image_UserID")]
+        public async Task<IActionResult> GetImageByUserId(int userId)
+        {
+            //   var image = await _context.TbImages.FindAsync(productId);
+            var tb_User = await _context.TbUsers.Where(x => x.UserId == userId).FirstOrDefaultAsync();
+            var shop = await _context.TbShops.Where(x => x.UserId == userId).FirstOrDefaultAsync();
+            //      if (image == null)
+
+            //          throw new Exception("can not find an image with id");
+
+            string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            try
+            {
+
+                string Filepath = GetFileUserPath(userId);
+                string imageUrl = Path.Combine(Filepath, userId + ".png");
+                if (System.IO.File.Exists(imageUrl))
+                {
+                    var DetailShop = new DetailShopViewProduct()
+                    {
+
+                        ShopId = shop.ShopId,
+                        ShopName = shop.ShopName,
+                        Avatar = hosturl + "/user-content/user/" + userId + "/" + userId + ".png"
+
+                    };
+                    return Ok(DetailShop);
+                }
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return NotFound();
+
+
+        }
+        private string GetImageUserPath(int userId)
+        {
+            string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            return hosturl + "/user-content/user/" + userId + "/" + userId + ".png";
+
+        }
+
+        private string GetFileUserPath(int userId)
+        {
+            return this._enviroment.WebRootPath + "\\user-content\\user\\" + userId.ToString();
+        }
+
     }
 }
