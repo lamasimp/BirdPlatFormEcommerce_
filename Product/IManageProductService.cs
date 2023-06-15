@@ -7,9 +7,9 @@ namespace BirdPlatFormEcommerce.Product
     public interface IManageProductService
     {
         Task<int> Create(CreateProductViewModel request);
-       
+        Task<int> Update(UpdateProductViewModel request);
         Task<int> AddImages(int productId, ProductImageCreateRequest request);
-
+        Task<int> Delete(int productId);
         Task<int> RemoveImages(int imageId);
 
         Task<int> UpdateImages(int imageId, string caption, bool isDefault);

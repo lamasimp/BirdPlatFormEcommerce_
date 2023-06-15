@@ -90,7 +90,14 @@ namespace BirdPlatFormEcommerce.Product
             return product.ProductId;
             }
 
-       
+        public async Task<int> Delete(int productId)
+        {
+            var product = await _context.TbProducts.FindAsync(productId);
+            if (product == null) throw new Exception("Can not find product.");
+            _context.TbProducts.Remove(product);
+           return await _context.SaveChangesAsync();
+            
+        }
 
         public Task<List<TbImage>> GetListImage(int productId)
         {
@@ -100,6 +107,22 @@ namespace BirdPlatFormEcommerce.Product
         public Task<int> RemoveImages(int imageId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<int> Update(UpdateProductViewModel request)
+        {
+            var product = await _context.TbProducts.FindAsync(request.ProductId);
+          
+            if (product == null) throw new Exception("Can not found.");
+            product.Name = request.Name;
+            product.Price = request.Price;
+            product.DiscountPercent = request.DiscountPercent;
+            product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / (100 * request.DiscountPercent)));
+            product.Status = request.Status;
+            product.Decription = request.Decription;
+            product.Detail = request.Detail;
+            return await _context.SaveChangesAsync();
+            
         }
 
         public Task<int> UpdateImages(int imageId, string caption, bool isDefault)
