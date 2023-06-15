@@ -140,10 +140,17 @@ namespace BirdPlatFormEcommerce.Product
             var shopId = await _context.TbShops.FindAsync(id);
             var tb_shop = await _context.TbShops.Where(x=>x.ShopId == id).FirstOrDefaultAsync();
             var user = await _context.TbUsers.Where(x=>x.IsShop == true).Select(x => x.Avatar).FirstOrDefaultAsync();
+            var totalProduct = await _context.TbProducts.CountAsync(p => p.ShopId == id);
+
             var detailShop = new DetailShopViewProduct()
             {
+
                 ShopId = id,
                 ShopName = tb_shop.ShopName,
+                Rate= tb_shop.Rate,
+                CreateDate= tb_shop.CreateDate,
+                Address = tb_shop.Address,
+                TotalProduct= totalProduct,
                 Avatar = user != null ? user : "no-image.jpg",
 
 
