@@ -6,6 +6,7 @@ using BirdPlatFormEcommerce.Entity;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.TokenService;
+using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;

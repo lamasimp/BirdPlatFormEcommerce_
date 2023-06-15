@@ -1,4 +1,4 @@
-﻿namespace BirdPlatFormEcommerce.Product
+﻿namespace BirdPlatFormEcommerce.ViewModel
 {
     public class CreateAvatarUserVm
     {
