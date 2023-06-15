@@ -83,7 +83,8 @@ namespace BirdPlatForm.Controllers
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim("Email", user.Email),
-                    new Claim(ClaimTypes.Role, user.RoleId)
+                    new Claim(ClaimTypes.Role, user.RoleId),
+                    new Claim("IsShop", user.IsShop.ToString())
 
 
                 }),
