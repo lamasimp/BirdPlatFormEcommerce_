@@ -87,6 +87,8 @@ namespace BirdPlatForm.Controllers
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim("Email", user.Email),
+                    new Claim("Gender", user.Gender.ToString()),
+                    new Claim("Username", user.Name.ToString()),
                     new Claim(ClaimTypes.Role, user.RoleId)
 
 
@@ -282,6 +284,48 @@ namespace BirdPlatForm.Controllers
         {
             return this._enviroment.WebRootPath + "\\user-content\\user\\" + userId.ToString();
         }
+        [HttpGet("Meee")]
+        public async Task<IActionResult> GetMyyy()
+        {
 
+            var userClaim = User.Claims.FirstOrDefault(x => x.Type == "Username");
+            var emailClaim = User.Claims.FirstOrDefault(z => z.Type == "Email");
+            var genderClaim = User.Claims.FirstOrDefault(g => g.Type == "Gender");
+
+            if (userClaim == null || emailClaim == null)
+            {
+                return Ok(new ErrorRespon
+                {
+                    Message = "Token invalid"
+                });
+            }
+
+            string username = userClaim.Value;
+            string email = emailClaim.Value;
+            string gender = genderClaim.Value;
+
+
+            var account = getAccount(email);
+            return Ok(account);
+
+        }
+        private async Task<ViewAccount> getAccount(string Email)
+        {
+            var user = _context.TbUsers.FirstOrDefault(x => x.Email == Email);
+            if (user == null)
+            {
+                return null;
+            }
+            var accountModel = new ViewAccount
+            {
+                Email = user.Email,
+                userName = user.Name,
+                Gender = user.Gender
+
+
+            };
+
+            return accountModel;
+        }
     }
 }
