@@ -1,6 +1,6 @@
 ﻿using BirdPlatForm.UserRespon;
 using BirdPlatFormEcommerce.Entity;
-
+using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -52,6 +54,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var user = await _context.TbUsers.FirstOrDefaultAsync(u => u.UserId == userId);
             if (user != null)
             {
+                user.RoleId = "SP";
                 user.IsShop = true; 
                 await _context.SaveChangesAsync();
             }
@@ -103,7 +106,44 @@ namespace BirdPlatFormEcommerce.Controllers
             };
             return Ok(isshop);
         }
-        
+        [HttpGet("getproductshop")]
+        public async Task<List<HomeViewProductModel>> getProductShop()
+        {
+            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdclaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdclaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+            var query = from p in _context.TbProducts
+                        join c in _context.TbProductCategories on p.CateId equals c.CateId
+                        join img in _context.TbImages on p.ProductId equals img.ProductId
+                        where p.ShopId == shopid && img.Caption == "Thumbnail"
+                        select new { p, c, img };
+
+            var data = await query.Select(x => new HomeViewProductModel()
+            {
+                ProductId = x.p.ProductId,
+                ProductName = x.p.Name,
+                CateName = x.c.CateName,
+                Status = x.p.Status,
+                Price = x.p.Price,
+                DiscountPercent = x.p.DiscountPercent,
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
+                QuantitySold = x.p.QuantitySold,
+                Rate = x.p.Rate,
+                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
+            }).ToListAsync();
+
+            return data;
+        }
+
 
 
 
