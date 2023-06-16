@@ -79,6 +79,32 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             throw new InvalidOperationException("Invalid token or missing accountId claim.");
         }
+        [HttpGet]
+        public async Task<IActionResult> getMyshop()
+        {
+            var myshop = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if(myshop == null)
+            {
+                return NotFound();
+            }
+            int userid = int.Parse(myshop.Value);
+            var shop = _context.TbShops.FirstOrDefault(x => x.UserId == userid);
+            if(shop == null)
+            {
+                return NotFound();
+            }
+            var isshop = new ViewShop
+            {
+                Rate = (int)shop.Rate,
+                shopName = shop.ShopName,
+                Address = shop.Address,
+                phone = shop.Phone,
+                
+            };
+            return Ok(isshop);
+        }
+        
+
 
 
     }
