@@ -186,10 +186,6 @@ namespace BirdPlatForm.Controllers
             {
 
 
-
-
-
-
                 string Filepath = GetFileUserPath(userId);
                 if (!System.IO.Directory.Exists(Filepath))
                 {
@@ -211,9 +207,12 @@ namespace BirdPlatForm.Controllers
                 var user = await _context.TbUsers.FindAsync(userId);
                 if (user != null)
                 {
-                    user.Avatar = imagepath;
+                    string avatarPath = GetImageUserPath(userId);
+
+                    user.Avatar = avatarPath;
                     _context.Update(user);
                     await _context.SaveChangesAsync();
+                    response.Result = avatarPath;
                 }
                 else
                 {
@@ -271,6 +270,7 @@ namespace BirdPlatForm.Controllers
 
 
         }
+
         private string GetImageUserPath(int userId)
         {
             string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
