@@ -4,6 +4,7 @@ using BirdPlatForm.ViewModel;
 
 using BirdPlatFormEcommerce.Entity;
 using BirdPlatFormEcommerce.TokenService;
+using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -32,9 +33,9 @@ namespace BirdPlatForm.Controllers
         }
         [HttpPost("Login")]
         public async Task<IActionResult> Login(UserView model)
-        
+
         {
-            var user =  _context.TbUsers.Include(x => x.Role).SingleOrDefault(o => o.Email == model.Email && model.Password == o.Password);
+            var user = _context.TbUsers.Include(x => x.Role).SingleOrDefault(o => o.Email == model.Email && model.Password == o.Password);
             if (user == null) return Ok(new ErrorRespon
             {
                 Error = false,
@@ -79,11 +80,14 @@ namespace BirdPlatForm.Controllers
                 Subject = new ClaimsIdentity(new[] {
                     new Claim(ClaimTypes.Name, user.Name),
                     new Claim("UserId", user.UserId.ToString()),
+                    new Claim("Username", user.Name.ToString()),
                     new Claim(JwtRegisteredClaimNames.Email, user.Email),
                     new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim("Email", user.Email),
-                    new Claim(ClaimTypes.Role, user.RoleId)
+                    
+                    new Claim(ClaimTypes.Role, user.RoleId),
+                    
 
 
                 }),
@@ -100,7 +104,7 @@ namespace BirdPlatForm.Controllers
             return new TokenRespon
             {
                 AccessToken = accessToken,
-            } ;
+            };
             ////var refreshToken = GenerateRefreshToken();
 
             ////Lưu database  
@@ -137,24 +141,24 @@ namespace BirdPlatForm.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<TbUser>> Register(RegisterModel register)
         {
-            var regis =  _context.TbUsers.FirstOrDefault(o => o.Email == register.Email);
-            if(regis != null)
+            var regis = _context.TbUsers.FirstOrDefault(o => o.Email == register.Email);
+            if (regis != null)
             {
                 return Ok(new ErrorRespon
                 {
                     Error = false,
-                    Message ="Fail"
+                    Message = "Fail"
                 });
             }
             var user = new TbUser
             {
-                
+
                 Gender = register.Gender,
                 Email = register.Email,
                 Name = register.Name,
                 Password = register.Password,
                 RoleId = register.RoleId,
-               
+
 
             };
             await _context.TbUsers.AddAsync(user);
@@ -165,6 +169,49 @@ namespace BirdPlatForm.Controllers
                 Message = "Success"
             });
         }
-       
+        [HttpGet("Meee")]
+        public async Task<IActionResult> GetMyyy()
+        {
+            
+            var userClaim = User.Claims.FirstOrDefault(x => x.Type == "Username");
+            var emailClaim = User.Claims.FirstOrDefault(z => z.Type == "Email");
+          
+
+            if (userClaim == null || emailClaim == null) {
+                return Ok(new ErrorRespon
+                {
+                    Message = "Token invalid"
+                });
+            }
+            
+            string username = userClaim.Value;
+            string email = emailClaim.Value;
+            
+
+
+            var account = getAccount(email);
+            return Ok(account);
+
+        }
+        private async  Task<ViewAccount> getAccount(string Email)
+        {
+            var user = _context.TbUsers.FirstOrDefault(x =>x.Email == Email);
+            if (user == null)
+            {
+                return null;
+            }
+            var accountModel = new ViewAccount
+            {
+                Email = user.Email,
+                userName = user.Name,
+                
+              
+
+        };
+
+                return accountModel;
+         }      
+            
     }
+    
 }
