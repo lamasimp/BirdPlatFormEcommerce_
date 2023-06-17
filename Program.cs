@@ -1,12 +1,17 @@
 
 using BirdPlatFormEcommerce.Entity;
-
+using BirdPlatFormEcommerce.Helper;
+using BirdPlatFormEcommerce.Helper.Mail;
+using BirdPlatFormEcommerce.Order;
+using BirdPlatFormEcommerce.Payment;
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.TokenService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace BirdPlatFormEcommerce
 {
@@ -26,14 +31,27 @@ namespace BirdPlatFormEcommerce
             {
                 build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
             }));
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddScoped<ITokenBlacklistService, TokenBlackList>();
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
             builder.Services.AddScoped<IManageProductService, ManageProductService>();
-       
+            builder.Services.AddAutoMapper(typeof(Mappings).Assembly);
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IMailService, MailService>();
+
+            // HttpContext
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            // VnPay method
+            builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+
             builder.Services.AddAuthentication(option =>
             {
                 option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -51,8 +69,11 @@ namespace BirdPlatFormEcommerce
                     ValidIssuer = builder.Configuration["JWT:Issuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
                 };
-
             });
+
+            // Automapper
+
+
             var app = builder.Build();
             app.UseStaticFiles();
             // Configure the HTTP request pipeline.
