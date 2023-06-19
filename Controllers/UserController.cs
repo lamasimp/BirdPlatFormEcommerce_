@@ -236,7 +236,7 @@ namespace BirdPlatForm.Controllers
         }
 
 
-        [HttpGet("Image_UserID")]
+        [HttpGet("Image_ShopID")]
         public async Task<IActionResult> GetImageByUserId(int userId)
         {
             //   var image = await _context.TbImages.FindAsync(productId);
