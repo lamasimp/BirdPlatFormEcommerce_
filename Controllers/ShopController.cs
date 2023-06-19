@@ -11,6 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using MimeKit.Cryptography;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -19,12 +20,13 @@ namespace BirdPlatFormEcommerce.Controllers
     public class ShopController : ControllerBase
     {
         private readonly SwpContext _context;
+        private readonly IManageProductService _manageProductService;
+        
 
-
-        public ShopController(SwpContext swp)
+        public ShopController(SwpContext swp, IManageProductService manageProductService)
         {
             _context = swp;
-
+            _manageProductService = manageProductService;
         }
         [HttpPost("registerShop")]
 
@@ -145,7 +147,51 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
+        [HttpPost]
+        [Route("Add_Product")]
+        public async Task<IActionResult> AddProduct( CreateProductViewModel request)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
 
+
+        
+
+            var product = new TbProduct()
+            {
+                Name = request.ProductName,
+
+                Price = request.Price,
+                DiscountPercent = request.DiscountPercent,
+                SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * request.DiscountPercent)),
+                Decription = request.Decription,
+                Detail = request.Detail,
+                //          CreateDate = request.CreateDate,
+                Quantity = request.Quantity,
+               ShopId = shopid,
+
+                CateId = request.CateId
+            };
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            _context.TbProducts.Add(product);
+            await _context.SaveChangesAsync();
+            return Ok(product);
+           
+        }
 
     }
 }

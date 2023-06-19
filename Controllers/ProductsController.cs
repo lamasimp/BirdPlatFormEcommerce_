@@ -86,17 +86,7 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
-        [HttpPost]
-        [Route("Add_Product")]
-        public async Task<IActionResult> AddProduct([FromForm] CreateProductViewModel request)
-        {
-
-            var productId = await _manageProductService.Create(request);
-            if (productId == 0)
-                return BadRequest();
-            var product = await _homeViewProductService.GetProductById(productId);
-            return CreatedAtAction(nameof(GetProductById), new { id = productId }, product);
-        }
+      
 
 
 

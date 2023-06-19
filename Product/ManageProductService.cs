@@ -12,6 +12,7 @@ using System;
 using BirdPlatFormEcommerce.Entity;
 using Azure.Core;
 using Newtonsoft.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace BirdPlatFormEcommerce.Product
 {
@@ -29,66 +30,77 @@ namespace BirdPlatFormEcommerce.Product
          
         }
 
-        public async Task<int> AddImages(int productId, ProductImageCreateRequest request)
-        {
-           var image = new TbImage()
-                {
+      //  public async Task<int> AddImages(int productId, ProductImageCreateRequest request)
+      //  {
+      //     var image = new TbImage()
+      //          {
                     
-                        Caption = "Image",
-                        CreateDate = DateTime.Now,
-                        IsDefault = request.IsDefault,
-                        SortOrder = request.SortOrder,
-                       ProductId = productId,
+      //                  Caption = "Image",
+      //                  CreateDate = DateTime.Now,
+      //                  IsDefault = request.IsDefault,
+      //                  SortOrder = request.SortOrder,
+      //                 ProductId = productId,
                         
                     
-                };
-            if(request.ImageFile != null)
-            {
-      //          image.ImagePath = await this.SaveFile(request.ImageFile);
-                image.FileSize = request.ImageFile.Length;
-            }
-            //}
-            _context.TbImages.Add(image);
-            await _context.SaveChangesAsync();
-            return image.ProductId;
+      //          };
+      //      if(request.ImageFile != null)
+      //      {
+      ////          image.ImagePath = await this.SaveFile(request.ImageFile);
+      //          image.FileSize = request.ImageFile.Length;
+      //      }
+      //      //}
+      //      _context.TbImages.Add(image);
+      //      await _context.SaveChangesAsync();
+      //      return image.ProductId;
 
-        }
+      //  }
 
-        public async Task<int> Create(CreateProductViewModel request)
-        {
+   //     public async Task<int> Create(CreateProductViewModel request)
+   //     {
 
-    
-            var tbShops = new List<TbShop>();
-            tbShops.Add(new TbShop()
-            {
+   //         var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+   //         if (userIdclaim == null)
+   //         {
+   //             throw new Exception("User not found");
+   //         }
+   //         int userid = int.Parse(userIdclaim.Value);
+   //         var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+   //         if (shop == null)
+   //         {
+   //             throw new Exception("Shop not found");
+   //         }
+   //         int shopid = shop.ShopId;
+   ////         var tbShops = new List<TbShop>();
+   // //        tbShops.Add(new TbShop()
+   //  //       {
 
-                UserId = request.UserId,
-                ShopName = request.ShopName,
-                CreateDate = DateTime.Now
-            });
+   //   //          UserId = request.UserId,
+   //  //           ShopName = request.ShopName,
+   //   //          CreateDate = DateTime.Now
+   //  //       });
             
             
-            var product = new TbProduct()
-            {
-                Name = request.ProductName,
+   //         var product = new TbProduct()
+   //         {
+   //             Name = request.ProductName,
 
-                Price = request.Price,
-                DiscountPercent = request.DiscountPercent,
-                SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * request.DiscountPercent)),
-                Decription = request.Decription,
-                Detail = request.Detail,
-
-                Quantity = request.Quantity,
-                ShopId = request.ShopId,
-
-                CateId = request.CateId
-            };
+   //             Price = request.Price,
+   //             DiscountPercent = request.DiscountPercent,
+   //             SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * request.DiscountPercent)),
+   //             Decription = request.Decription,
+   //             Detail = request.Detail,
+   //   //          CreateDate = request.CreateDate,
+   //             Quantity = request.Quantity,
+   //             ShopId = shopid,
+                
+   //             CateId = request.CateId
+   //         };
 
             
-            _context.TbProducts.Add(product);
-            await _context.SaveChangesAsync();
-            return product.ProductId;
-            }
+   //         _context.TbProducts.Add(product);
+   //         await _context.SaveChangesAsync();
+   //         return product.ProductId;
+   //         }
 
         public async Task<int> Delete(int productId)
         {
