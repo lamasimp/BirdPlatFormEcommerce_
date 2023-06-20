@@ -20,7 +20,7 @@ namespace BirdPlatFormEcommerce.Product
 
         public decimal? SoldPrice { get; set; }
         [Required(ErrorMessage = "Description is required")]
-        [MinLength(200, ErrorMessage ="Desciption must be at least 100 characters")]
+        [MinLength(100, ErrorMessage ="Desciption must be at least 100 characters")]
         public string? Decription { get; set; }
 
         [Required(ErrorMessage = "Detail is required")]

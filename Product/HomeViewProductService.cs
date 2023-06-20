@@ -24,7 +24,7 @@ namespace BirdPlatFormEcommerce.Product
                         join img in _context.TbImages on p.ProductId equals img.ProductId
                         orderby p.Rate descending, p.QuantitySold descending
                         where p.DiscountPercent >0 && img.Caption == "Thumbnail"
-                        select new { p, c ,img};
+                        select new { p, c ,img,s};
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
@@ -35,6 +35,7 @@ namespace BirdPlatFormEcommerce.Product
                 Price = x.p.Price,
                 DiscountPercent = x.p.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
+               ShopName= x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
@@ -88,7 +89,7 @@ namespace BirdPlatFormEcommerce.Product
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId
                         where p.ShopId.Equals(shopId) && img.Caption == "Thumbnail"
-                        select new { p, c,img };
+                        select new { p, c,img,s };
 
 
 
@@ -102,6 +103,7 @@ namespace BirdPlatFormEcommerce.Product
                 Price = x.p.Price,
                 DiscountPercent = x.p.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
+                ShopName = x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
@@ -116,7 +118,7 @@ namespace BirdPlatFormEcommerce.Product
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId
                         where img.Caption == "Thumbnail"
-                        select new { p, c ,img};
+                        select new { p, c ,img,s};
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
@@ -127,6 +129,7 @@ namespace BirdPlatFormEcommerce.Product
                 Price = x.p.Price,
                 DiscountPercent = x.p.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
+                ShopName = x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
