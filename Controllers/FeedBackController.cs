@@ -38,12 +38,16 @@ namespace BirdPlatForm.Controllers
             var tbfeedback = new TbFeedback
             {
                 ProductId = feedback.ProductId,
-                
+                UserId = userid,
                 Rate = feedback.Rate,
                 Detail = feedback.Detail
             };
             _context.TbFeedbacks.Add(tbfeedback);
             await _context.SaveChangesAsync();
+
+            
+
+
             return Ok("success");
             
         }
@@ -52,6 +56,17 @@ namespace BirdPlatForm.Controllers
         {
             var feedback = _context.TbFeedbacks.ToList();
             return Ok(feedback);
+        }
+        [HttpGet("Rate/Product")]
+        public async Task<IActionResult> GetProductAverageRates(int productID)
+        {
+            try {
+                double argRate =(double) await _context.TbFeedbacks.Where(p => p.ProductId == productID).AverageAsync(x => x.Rate);
+                double roundRate = Math.Round(argRate, 1);
+            return Ok(roundRate);
+            } catch(Exception ex ) {
+               return StatusCode(500, ex.Message);
+            }
         }
     }
 }
