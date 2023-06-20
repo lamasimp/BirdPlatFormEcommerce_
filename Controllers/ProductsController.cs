@@ -283,40 +283,8 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
-        [HttpPut("Update_Product")]
-        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductViewModel request)
-        {
-
-           if(!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-           var result = await _manageProductService.Update(request);
-            if(result== 0)
-            
-                return BadRequest();
-            
-            return Ok(result);
-            
-        }
-
-        [HttpDelete("Delete_Product")]
-        public async Task<IActionResult> DeleteProduct(int productId)
-        {
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-            var result = await _manageProductService.Delete(productId);
-            if (result == 0)
-
-                return BadRequest();
-
-            return Ok(result);
-
-        }
-
+     
+   
         private string GetFileProductPath(int productId)
         {
             return this._enviroment.WebRootPath + "\\user-content\\product\\" + productId.ToString();
