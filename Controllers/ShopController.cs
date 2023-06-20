@@ -11,6 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using MimeKit.Cryptography;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -19,12 +20,13 @@ namespace BirdPlatFormEcommerce.Controllers
     public class ShopController : ControllerBase
     {
         private readonly SwpContext _context;
+        private readonly IManageProductService _manageProductService;
+        
 
-
-        public ShopController(SwpContext swp)
+        public ShopController(SwpContext swp, IManageProductService manageProductService)
         {
             _context = swp;
-
+            _manageProductService = manageProductService;
         }
         [HttpPost("registerShop")]
 
@@ -145,7 +147,112 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
+        [HttpPost]
+        [Route("Add_Product")]
+        public async Task<IActionResult> AddProduct( CreateProductViewModel request)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
 
+            var product = new TbProduct()
+            {
+                Name = request.ProductName,
+
+                Price = request.Price,
+                DiscountPercent = request.DiscountPercent,
+                SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * request.DiscountPercent)),
+                Decription = request.Decription,
+                Detail = request.Detail,
+                //          CreateDate = request.CreateDate,
+                Quantity = request.Quantity,
+               ShopId = shopid,
+
+                CateId = request.CateId
+            };
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            _context.TbProducts.Add(product);
+            await _context.SaveChangesAsync();
+            return Ok(product);
+
+        }
+
+        [HttpPut("Update_Product")]
+        public async Task<IActionResult> UpdateProduct(UpdateProductViewModel request)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest("Can not find User");
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+     //       var pro = await _context.TbProducts.FirstOrDefaultAsync(x => x.ShopId == shop.ShopId);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+     //       int shopId = shop.ShopId;
+
+
+            var product = await _context.TbProducts.FindAsync(request.ProductId);
+
+            if (product == null) throw new Exception("Can not found.");
+            product.Name = request.Name;
+            product.Price = request.Price;
+            product.DiscountPercent = request.DiscountPercent;
+            product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / (100 * request.DiscountPercent)));
+            product.Status = request.Status;
+            product.Decription = request.Decription;
+            product.Detail = request.Detail;
+             await _context.SaveChangesAsync();
+            return Ok(product);
+        }
+
+
+        [HttpDelete("Delete_Product")]
+        public async Task<IActionResult> DeleteProduct(int productId)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest("Can not find User");
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+            //       var pro = await _context.TbProducts.FirstOrDefaultAsync(x => x.ShopId == shop.ShopId);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            var product = await _context.TbProducts.FindAsync(productId);
+            if (product == null) throw new Exception("Can not find product.");
+            
+            var productImage = await _context.TbImages.Where(x=>x.ProductId == productId).ToListAsync();
+            _context.TbImages.RemoveRange(productImage);
+            _context.TbProducts.Remove(product);
+             await _context.SaveChangesAsync();
+            return Ok(product);
+
+        }
 
     }
 }

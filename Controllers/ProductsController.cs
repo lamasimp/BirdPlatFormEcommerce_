@@ -86,17 +86,7 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
-        [HttpPost]
-        [Route("Add_Product")]
-        public async Task<IActionResult> AddProduct([FromForm] CreateProductViewModel request)
-        {
-
-            var productId = await _manageProductService.Create(request);
-            if (productId == 0)
-                return BadRequest();
-            var product = await _homeViewProductService.GetProductById(productId);
-            return CreatedAtAction(nameof(GetProductById), new { id = productId }, product);
-        }
+      
 
 
 
@@ -293,40 +283,8 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
-        [HttpPut("Update_Product")]
-        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductViewModel request)
-        {
-
-           if(!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-           var result = await _manageProductService.Update(request);
-            if(result== 0)
-            
-                return BadRequest();
-            
-            return Ok(result);
-            
-        }
-
-        [HttpDelete("Delete_Product")]
-        public async Task<IActionResult> DeleteProduct(int productId)
-        {
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-            var result = await _manageProductService.Delete(productId);
-            if (result == 0)
-
-                return BadRequest();
-
-            return Ok(result);
-
-        }
-
+     
+   
         private string GetFileProductPath(int productId)
         {
             return this._enviroment.WebRootPath + "\\user-content\\product\\" + productId.ToString();

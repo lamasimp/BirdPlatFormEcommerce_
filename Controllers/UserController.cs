@@ -88,6 +88,8 @@ namespace BirdPlatForm.Controllers
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim("Email", user.Email),
                     new Claim("Gender", user.Gender.ToString()),
+                    new Claim("Address", user.Address.ToString()),
+                    new Claim("Phone",user.Phone.ToString()),
                     new Claim("Username", user.Name.ToString()),
                     new Claim("Avatar",user.Avatar),
                     new Claim(ClaimTypes.Role, user.RoleId),
@@ -234,7 +236,7 @@ namespace BirdPlatForm.Controllers
         }
 
 
-        [HttpGet("Image_UserID")]
+        [HttpGet("Image_ShopID")]
         public async Task<IActionResult> GetImageByUserId(int userId)
         {
             //   var image = await _context.TbImages.FindAsync(productId);
@@ -293,7 +295,8 @@ namespace BirdPlatForm.Controllers
             var userClaim = User.Claims.FirstOrDefault(x => x.Type == "Username");
             var emailClaim = User.Claims.FirstOrDefault(z => z.Type == "Email");
             var genderClaim = User.Claims.FirstOrDefault(g => g.Type == "Gender");
-
+            var addressClaim = User.Claims.FirstOrDefault(a => a.Type == "Address");
+            var phoneClaim = User.Claims.FirstOrDefault(p => p.Type == "Phone");
             if (userClaim == null || emailClaim == null)
             {
                 return Ok(new ErrorRespon
@@ -305,7 +308,8 @@ namespace BirdPlatForm.Controllers
             string username = userClaim.Value;
             string email = emailClaim.Value;
             string gender = genderClaim.Value;
-
+            string address = addressClaim.Value;
+            string phone = phoneClaim.Value;
 
             var account = getAccount(email);
             return Ok(account);
@@ -322,12 +326,55 @@ namespace BirdPlatForm.Controllers
             {
                 Email = user.Email,
                 userName = user.Name,
-                Gender = user.Gender
-
+                Gender = user.Gender,
+                Address = user.Address,
+                Phone = user.Phone
+                
 
             };
 
             return accountModel;
         }
+        [HttpPut("UpdateMee")]
+        public async Task<IActionResult> UpdateMee(UserModel model)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var user = await _context.TbUsers.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (user == null)
+            {
+                return Ok("User Not Login");
+            }
+            if (!string.IsNullOrEmpty(user.Name))
+            {
+                user.Name = model.Name;
+            }
+            if (!string.IsNullOrEmpty(user.Address))
+            {
+                user.Address = model.Address;
+            }
+            if (!string.IsNullOrEmpty(user.Phone))
+            {
+                user.Phone = model.Phone;
+            }
+            if (!string.IsNullOrEmpty(user.Gender))
+            {
+                user.Gender = model.Gender;
+            }
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok("Success");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Failed to update account" });
+            }
+        }
+
     }
 }
