@@ -91,7 +91,7 @@ namespace BirdPlatForm.Controllers
                     new Claim("Address", user.Address.ToString()),
                     new Claim("Phone",user.Phone.ToString()),
                     new Claim("Username", user.Name.ToString()),
-                    new Claim("Avatar",user.Avatar),
+                  
                     new Claim(ClaimTypes.Role, user.RoleId),
                    
 
