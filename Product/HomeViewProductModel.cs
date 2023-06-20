@@ -12,6 +12,7 @@
         public decimal Price { get; set; }
         public decimal? DiscountPercent { get; set; }
         public decimal? SoldPrice { get; set; }
+        public int ShopId { get; set; }
         public string ShopName { get; set; }
         public int? QuantitySold { get; set; }
 
