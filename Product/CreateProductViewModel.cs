@@ -29,7 +29,7 @@ namespace BirdPlatFormEcommerce.Product
         [Required(ErrorMessage = "Quantity is required")]
         public int? Quantity { get; set; }
 
-        public int? ShopId { get; set; }
+        
     //   public string ShopName { get; set; } = null!;
         public string CateId { get; set; }
 
