@@ -91,7 +91,7 @@ namespace BirdPlatForm.Controllers
                     new Claim("Address", user.Address.ToString()),
                     new Claim("Phone",user.Phone.ToString()),
                     new Claim("Username", user.Name.ToString()),
-                  
+                  new Claim("Dob", user.Dob.ToString()),
                     new Claim(ClaimTypes.Role, user.RoleId),
                    
 
@@ -324,6 +324,7 @@ namespace BirdPlatForm.Controllers
             }
             var accountModel = new ViewAccount
             {
+                Dob = (DateTime) user.Dob,
                 Email = user.Email,
                 userName = user.Name,
                 Gender = user.Gender,
@@ -348,6 +349,10 @@ namespace BirdPlatForm.Controllers
             if (user == null)
             {
                 return Ok("User Not Login");
+            }
+            if (model.Dob.HasValue)
+            {
+                user.Dob = model.Dob.Value;
             }
             if (!string.IsNullOrEmpty(user.Name))
             {

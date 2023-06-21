@@ -35,12 +35,14 @@ namespace BirdPlatForm.Controllers
                 Message ="No Product"
             }) ;
             if (feedback.Rate < 1 || feedback.Rate > 5) return BadRequest("Invalid rating , rating must be between 1 to 5");
+
             var tbfeedback = new TbFeedback
             {
                 ProductId = feedback.ProductId,
                 UserId = userid,
                 Rate = feedback.Rate,
                 Detail = feedback.Detail
+
             };
             _context.TbFeedbacks.Add(tbfeedback);
             await _context.SaveChangesAsync();

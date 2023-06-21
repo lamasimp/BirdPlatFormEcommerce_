@@ -2,7 +2,8 @@
 {
     public class ViewAccount
     {
-        public int Userid { get; set; }
+        public DateTime Dob { get; set; }
+  
         public string userName { get; set; }
         public string Email { get; set; }
         public string Gender { get; set;}
