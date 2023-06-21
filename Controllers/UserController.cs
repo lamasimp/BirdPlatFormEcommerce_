@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -380,6 +381,42 @@ namespace BirdPlatForm.Controllers
                 return BadRequest(new { Message = "Failed to update account" });
             }
         }
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword(PasswordModel model)
+        {
+          
+                var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+                if (userIdClaim == null)
+                {
+                    return Unauthorized();
+                }
+                int userId = int.Parse(userIdClaim.Value);
+                var user = await _context.TbUsers.FirstOrDefaultAsync(x => x.UserId == userId);
+                if (user == null)
+                {
+                    return Ok("User Not Logged In");
+                }
+                if(model.OldPassword != user.Password)
+            {
+                return BadRequest(new { Message = "Incorrect old password" });
+            }
+                if(model.NewPassword != model.ConfirmNewPassword)
+            {
+                return BadRequest(new { Message = "New passwords do not match" });
+            }
+            user.Password = model.NewPassword;
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    return Ok(new { Message = "Password changed successfully" });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { Message = "Failed to change password" });
+                }
+            
 
+        }
+      
     }
 }
