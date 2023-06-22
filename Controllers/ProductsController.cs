@@ -106,7 +106,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 var image = new TbImage()
                 {
                    
-                    Caption = "Thumbnail",
+                    Caption = "Image",
                     CreateDate = DateTime.Now,
                     IsDefault = request.IsDefault,
                     SortOrder = request.SortOrder,
