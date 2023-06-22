@@ -9,9 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
+
 using System.Linq;
 using MimeKit.Cryptography;
+using BirdPlatFormEcommerce.Helper;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -21,12 +23,13 @@ namespace BirdPlatFormEcommerce.Controllers
     {
         private readonly SwpContext _context;
         private readonly IManageProductService _manageProductService;
-        
+        private readonly IWebHostEnvironment _enviroment;
 
-        public ShopController(SwpContext swp, IManageProductService manageProductService)
+        public ShopController(SwpContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment)
         {
             _context = swp;
             _manageProductService = manageProductService;
+            _enviroment = enviroment;
         }
         [HttpPost("registerShop")]
 
@@ -149,7 +152,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
         [HttpPost]
         [Route("Add_Product")]
-        public async Task<IActionResult> AddProduct( CreateProductViewModel request)
+        public async Task<IActionResult> AddProduct([FromForm] CreateProductViewModel request)
         {
             try
             {
@@ -177,7 +180,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     Detail = request.Detail,
                     //          CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
-                    ShopId = shopid,
+                   
 
                     CateId = request.CateId
                 };
@@ -188,7 +191,65 @@ namespace BirdPlatFormEcommerce.Controllers
                 }
                 _context.TbProducts.Add(product);
                 await _context.SaveChangesAsync();
-                return Ok("Add Product Success ");
+
+
+                //add image
+                APIResponse response = new APIResponse();
+                int passcount = 0;
+                int errorcount = 0;
+                try
+                {
+
+                    string Filepath = GetFileProductPath(product.ProductId);
+                    if (!Directory.Exists(Filepath))
+                    {
+                        Directory.CreateDirectory(Filepath);
+                    }
+                    foreach (var file in request.ImageFile)
+                    {
+
+                        var image = new TbImage()
+                        {
+
+                            Caption = "Image",
+                            CreateDate = DateTime.Now,
+                          
+                            ProductId = product.ProductId,
+
+                            ImagePath = GetImageProductPath(product.ProductId, file.FileName),
+
+
+
+                        };
+                        string imagepath = Path.Combine(Filepath,file.FileName);
+                        if (System.IO.File.Exists(imagepath))
+                        {
+                            System.IO.File.Delete(imagepath);
+                        }
+                        using (FileStream stream = System.IO.File.Create(imagepath))
+                        {
+                            await file.CopyToAsync(stream);
+                            passcount++;
+                        }
+                        _context.Add(image);
+
+                    }
+                    await _context.SaveChangesAsync();
+
+                }
+                catch (Exception ex)
+                {
+                    errorcount++;
+                    response.Errormessage = ex.Message;
+                }
+
+                response.ResponseCode = 200;
+                response.Result = passcount + "File uploaded &" + errorcount + "File failed";
+                return Ok(response);
+
+
+
+              
             }
             catch
             {
@@ -273,6 +334,21 @@ namespace BirdPlatFormEcommerce.Controllers
                 return BadRequest("Cannot delete check again");
             }
         }
+
+
+        private string GetFileProductPath(int productId)
+        {
+            return this._enviroment.WebRootPath + "\\user-content\\product\\" + productId.ToString();
+        }
+
+
+        private string GetImageProductPath(int productId, string fileName)
+        {
+            string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            return hosturl + "/user-content/product/" + productId + "/" + fileName ;
+
+        }
+
 
 
     }

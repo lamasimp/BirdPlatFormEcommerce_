@@ -21,10 +21,12 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
-                        join img in _context.TbImages on p.ProductId equals img.ProductId
-                        orderby p.Rate descending, p.QuantitySold descending
-                        where p.DiscountPercent >0 && img.Caption == "Thumbnail"
-                        select new { p, c ,img,s};
+                        join img in _context.TbImages on p.ProductId equals img.ProductId into images
+                        orderby  p.QuantitySold descending , p.Rate descending
+                        where p.DiscountPercent >0 
+                        select new { p, c ,s,
+                            Image = images.FirstOrDefault()
+                        };
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
@@ -39,7 +41,7 @@ namespace BirdPlatFormEcommerce.Product
                 ShopName= x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
-                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
+                Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
 
             }).ToListAsync();
             return data;
@@ -88,9 +90,9 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
-                        join img in _context.TbImages on p.ProductId equals img.ProductId
-                        where p.ShopId.Equals(shopId) && img.Caption == "Thumbnail"
-                        select new { p, c,img,s };
+                        join img in _context.TbImages on p.ProductId equals img.ProductId into images
+                        where p.ShopId.Equals(shopId)
+                        select new { p, c,s, Image = images.FirstOrDefault() };
 
 
 
@@ -108,7 +110,7 @@ namespace BirdPlatFormEcommerce.Product
                 ShopName = x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
-                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
+                Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
             }).ToListAsync();
             return data;
         }
@@ -118,9 +120,9 @@ namespace BirdPlatFormEcommerce.Product
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
-                        join img in _context.TbImages on p.ProductId equals img.ProductId
-                        where img.Caption == "Thumbnail"
-                        select new { p, c ,img,s};
+                        join img in _context.TbImages on p.ProductId equals img.ProductId into images
+                      
+                        select new { p, c ,s, Image = images.FirstOrDefault() };
 
             var data = await query.Select(x => new HomeViewProductModel()
             {
@@ -135,7 +137,7 @@ namespace BirdPlatFormEcommerce.Product
                 ShopName = x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
-                Thumbnail = x.img != null ? x.img.ImagePath : "no-image.jpg",
+                Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
 
             }).ToListAsync();
             return data;

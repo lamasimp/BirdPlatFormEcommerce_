@@ -5,13 +5,13 @@ namespace BirdPlatFormEcommerce.Product
     public class CreateProductViewModel
     {
 
-        //  public int ProductId { get; set; }
+     
 
         [Required(ErrorMessage ="Name is required")]
         [MaxLength(200, ErrorMessage ="Name cannot exceed 200 characters")]
         public string ProductName { get; set; }
 
-        //   public DateTime? CreateDate { get; set; }
+        
 
         [Required(ErrorMessage = "Price is required")]
         public decimal Price { get; set; }
@@ -29,19 +29,11 @@ namespace BirdPlatFormEcommerce.Product
         [Required(ErrorMessage = "Quantity is required")]
         public int? Quantity { get; set; }
 
-        
-    //   public string ShopName { get; set; } = null!;
+         
         public string CateId { get; set; }
+        public IFormFileCollection ImageFile { get; set; }
 
-   //     public int? UserId { get; set; }
+  
 
-   //     public DateTime? CreateDate { get; set; }
-
-       
-
-
-       
-
-      
     }
 }
