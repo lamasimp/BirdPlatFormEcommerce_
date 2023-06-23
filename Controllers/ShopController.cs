@@ -564,6 +564,19 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
+        [HttpGet("AllProduct/shop")]
+        public async Task<IActionResult> GetallProduct()
+        {
+            var userid = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if(userid == null)
+            {
+                return Unauthorized();
+            }
+            int user = int.Parse(userid.Value);
+            var product = await _context.TbProducts.CountAsync(a => a.ShopId == user);
+            if (product == null) return BadRequest("No Product");
+            return Ok(product);
+        }
 
     }
 }

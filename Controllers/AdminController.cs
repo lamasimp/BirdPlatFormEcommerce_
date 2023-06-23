@@ -1,6 +1,7 @@
 ﻿using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
 using BirdPlatFormEcommerce.Entity;
+using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,12 @@ namespace BirdPlatFormEcommerce.Controllers
     {
         private readonly SwpContext _context;
 
-        public AdminController(SwpContext swp) {
+        public AdminController(SwpContext swp)
+        {
             _context = swp;
         }
         [HttpGet]
-        public  async  Task<IActionResult> getAlluser()
+        public async Task<IActionResult> getAlluser()
         {
             var user = _context.TbUsers.ToList();
             return Ok(user);
@@ -117,6 +119,34 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             var countcus = await _context.TbUsers.CountAsync(x => x.RoleId == "SP");
             return countcus;
+        }
+        [HttpGet("Product/shop")]
+        public async Task<IActionResult> GetProductShop(int shopId)
+        {
+            var pro = await _context.TbProducts.CountAsync(x => x.ShopId == shopId);
+            return Ok(pro);
+        }
+        [HttpGet("TotalAmount/HighShop")]
+        public List<ShoptotalAmount> gettotalAmounthighShop()
+        {
+            var shopTotalAmounts = _context.TbShops
+        .Join(_context.TbProducts,
+            shop => shop.ShopId,
+            product => product.ShopId,
+            (shop, product) => new { Shop = shop, Product = product })
+        .Join(_context.TbOrderDetails,
+            joinResult => joinResult.Product.ProductId,
+            orderDetail => orderDetail.ProductId,
+            (joinResult, orderDetail) => new { Shop = joinResult.Shop, OrderDetail = orderDetail })
+        .GroupBy(result => result.Shop.ShopId)
+        .Select(g => new ShoptotalAmount
+        {
+            shopId = g.Key,
+            TotalAmount = (decimal)g.Sum(result => result.OrderDetail.Quantity * result.OrderDetail.Product.Price)
+        })
+        .OrderByDescending(sta => sta.TotalAmount)
+        .ToList();
+            return shopTotalAmounts;
         }
     }
 }
