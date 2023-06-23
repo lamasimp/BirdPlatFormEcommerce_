@@ -4,6 +4,7 @@ using BirdPlatFormEcommerce.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -81,6 +82,41 @@ namespace BirdPlatFormEcommerce.Controllers
 
             return Ok();
 
+        }
+        [HttpGet("CountSellingProducts")]
+        public async Task<IActionResult> CountSellingProducts()
+        {
+            var count = await countProduct();
+            return Ok(count);
+
+        }
+        private async Task<int> countProduct()
+        {
+            var count = await _context.TbProducts.CountAsync(x => x.Status.HasValue && x.Status.Value == true);
+
+            return count;
+        }
+        [HttpGet("GetCustomer")]
+        public async Task<IActionResult> GetCustomer()
+        {
+            var countCus = await CountCus();
+            return Ok(countCus);
+        }
+        private async Task<int> CountCus()
+        {
+            var countcus = await _context.TbUsers.CountAsync(x => x.RoleId == "CUS");
+            return countcus;
+        }
+        [HttpGet("GetShop")]
+        public async Task<IActionResult> GetShop()
+        {
+            var countshop = await CountShop();
+            return Ok(countshop);
+        }
+        private async Task<int> CountShop()
+        {
+            var countcus = await _context.TbUsers.CountAsync(x => x.RoleId == "SP");
+            return countcus;
         }
     }
 }
