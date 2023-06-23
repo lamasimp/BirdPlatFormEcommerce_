@@ -31,9 +31,11 @@ namespace BirdPlatFormEcommerce.Product
 
          
         public string CateId { get; set; }
-        public IFormFileCollection ImageFile { get; set; }
 
-  
+      
+        public List<IFormFile> ImageFile { get; set; }
 
+
+   //     public int ShopId { get; set; }
     }
 }
