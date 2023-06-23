@@ -177,11 +177,11 @@ namespace BirdPlatFormEcommerce.Controllers
                     DiscountPercent = request.DiscountPercent,
                     SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * request.DiscountPercent)),
                     Decription = request.Decription,
-                    Detail = request.Detail,
+                   
                     //          CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
                    
-
+                    ShopId = shopid,
                     CateId = request.CateId
                 };
 
@@ -301,8 +301,7 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpDelete("Delete_Product")]
         public async Task<IActionResult> DeleteProduct(int productId)
         {
-            try
-            {
+            
                 var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
                 if (userIdClaim == null)
                 {
@@ -322,17 +321,22 @@ namespace BirdPlatFormEcommerce.Controllers
                 }
                 var product = await _context.TbProducts.FindAsync(productId);
                 if (product == null) throw new Exception("Can not find product.");
+            var oderDetail = await _context.TbOrderDetails.Where(o => o.ProductId == productId).ToListAsync();
+            foreach(var oderdetail in oderDetail)
+            {
+                oderdetail.ProductId = 1;
+            }
+              var productImage = await _context.TbImages.Where(x => x.ProductId == productId).ToListAsync();
 
-                var productImage = await _context.TbImages.Where(x => x.ProductId == productId).ToListAsync();
-                _context.TbImages.RemoveRange(productImage);
-                _context.TbProducts.Remove(product);
+            
+              _context.TbImages.RemoveRange(productImage);
+             _context.TbProducts.Remove(product);
+
+
+
                 await _context.SaveChangesAsync();
                 return Ok("Delete Product Success");
-            }
-            catch
-            {
-                return BadRequest("Cannot delete check again");
-            }
+           
         }
 
 
