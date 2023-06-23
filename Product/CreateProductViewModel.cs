@@ -24,9 +24,9 @@ namespace BirdPlatFormEcommerce.Product
         public string? Decription { get; set; }
 
         [Required(ErrorMessage = "Detail is required")]
-        public string? Detail { get; set; }
+   //     public string? Detail { get; set; }
 
-        [Required(ErrorMessage = "Quantity is required")]
+    //    [Required(ErrorMessage = "Quantity is required")]
         public int? Quantity { get; set; }
 
          
