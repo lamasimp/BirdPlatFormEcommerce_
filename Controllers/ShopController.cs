@@ -159,18 +159,18 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             try
             {
-                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-                if (userIdClaim == null)
-                {
-                    throw new Exception("User not found");
-                }
-                int userid = int.Parse(userIdClaim.Value);
-                var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
-                if (shop == null)
-                {
-                    throw new Exception("Shop not found");
-                }
-                int shopid = shop.ShopId;
+                //var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+                //if (userIdClaim == null)
+                //{
+                //    throw new Exception("User not found");
+                //}
+                //int userid = int.Parse(userIdClaim.Value);
+                //var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+                //if (shop == null)
+                //{
+                //    throw new Exception("Shop not found");
+                //}
+                //int shopid = shop.ShopId;
 
                 var product = new TbProduct()
                 {
@@ -183,8 +183,8 @@ namespace BirdPlatFormEcommerce.Controllers
                    
                     //          CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
-                //   ShopId = request.ShopId,
-                    ShopId = shopid,
+                   ShopId = request.ShopId,
+                 //   ShopId = shopid,
                     CateId = request.CateId
                 };
 
@@ -300,103 +300,200 @@ namespace BirdPlatFormEcommerce.Controllers
                 product.Detail = request.Detail;
                 product.ShopId= request.ShopId;
                 await _context.SaveChangesAsync();
+
+
+                //delete Image 
+               
+                    string Filepath = GetFileProductPath(product.ProductId);
+                    if (System.IO.Directory.Exists(Filepath))
+                    {
+                        DirectoryInfo directoryInfo = new DirectoryInfo(Filepath);
+                        FileInfo[] fileInfos = directoryInfo.GetFiles();
+                        foreach (FileInfo fileInfo in fileInfos)
+                        {
+                            fileInfo.Delete();
+                        }
+                        
+                    }
+
+
+                var imagesToRemove = await _context.TbImages
+          .Where(i => i.ProductId == product.ProductId)
+          .ToListAsync();
+
+                _context.TbImages.RemoveRange(imagesToRemove);
+                await _context.SaveChangesAsync();
+
+
+                //                return Ok("pass");
+
+                APIResponse response = new APIResponse();
+                        int passcount = 0;
+                        int errorcount = 0;
+                        int maxImageCount = 6;
+                        try
+                        {
+
+                            string Filepath1 = GetFileProductPath(product.ProductId);
+                            if (!Directory.Exists(Filepath1))
+                            {
+                                Directory.CreateDirectory(Filepath1);
+                            }
+                            int imageCount = 0;
+                            foreach (var file in request.ImageFile)
+                            {
+                                if (imageCount >= maxImageCount)
+                                {
+                                    break;
+                                }
+
+                                var image = new TbImage()
+                                {
+
+                                    Caption = "Image",
+                                    CreateDate = DateTime.Now,
+
+                                    ProductId = product.ProductId,
+
+                                    ImagePath = GetImageProductPath(product.ProductId, file.FileName),
+
+
+
+                                };
+                                string imagepath = Path.Combine(Filepath, file.FileName);
+                                if (System.IO.File.Exists(imagepath))
+                                {
+                                    System.IO.File.Delete(imagepath);
+                                }
+                                using (FileStream stream = System.IO.File.Create(imagepath))
+                                {
+                                    await file.CopyToAsync(stream);
+                                    passcount++;
+                                }
+                                _context.Add(image);
+                                imageCount++;
+
+                            }
+                            await _context.SaveChangesAsync();
+
+                        }
+                        catch (Exception ex)
+                        {
+                            errorcount++;
+                            response.Errormessage = ex.Message;
+                        }
+
+                        response.ResponseCode = 200;
+                        response.Result = passcount + "File uploaded &" + errorcount + "File failed";
+                        return Ok(response);
+
+
+
+                    
+                  
+                    
+
+                    
+
+               
+
                 //        return Ok("Update Success ");
 
 
 
                 //update image
-                APIResponse response = new APIResponse();
-                int passcount = 0;
-                int errorcount = 0;
-                int maxImageCount = 6;
-                try
-                {
-                    //lay duong dan tren server theo productId
-                    string Filepath = GetFileProductPath(product.ProductId);
-                    if (!Directory.Exists(Filepath))
-                    {
-                        Directory.CreateDirectory(Filepath);
-                    }
-                    int imageCount = 0;
-                    //vo db lay tat ca imagePath va dem 
-                     var oldImagePaths = await _context.TbImages.Where(i=>i.ProductId==product.ProductId).Select(i=>i.ImagePath).ToListAsync();
+                //      APIResponse response = new APIResponse();
+                //      int passcount = 0;
+                //      int errorcount = 0;
+                //      int maxImageCount = 6;
+                //      try
+                //      {
+                //          //lay duong dan tren server theo productId
+                //          string Filepath = GetFileProductPath(product.ProductId);
+                //          if (!Directory.Exists(Filepath))
+                //          {
+                //              Directory.CreateDirectory(Filepath);
+                //          }
+                //          int imageCount = 0;
+                //          //vo db lay tat ca imagePath va dem 
+                //           var oldImagePaths = await _context.TbImages.Where(i=>i.ProductId==product.ProductId).Select(i=>i.ImagePath).ToListAsync();
 
 
-          //        var existingImage = oldImagePaths.FirstOrDefault(path => Path.GetFileName(path) == file.FileName);
+                ////        var existingImage = oldImagePaths.FirstOrDefault(path => Path.GetFileName(path) == file.FileName);
 
-                    foreach (var file in request.ImageFile)
-                    {
-                        if (imageCount >= maxImageCount)
-                        {
-                            break;
-                        }
-                        var existingImagePath = oldImagePaths.FirstOrDefault(path => path == file.FileName);
-                        if (existingImagePath != null)
-                        {
-                            existingImagePath = Path.Combine(Filepath, file.FileName);
-                            if (System.IO.File.Exists(existingImagePath))
-                            {
-                                System.IO.File.Delete(existingImagePath);
-                            }
-                            oldImagePaths.Remove(existingImagePath);
-                        }
-                        var image = new TbImage()
-                        {
+                //          foreach (var file in request.ImageFile)
+                //          {
+                //              if (imageCount >= maxImageCount)
+                //              {
+                //                  break;
+                //              }
+                //              var existingImagePath = oldImagePaths.FirstOrDefault(path => path == file.FileName);
+                //              if (existingImagePath != null)
+                //              {
+                //                  existingImagePath = Path.Combine(Filepath, file.FileName);
+                //                  if (System.IO.File.Exists(existingImagePath))
+                //                  {
+                //                      System.IO.File.Delete(existingImagePath);
+                //                  }
+                //                  oldImagePaths.Remove(existingImagePath);
+                //              }
+                //              var image = new TbImage()
+                //              {
 
-                            Caption = "Image",
-                            CreateDate = DateTime.Now,
+                //                  Caption = "Image",
+                //                  CreateDate = DateTime.Now,
 
-                            ProductId = product.ProductId,
+                //                  ProductId = product.ProductId,
 
-                            ImagePath = GetImageProductPath(product.ProductId, file.FileName),
+                //                  ImagePath = GetImageProductPath(product.ProductId, file.FileName),
 
 
 
-                        };
-                        string imagepath = Path.Combine(Filepath, file.FileName);
-                        if (System.IO.File.Exists(imagepath))
-                        {
-                            System.IO.File.Delete(imagepath);
-                        }
-                       
-                        using (FileStream stream = System.IO.File.Create(imagepath))
-                        {
-                            await file.CopyToAsync(stream);
-                            passcount++;
-                        }
-                        _context.Add(image);
-                        imageCount++;
+                //              };
+                //              string imagepath = Path.Combine(Filepath, file.FileName);
+                //              if (System.IO.File.Exists(imagepath))
+                //              {
+                //                  System.IO.File.Delete(imagepath);
+                //              }
 
-                    }
-                    foreach (var oldImagePath in oldImagePaths)
-                    {
-                      
-                   //     string imagePath = Path.Combine(Filepath, existingImage);
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-                    }
+                //              using (FileStream stream = System.IO.File.Create(imagepath))
+                //              {
+                //                  await file.CopyToAsync(stream);
+                //                  passcount++;
+                //              }
+                //              _context.Add(image);
+                //              imageCount++;
 
-                    // Xóa các bản ghi ảnh cũ không tồn tại trong request.ImageFile trong cơ sở dữ liệu
-                    var imagesToRemove = await _context.TbImages
-                        .Where(i => i.ProductId == product.ProductId && !request.ImageFile.Any(f => f.FileName == i.ImagePath))
-                        .ToListAsync();
+                //          }
+                //          foreach (var oldImagePath in oldImagePaths)
+                //          {
 
-                    _context.TbImages.RemoveRange(imagesToRemove);
+                //         //     string imagePath = Path.Combine(Filepath, existingImage);
+                //              if (System.IO.File.Exists(oldImagePath))
+                //              {
+                //                  System.IO.File.Delete(oldImagePath);
+                //              }
+                //          }
 
-                    await _context.SaveChangesAsync();
+                //          // Xóa các bản ghi ảnh cũ không tồn tại trong request.ImageFile trong cơ sở dữ liệu
+                //          var imagesToRemove = await _context.TbImages
+                //              .Where(i => i.ProductId == product.ProductId && !request.ImageFile.Any(f => f.FileName == i.ImagePath))
+                //              .ToListAsync();
 
-                }
-                catch (Exception ex)
-                {
-                    errorcount++;
-                    response.Errormessage = ex.Message;
-                }
+                //          _context.TbImages.RemoveRange(imagesToRemove);
 
-                response.ResponseCode = 200;
-                response.Result = passcount + "File uploaded &" + errorcount + "File failed";
-                return Ok(response);
+                //          await _context.SaveChangesAsync();
+
+                //      }
+                //      catch (Exception ex)
+                //      {
+                //          errorcount++;
+                //          response.Errormessage = ex.Message;
+                //      }
+
+                //      response.ResponseCode = 200;
+                //      response.Result = passcount + "File uploaded &" + errorcount + "File failed";
+                //      return Ok(response);
 
 
 

@@ -36,6 +36,6 @@ namespace BirdPlatFormEcommerce.Product
         public List<IFormFile> ImageFile { get; set; }
 
 
-   //     public int ShopId { get; set; }
+      public int ShopId { get; set; }
     }
 }
