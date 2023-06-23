@@ -159,18 +159,18 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             try
             {
-                //var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-                //if (userIdClaim == null)
-                //{
-                //    throw new Exception("User not found");
-                //}
-                //int userid = int.Parse(userIdClaim.Value);
-                //var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
-                //if (shop == null)
-                //{
-                //    throw new Exception("Shop not found");
-                //}
-                //int shopid = shop.ShopId;
+                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+                if (userIdClaim == null)
+                {
+                    throw new Exception("User not found");
+                }
+                int userid = int.Parse(userIdClaim.Value);
+                var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+                if (shop == null)
+                {
+                    throw new Exception("Shop not found");
+                }
+                int shopid = shop.ShopId;
 
                 var product = new TbProduct()
                 {
@@ -183,8 +183,8 @@ namespace BirdPlatFormEcommerce.Controllers
                    
                     //          CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
-                   ShopId = request.ShopId,
-              //      ShopId = shopid,
+                //   ShopId = request.ShopId,
+                    ShopId = shopid,
                     CateId = request.CateId
                 };
 
