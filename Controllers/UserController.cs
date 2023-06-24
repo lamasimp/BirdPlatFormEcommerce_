@@ -19,6 +19,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.IO;
 
 namespace BirdPlatForm.Controllers
 {
@@ -75,68 +76,102 @@ namespace BirdPlatForm.Controllers
 
         private async Task<TokenRespon> GeneratToken(TbUser user)
         {
-
             var jwttokenHandler = new JwtSecurityTokenHandler();
             var secretkey = Encoding.UTF8.GetBytes(_config["JWT:Key"]);
 
+            var claims = new List<Claim>
+    {
+         new Claim(ClaimTypes.Name, user.Name),
+         new Claim("UserId", user.UserId.ToString()),
+         new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+         new Claim("Email", user.Email),
+         new Claim("Gender", user.Gender.ToString()),        
+         new Claim("Username", user.Name.ToString()),        
+         new Claim(ClaimTypes.Role, user.RoleId),       
+    };
+           if (user.Avatar != null)
+            {
+                claims.Add(new Claim("Avatar", user.Avatar));
+            }
+            else
+            {
+                claims.Add(new Claim("Avatar", "null"));
+            }
+            if(user.Address != null)
+            {
+                claims.Add(new Claim("Address", user.Address.ToString()));
+            }
+            else
+            {
+                claims.Add(new Claim("Address", "null"));
+            }
+            if(user.Phone != null)
+            {
+                claims.Add(new Claim("Phone", user.Phone.ToString()));
+            }
+            else
+            {
+                claims.Add(new Claim("Phone", "null"));
+            }
+            if(user.Dob != null)
+            {
+                claims.Add(new Claim("Dob", user.Dob.ToString()));
+            }
+            else
+            {
+                claims.Add(new Claim("Dob", "null"));
+            }
+            if(user.IsShop != null)
+            {
+                claims.Add(new Claim("IsShop", user.IsShop.ToString()));
+            }else
+            {
+                claims.Add(new Claim("IsShop", "null"));
+            }
+
             var tokendescription = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] {
-                    new Claim(ClaimTypes.Name, user.Name),
-                    new Claim("UserId", user.UserId.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim("Email", user.Email),
-                    new Claim("Gender", user.Gender.ToString()),
-                    new Claim("Address", user.Address.ToString()),
-                    new Claim("Phone",user.Phone.ToString()),
-                    new Claim("Username", user.Name.ToString()),
-                    new Claim("Dob", user.Dob.ToString()),
-                    new Claim(ClaimTypes.Role, user.RoleId),
-                    new Claim("IsShop",user.IsShop.ToString()!),
-                    new Claim("Avatar",user.Avatar.ToString()!),
-
-
-
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Issuer = _config["JWT:Issuer"],
                 Audience = _config["JWT:Audience"],
-
-                Expires = DateTime.UtcNow.AddHours(3),
+                Expires = DateTime.UtcNow.AddHours(24),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretkey), SecurityAlgorithms.HmacSha512)
-
-
             };
+
             var token = jwttokenHandler.CreateToken(tokendescription);
             var accessToken = jwttokenHandler.WriteToken(token);
+
             return new TokenRespon
             {
                 AccessToken = accessToken,
-            } ;
-            ////var refreshToken = GenerateRefreshToken();
-
-            ////Lưu database  
-            //var refreshTokenEntity = new TbToken
-            //{
-
-            //    Id = user.UserId,
-            //    UserId = user.UserId,
-            //    Token = refreshToken,
-            //    ExpiryDate = DateTime.UtcNow.AddSeconds(10),
-            //};
-
-            //await _context.AddAsync(refreshTokenEntity);
-            //await _context.SaveChangesAsync();
-
-            //return new TokenRespon
-            //{
-            //    AccessToken = accessToken,
-            //    RefreshToken = refreshToken
-            //};
+            };
         }
 
-        private string GenerateRefreshToken()
+        ////var refreshToken = GenerateRefreshToken();
+
+        ////Lưu database  
+        //var refreshTokenEntity = new TbToken
+        //{
+
+        //    Id = user.UserId,
+        //    UserId = user.UserId,
+        //    Token = refreshToken,
+        //    ExpiryDate = DateTime.UtcNow.AddSeconds(10),
+        //};
+
+        //await _context.AddAsync(refreshTokenEntity);
+        //await _context.SaveChangesAsync();
+
+        //return new TokenRespon
+        //{
+        //    AccessToken = accessToken,
+        //    RefreshToken = refreshToken
+        //};
+    
+
+    private string GenerateRefreshToken()
         {
 
             var random = new byte[32];
@@ -300,6 +335,7 @@ namespace BirdPlatForm.Controllers
             var genderClaim = User.Claims.FirstOrDefault(g => g.Type == "Gender");
             var addressClaim = User.Claims.FirstOrDefault(a => a.Type == "Address");
             var phoneClaim = User.Claims.FirstOrDefault(p => p.Type == "Phone");
+            var avatarClaim = User.Claims.FirstOrDefault(av => av.Type == "Avatar");
             if (userClaim == null || emailClaim == null)
             {
                 return Ok(new ErrorRespon
@@ -313,7 +349,7 @@ namespace BirdPlatForm.Controllers
             string gender = genderClaim.Value;
             string address = addressClaim.Value;
             string phone = phoneClaim.Value;
-
+            string avatar = avatarClaim.Value;
             var account = getAccount(email);
             return Ok(account);
 
@@ -327,12 +363,13 @@ namespace BirdPlatForm.Controllers
             }
             var accountModel = new ViewAccount
             {
-                Dob = (DateTime) user.Dob,
+                Dob = (DateTime)user.Dob.GetValueOrDefault(),
                 Email = user.Email,
                 userName = user.Name,
                 Gender = user.Gender,
-                Address = user.Address,
-                Phone = user.Phone
+                Address = user.Address ?? "",
+                Phone = user.Phone ?? "",
+                avatar = user.Avatar ?? "",
                 
 
             };
@@ -340,7 +377,7 @@ namespace BirdPlatForm.Controllers
             return accountModel;
         }
         [HttpPut("UpdateMee")]
-        public async Task<IActionResult> UpdateMee(UserModel model)
+        public async Task<IActionResult> UpdateMee([FromForm]UserModel model)
         {
             var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if (userIdClaim == null)
@@ -357,21 +394,26 @@ namespace BirdPlatForm.Controllers
             {
                 user.Dob = model.Dob.Value;
             }
-            if (!string.IsNullOrEmpty(user.Name))
+            if (!string.IsNullOrEmpty(model.Name))
             {
                 user.Name = model.Name;
             }
-            if (!string.IsNullOrEmpty(user.Address))
+            if (!string.IsNullOrEmpty(model.Address))
             {
                 user.Address = model.Address;
             }
-            if (!string.IsNullOrEmpty(user.Phone))
+            if (!string.IsNullOrEmpty(model.Phone))
             {
                 user.Phone = model.Phone;
             }
-            if (!string.IsNullOrEmpty(user.Gender))
+            if (!string.IsNullOrEmpty(model.Gender))
             {
                 user.Gender = model.Gender;
+            }
+            if(model.avatar != null && model.avatar.Length > 0)
+            {
+                string avatarPath = await SaveAvatarFile(userId, model.avatar);
+                user.Avatar = avatarPath;
             }
             try
             {
@@ -382,6 +424,31 @@ namespace BirdPlatForm.Controllers
             {
                 return BadRequest(new { Message = "Failed to update account" });
             }
+        }
+        private async Task<string> SaveAvatarFile(int userId, IFormFile avatarFile)
+        {
+            string fileDirectory = GetFileUserPath(userId);
+            if (!Directory.Exists(fileDirectory))
+            {
+                Directory.CreateDirectory(fileDirectory);
+            }
+            string filePath = Path.Combine(fileDirectory, userId + ".png");           
+            if (System.IO.Directory.Exists(filePath))
+            {
+                DirectoryInfo directoryInfo = new DirectoryInfo(filePath);
+                FileInfo[] fileInfos = directoryInfo.GetFiles();
+                foreach (FileInfo fileInfo in fileInfos)
+                {
+                    fileInfo.Delete();
+                }
+
+            }            
+            using (FileStream stream = new FileStream(filePath, FileMode.Create))
+            {
+                await avatarFile.CopyToAsync(stream);
+            }
+
+            return GetImageUserPath(userId);
         }
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword(PasswordModel model)
