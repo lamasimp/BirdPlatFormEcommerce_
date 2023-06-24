@@ -7,5 +7,6 @@
         public string Phone { get; set; }
         public string Gender { get; set; }
         public string Name { get; set; }
+        public IFormFile avatar { get; set; }
     }
 }
