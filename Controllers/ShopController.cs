@@ -500,7 +500,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
             var shopManagementProductDetailVM = new ShopManagementProductDetailVM()
             {
-                
+                ProductId = productId,
                 ProductName = product.Name,
                 Price = product.Price,
                 DiscountPercent = (int)product.DiscountPercent,

@@ -4,6 +4,8 @@ namespace BirdPlatFormEcommerce.Product
 {
     public class ShopManagementProductDetailVM
     {
+        public int ProductId { get; set; }
+
 
         [Required(ErrorMessage = "Name is required")]
         [MaxLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
