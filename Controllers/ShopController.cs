@@ -14,6 +14,7 @@ using System.Linq;
 using MimeKit.Cryptography;
 using BirdPlatFormEcommerce.Helper;
 using Microsoft.AspNetCore.Mvc.Filters;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -159,19 +160,21 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             try
             {
-                //var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-                //if (userIdClaim == null)
-                //{
-                //    throw new Exception("User not found");
-                //}
-                //int userid = int.Parse(userIdClaim.Value);
-                //var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
-                //if (shop == null)
-                //{
-                //    throw new Exception("Shop not found");
-                //}
-                //int shopid = shop.ShopId;
+                //lay shopid dang login
+                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+                if (userIdClaim == null)
+                {
+                    throw new Exception("User not found");
+                }
+                int userid = int.Parse(userIdClaim.Value);
+                var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+                if (shop == null)
+                {
+                    throw new Exception("Shop not found");
+                }
+                int shopid = shop.ShopId;
 
+                //add thong tin co ban cua product
                 var product = new TbProduct()
                 {
                     Name = request.ProductName,
@@ -183,8 +186,8 @@ namespace BirdPlatFormEcommerce.Controllers
                    
                     //          CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
-                   ShopId = request.ShopId,
-                 //   ShopId = shopid,
+                //   ShopId = request.ShopId,
+                    ShopId = shopid,
                     CateId = request.CateId
                 };
 
@@ -273,19 +276,19 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             try
             {
-                //var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-                //if (userIdClaim == null)
-                //{
-                //    return BadRequest("Can not find User");
-                //}
-                //int userId = int.Parse(userIdClaim.Value);
-                //var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
-                ////       var pro = await _context.TbProducts.FirstOrDefaultAsync(x => x.ShopId == shop.ShopId);
-                //if (shop == null)
-                //{
-                //    throw new Exception("Shop not found");
-                //}
-                //       int shopId = shop.ShopId;
+                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+                if (userIdClaim == null)
+                {
+                    return BadRequest("Can not find User");
+                }
+                int userId = int.Parse(userIdClaim.Value);
+                var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+                //       var pro = await _context.TbProducts.FirstOrDefaultAsync(x => x.ShopId == shop.ShopId);
+                if (shop == null)
+                {
+                    throw new Exception("Shop not found");
+                }
+                int shopId = shop.ShopId;
 
 
                 var product = await _context.TbProducts.FindAsync(request.ProductId);
@@ -297,8 +300,9 @@ namespace BirdPlatFormEcommerce.Controllers
                 product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / (100 * request.DiscountPercent)));
                 product.Status = request.Status;
                 product.Decription = request.Decription;
-                product.Detail = request.Detail;
-                product.ShopId= request.ShopId;
+      //          product.Detail = request.Detail;
+           //     product.ShopId= request.ShopId;
+               product.ShopId = shopId;
                 await _context.SaveChangesAsync();
 
 
@@ -327,6 +331,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
                 //                return Ok("pass");
 
+                //add new image
                 APIResponse response = new APIResponse();
                         int passcount = 0;
                         int errorcount = 0;
@@ -386,118 +391,6 @@ namespace BirdPlatFormEcommerce.Controllers
                         response.ResponseCode = 200;
                         response.Result = passcount + "File uploaded &" + errorcount + "File failed";
                         return Ok(response);
-
-
-
-                    
-                  
-                    
-
-                    
-
-               
-
-                //        return Ok("Update Success ");
-
-
-
-                //update image
-                //      APIResponse response = new APIResponse();
-                //      int passcount = 0;
-                //      int errorcount = 0;
-                //      int maxImageCount = 6;
-                //      try
-                //      {
-                //          //lay duong dan tren server theo productId
-                //          string Filepath = GetFileProductPath(product.ProductId);
-                //          if (!Directory.Exists(Filepath))
-                //          {
-                //              Directory.CreateDirectory(Filepath);
-                //          }
-                //          int imageCount = 0;
-                //          //vo db lay tat ca imagePath va dem 
-                //           var oldImagePaths = await _context.TbImages.Where(i=>i.ProductId==product.ProductId).Select(i=>i.ImagePath).ToListAsync();
-
-
-                ////        var existingImage = oldImagePaths.FirstOrDefault(path => Path.GetFileName(path) == file.FileName);
-
-                //          foreach (var file in request.ImageFile)
-                //          {
-                //              if (imageCount >= maxImageCount)
-                //              {
-                //                  break;
-                //              }
-                //              var existingImagePath = oldImagePaths.FirstOrDefault(path => path == file.FileName);
-                //              if (existingImagePath != null)
-                //              {
-                //                  existingImagePath = Path.Combine(Filepath, file.FileName);
-                //                  if (System.IO.File.Exists(existingImagePath))
-                //                  {
-                //                      System.IO.File.Delete(existingImagePath);
-                //                  }
-                //                  oldImagePaths.Remove(existingImagePath);
-                //              }
-                //              var image = new TbImage()
-                //              {
-
-                //                  Caption = "Image",
-                //                  CreateDate = DateTime.Now,
-
-                //                  ProductId = product.ProductId,
-
-                //                  ImagePath = GetImageProductPath(product.ProductId, file.FileName),
-
-
-
-                //              };
-                //              string imagepath = Path.Combine(Filepath, file.FileName);
-                //              if (System.IO.File.Exists(imagepath))
-                //              {
-                //                  System.IO.File.Delete(imagepath);
-                //              }
-
-                //              using (FileStream stream = System.IO.File.Create(imagepath))
-                //              {
-                //                  await file.CopyToAsync(stream);
-                //                  passcount++;
-                //              }
-                //              _context.Add(image);
-                //              imageCount++;
-
-                //          }
-                //          foreach (var oldImagePath in oldImagePaths)
-                //          {
-
-                //         //     string imagePath = Path.Combine(Filepath, existingImage);
-                //              if (System.IO.File.Exists(oldImagePath))
-                //              {
-                //                  System.IO.File.Delete(oldImagePath);
-                //              }
-                //          }
-
-                //          // Xóa các bản ghi ảnh cũ không tồn tại trong request.ImageFile trong cơ sở dữ liệu
-                //          var imagesToRemove = await _context.TbImages
-                //              .Where(i => i.ProductId == product.ProductId && !request.ImageFile.Any(f => f.FileName == i.ImagePath))
-                //              .ToListAsync();
-
-                //          _context.TbImages.RemoveRange(imagesToRemove);
-
-                //          await _context.SaveChangesAsync();
-
-                //      }
-                //      catch (Exception ex)
-                //      {
-                //          errorcount++;
-                //          response.Errormessage = ex.Message;
-                //      }
-
-                //      response.ResponseCode = 200;
-                //      response.Result = passcount + "File uploaded &" + errorcount + "File failed";
-                //      return Ok(response);
-
-
-
-
 
 
             }
@@ -578,5 +471,55 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(product);
         }
 
+
+
+        [HttpGet("Detail_Product")]
+        public async Task<IActionResult> GetProductById(int productId)
+        {
+            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdclaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdclaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+            //find product by ProductId
+            var product = await _context.TbProducts.FindAsync(productId);
+            var image = await _context.TbImages.Where(x => x.ProductId == productId).Select(x => x.ImagePath).ToArrayAsync();
+
+            var cate = await (from c in _context.TbProductCategories
+                              join p in _context.TbProducts on c.CateId equals p.CateId
+                              where p.ProductId == productId
+                              select c).FirstOrDefaultAsync();
+
+
+            var shopManagementProductDetailVM = new ShopManagementProductDetailVM()
+            {
+                
+                ProductName = product.Name,
+                Price = product.Price,
+                DiscountPercent = (int)product.DiscountPercent,
+                SoldPrice = (int)Math.Round((decimal)(product.Price - product.Price / 100 * product.DiscountPercent)),
+                Decription = product != null ? product.Decription : null,
+             
+                Quantity = product.Quantity,
+                ShopId = shopid,
+
+                
+                CateId = product.CateId,
+               
+               
+                
+                Images = image.Length > 0 ? image.ToList() : new List<string> { "no-image.jpg" },
+
+
+            };
+            return Ok(shopManagementProductDetailVM);
+        }
     }
 }

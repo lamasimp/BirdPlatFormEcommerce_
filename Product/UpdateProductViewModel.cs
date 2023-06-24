@@ -11,7 +11,7 @@
 
         public string? Decription { get; set; }
 
-        public string? Detail { get; set; }
+    //    public string? Detail { get; set; }
 
         public decimal? DiscountPercent { get; set; }
 
