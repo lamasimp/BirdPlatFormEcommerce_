@@ -18,6 +18,71 @@ namespace BirdPlatFormEcommerce.Order
             _vnPayService = vnPayService;
             _mailService = mailService;
         }
+        public async Task<TbOrder> CompleteOrder(TbOrder order)
+        {
+            // Update product quantity
+            var orderDetails = order.TbOrderDetails;
+
+            foreach (var item in orderDetails)
+            {
+                var product = _context.TbProducts.FirstOrDefault(prod => prod.ProductId == item.ProductId);
+                if (product == null)
+                {
+                    throw new Exception("Product not found");
+                }
+                if (product.Quantity < item.Quantity)
+                {
+                    throw new Exception($"Product {product.ProductId} is out of stock");
+                }
+
+                product.Quantity -= item.Quantity;
+                product.QuantitySold += item.Quantity;
+
+                _context.TbProducts.Update(product);
+
+                // Create profit
+                var profit = new TbProfit
+                {
+                    OrderId = order.OrderId,
+                    Total = item.SubTotal,
+                    ShopId = (int)product.ShopId,
+                    Orderdate = order.OrderDate,
+                };
+
+                _context.TbProfits.Update(profit);
+            }
+
+            order.Status = true;
+            _context.TbOrders.Update(order);
+
+            // save changes
+            _context.SaveChanges();
+
+            // send email
+            string listProductHtml = "";
+            foreach (TbOrderDetail item in order.TbOrderDetails)
+            {
+                listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> VND {item.DiscountPrice:n0} VND - x{item.Quantity}</li>";
+            }
+            var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
+                                    <ul>{listProductHtml} </ul>
+                                <div>
+                                    <span>Tổng tiền: </span> <strong>{order.TotalPrice:n0} VND</strong>
+                                </div>
+                                <p>Xin trân trọng cảm ơn</p>
+                                </div>";
+
+            var mailRequest = new MailRequest()
+            {
+                ToEmail = order.User.Email ?? string.Empty,
+                Subject = "[BIRD TRADING PALTFORM] THANH TOÁN THÀNH CÔNG",
+                Body = emailBody
+            };
+
+            await _mailService.SendEmailAsync(mailRequest);
+
+            return order;
+        }
 
         public async Task<TbOrder> CreateOrder(int userId, CreateOrderModel orderModel)
         {

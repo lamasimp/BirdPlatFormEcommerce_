@@ -15,6 +15,7 @@ namespace BirdPlatFormEcommerce.Order
         public Task<TbOrder> UpdateOrder(TbOrder order);
 
         public Task<TbOrder?> GetOrderByPaymentId(int paymentId);
+        public Task<TbOrder> CompleteOrder(TbOrder order);
 
     }
 }
