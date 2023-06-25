@@ -65,6 +65,7 @@ namespace BirdPlatFormEcommerce.Order
                 Status = false,
                 OrderDate = DateTime.Now,
                 Note = orderModel.Note,
+                AddressID = orderModel.AddressID,
                 TbOrderDetails = items,
                 TotalPrice = items.Sum(item => item.SubTotal ?? 0)
             };

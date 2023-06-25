@@ -65,7 +65,7 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
-        [HttpPost("{id:int}/Pay")]
+        [HttpPost("{id:int}/Pay/")]
         [Authorize]
         public async Task<ActionResult<PaymentResponse>> CreatePayment([FromRoute] int id, [FromBody] PayOrderModel request)
         {
@@ -81,7 +81,7 @@ namespace BirdPlatFormEcommerce.Controllers
             string listProductHtml = "";
             foreach (TbOrderDetail item in order.TbOrderDetails)
             {
-                listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> VND {item.DiscountPrice:n0} VND - x{item.Quantity}</li>";
+                listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> $ {item.DiscountPrice:n0} $ - x{item.Quantity}</li>";
             }
             var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
                                     <ul>{listProductHtml} </ul>
@@ -126,9 +126,10 @@ namespace BirdPlatFormEcommerce.Controllers
             string listProductHtml = "";
             foreach (TbOrderDetail item in order.TbOrderDetails)
             {
-                listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> VND {item.DiscountPrice:n0} VND - x{item.Quantity}</li>";
+                listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> $ {item.DiscountPrice:n0} $ - x{item.Quantity}</li>";
             }
             var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
+                                 
                                     <ul>{listProductHtml} </ul>
                                 <div>
                                     <span>Tổng tiền: </span> <strong>{order.TotalPrice:n0} VND</strong>

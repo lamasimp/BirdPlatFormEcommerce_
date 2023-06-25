@@ -8,7 +8,8 @@ namespace BirdPlatFormEcommerce.Order.Requests
         [MinLength(1)]
         public IList<OrderDetailModel> Items { get; set; } = new List<OrderDetailModel>();
 
-        public string? Note { get; set; } 
+        public string? Note { get; set; }
+        public int? AddressID { get; set; }
     }
 
     public class OrderDetailModel
