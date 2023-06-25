@@ -50,7 +50,7 @@ namespace BirdPlatFormEcommerce.Product
         public async Task<DetailProductViewModel> GetProductById(int productId)
         {
             var product = await _context.TbProducts.FindAsync(productId);
-            var image = await _context.TbImages.Where(x=>x.ProductId == productId && x.IsDefault == true).Select(x=>x.ImagePath).ToArrayAsync();
+            var image = await _context.TbImages.Where(x=>x.ProductId == productId ).Select(x=>x.ImagePath).ToArrayAsync();
             
             var cate =  await (from c in _context.TbProductCategories 
                        join p in _context.TbProducts on c.CateId equals p.CateId

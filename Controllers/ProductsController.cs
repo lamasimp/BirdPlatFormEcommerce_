@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using System.Diagnostics.Eventing.Reader;
 using static System.Net.Mime.MediaTypeNames;
 
 
@@ -145,7 +147,7 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
         [HttpPut("List_Upload_Image")]
-        public async Task<IActionResult> ListUploadImage(IFormFileCollection filecollection, int productId, [FromForm] ListProductImageCreateRequest request)
+        public async Task<IActionResult> ListUploadImage(IFormFile[] filecollection, int productId, [FromForm] ListProductImageCreateRequest request)
         {
             APIResponse response = new APIResponse();
             int passcount = 0;
@@ -158,37 +160,42 @@ namespace BirdPlatFormEcommerce.Controllers
                 {
                     Directory.CreateDirectory(Filepath);
                 }
-                foreach(var file in filecollection)
+
+                if(filecollection.Length > 0)
                 {
-
-                    var image = new TbImage()
+                    foreach (var file in filecollection)
                     {
 
-                        Caption = "Image",
-                        CreateDate = DateTime.Now,
-                        IsDefault = request.IsDefault,
-                        SortOrder = request.SortOrder,
-                        ProductId = productId,
+                        var image = new TbImage()
+                        {
 
-                        ImagePath = GetImageProductPath(productId),
+                            Caption = "Image",
+                            CreateDate = DateTime.Now,
+                            IsDefault = request.IsDefault,
+                            SortOrder = request.SortOrder,
+                            ProductId = productId,
+
+                            ImagePath = GetImageProductPath(productId),
 
 
 
-                    };
-                    string imagepath = Path.Combine(Filepath, file.FileName);
-                    if(System.IO.File.Exists(imagepath))
-                    {
-                        System.IO.File.Delete(imagepath);
+                        };
+                        string imagepath = Path.Combine(Filepath, file.FileName);
+                        if (System.IO.File.Exists(imagepath))
+                        {
+                            System.IO.File.Delete(imagepath);
+                        }
+                        using (FileStream stream = System.IO.File.Create(imagepath))
+                        {
+                            await file.CopyToAsync(stream);
+                            passcount++;
+                        }
+                        _context.Add(image);
+
                     }
-                    using(FileStream stream = System.IO.File.Create(imagepath))
-                    { 
-                        await file.CopyToAsync(stream);
-                        passcount++;
-                    }
-                    _context.Add(image);
-                   
+                    await _context.SaveChangesAsync();
                 }
-                await _context.SaveChangesAsync();
+               
 
             }
             catch (Exception ex)
@@ -200,6 +207,39 @@ namespace BirdPlatFormEcommerce.Controllers
             response.ResponseCode = 200;
             response.Result = passcount + "File uploaded &" + errorcount + "File failed";
             return Ok(response);
+        }
+
+
+
+        [HttpPost]
+        [Route("Add_Image_ThanhCho")]
+        public async Task<IActionResult> AddImage( IFormFile[] fileimages)
+        {
+            // string Filepath = GetFileProductPath(productId);
+            string pictures = "";
+            if (fileimages.Length > 0)
+            {
+                foreach (var file in fileimages)
+                {
+                    string imagepath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "user-content","product" ,file.FileName);
+                    if (System.IO.File.Exists(imagepath))
+                    {
+                        System.IO.File.Delete(imagepath);
+                    }
+                    using (FileStream stream = System.IO.File.Create(imagepath))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+                    pictures += "/user-content/product" + file.FileName + ";";
+                   
+                }
+                return Ok(pictures);
+
+            }
+            else
+            {
+                return Ok("khong add dc anh");
+            }
         }
 
 

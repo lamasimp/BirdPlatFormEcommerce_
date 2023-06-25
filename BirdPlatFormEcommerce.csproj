@@ -33,7 +33,6 @@
   <ItemGroup>
     <Folder Include="Entity\" />
     <Folder Include="wwwroot\user-content\user\" />
-    <Folder Include="wwwroot\user-content\product\" />
   </ItemGroup>
 
 </Project>

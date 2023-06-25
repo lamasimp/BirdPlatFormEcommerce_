@@ -186,7 +186,7 @@ namespace BirdPlatFormEcommerce.Controllers
                    
                     //          CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
-                //   ShopId = request.ShopId,
+                 // ShopId = request.ShopId,
                     ShopId = shopid,
                     CateId = request.CateId
                 };
@@ -213,39 +213,42 @@ namespace BirdPlatFormEcommerce.Controllers
                         Directory.CreateDirectory(Filepath);
                     }
                     int imageCount = 0;
-                    foreach (var file in request.ImageFile)
+                    if (request.ImageFile.Length > 0)
                     {
-                        if (imageCount >= maxImageCount)
+                        foreach (var file in request.ImageFile)
                         {
-                            break;
-                        }
+                            if (imageCount >= maxImageCount)
+                            {
+                                break;
+                            }
 
                             var image = new TbImage()
-                        {
+                            {
 
-                            Caption = "Image",
-                            CreateDate = DateTime.Now,
-                          
-                            ProductId = product.ProductId,
+                                Caption = "Image",
+                                CreateDate = DateTime.Now,
 
-                            ImagePath = GetImageProductPath(product.ProductId, file.FileName),
+                                ProductId = product.ProductId,
+
+                                ImagePath = GetImageProductPath(product.ProductId, file.FileName),
 
 
 
-                        };
-                        string imagepath = Path.Combine(Filepath,file.FileName);
-                        if (System.IO.File.Exists(imagepath))
-                        {
-                            System.IO.File.Delete(imagepath);
+                            };
+                            string imagepath = Path.Combine(Filepath, file.FileName);
+                            if (System.IO.File.Exists(imagepath))
+                            {
+                                System.IO.File.Delete(imagepath);
+                            }
+                            using (FileStream stream = System.IO.File.Create(imagepath))
+                            {
+                                await file.CopyToAsync(stream);
+                                passcount++;
+                            }
+                            _context.Add(image);
+                            imageCount++;
+
                         }
-                        using (FileStream stream = System.IO.File.Create(imagepath))
-                        {
-                            await file.CopyToAsync(stream);
-                            passcount++;
-                        }
-                        _context.Add(image);
-                        imageCount++;
-
                     }
                     await _context.SaveChangesAsync();
 
@@ -259,9 +262,6 @@ namespace BirdPlatFormEcommerce.Controllers
                 response.ResponseCode = 200;
                 response.Result = passcount + "File uploaded &" + errorcount + "File failed";
                 return Ok(response);
-
-
-
               
             }
             catch
@@ -345,40 +345,44 @@ namespace BirdPlatFormEcommerce.Controllers
                                 Directory.CreateDirectory(Filepath1);
                             }
                             int imageCount = 0;
-                            foreach (var file in request.ImageFile)
+
+                    if (request.ImageFile.Length > 0)
+                    {
+                        foreach (var file in request.ImageFile)
+                        {
+                            if (imageCount >= maxImageCount)
                             {
-                                if (imageCount >= maxImageCount)
-                                {
-                                    break;
-                                }
-
-                                var image = new TbImage()
-                                {
-
-                                    Caption = "Image",
-                                    CreateDate = DateTime.Now,
-
-                                    ProductId = product.ProductId,
-
-                                    ImagePath = GetImageProductPath(product.ProductId, file.FileName),
-
-
-
-                                };
-                                string imagepath = Path.Combine(Filepath, file.FileName);
-                                if (System.IO.File.Exists(imagepath))
-                                {
-                                    System.IO.File.Delete(imagepath);
-                                }
-                                using (FileStream stream = System.IO.File.Create(imagepath))
-                                {
-                                    await file.CopyToAsync(stream);
-                                    passcount++;
-                                }
-                                _context.Add(image);
-                                imageCount++;
-
+                                break;
                             }
+
+                            var image = new TbImage()
+                            {
+
+                                Caption = "Image",
+                                CreateDate = DateTime.Now,
+
+                                ProductId = product.ProductId,
+
+                                ImagePath = GetImageProductPath(product.ProductId, file.FileName),
+
+
+
+                            };
+                            string imagepath = Path.Combine(Filepath, file.FileName);
+                            if (System.IO.File.Exists(imagepath))
+                            {
+                                System.IO.File.Delete(imagepath);
+                            }
+                            using (FileStream stream = System.IO.File.Create(imagepath))
+                            {
+                                await file.CopyToAsync(stream);
+                                passcount++;
+                            }
+                            _context.Add(image);
+                            imageCount++;
+
+                        }
+                    }
                             await _context.SaveChangesAsync();
 
                         }

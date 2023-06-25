@@ -18,7 +18,7 @@
         public int? Quantity { get; set; }
 
         public decimal? SoldPrice { get; set; }
-        public List<IFormFile> ImageFile { get; set; }
+        public IFormFile[] ImageFile { get; set; }
         public int ShopId { get; set; }
     }
 }
