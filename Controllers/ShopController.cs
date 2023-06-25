@@ -276,17 +276,17 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             try
             {
-                //var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-                //if (userIdClaim == null)
-                //{
-                //    return BadRequest("Can not find User");
-                //}
-                //int userId = int.Parse(userIdClaim.Value);
-                //var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
-                //{
-                //    throw new Exception("Shop not found");
-                //}
-                //int shopId = shop.ShopId;
+                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+                if (userIdClaim == null)
+                {
+                    return BadRequest("Can not find User");
+                }
+                int userId = int.Parse(userIdClaim.Value);
+                var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+                {
+                    throw new Exception("Shop not found");
+                }
+                int shopId = shop.ShopId;
 
 
                 var product = await _context.TbProducts.FindAsync(request.ProductId);
@@ -299,8 +299,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 product.Status = request.Status;
                 product.Decription = request.Decription;
                 //          product.Detail = request.Detail;
-                    product.ShopId= request.ShopId;
-              //  product.ShopId = shopId;
+                  //  product.ShopId= request.ShopId;
+                product.ShopId = shopId;
                 await _context.SaveChangesAsync();
 
 
