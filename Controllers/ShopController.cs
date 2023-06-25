@@ -144,7 +144,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 Status = x.p.Status,
                 Price = x.p.Price,
                 DiscountPercent = x.p.DiscountPercent,
-                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * x.p.DiscountPercent)),
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * (x.p.DiscountPercent))),
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
                 Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
@@ -181,7 +181,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
                     Price = request.Price,
                     DiscountPercent = request.DiscountPercent,
-                    SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * request.DiscountPercent)),
+                    SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * (request.DiscountPercent))),
                     Decription = request.Decription,
                    
                     //          CreateDate = request.CreateDate,
@@ -297,7 +297,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 product.Name = request.Name;
                 product.Price = request.Price;
                 product.DiscountPercent = request.DiscountPercent;
-                product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / (100 * request.DiscountPercent)));
+                product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / 100 * (request.DiscountPercent)));
                 product.Status = request.Status;
                 product.Decription = request.Decription;
       //          product.Detail = request.Detail;
