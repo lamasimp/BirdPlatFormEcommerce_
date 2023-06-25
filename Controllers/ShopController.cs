@@ -279,15 +279,15 @@ namespace BirdPlatFormEcommerce.Controllers
                 var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
                 if (userIdClaim == null)
                 {
-                    return BadRequest("Can not find User");
+                    throw new Exception("User not found");
                 }
-                int userId = int.Parse(userIdClaim.Value);
-                var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+                int userid = int.Parse(userIdClaim.Value);
+                var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+                if (shop == null)
                 {
                     throw new Exception("Shop not found");
                 }
-                int shopId = shop.ShopId;
-
+                int shopid = shop.ShopId;
 
                 var product = await _context.TbProducts.FindAsync(request.ProductId);
 
@@ -296,11 +296,11 @@ namespace BirdPlatFormEcommerce.Controllers
                 product.Price = request.Price;
                 product.DiscountPercent = request.DiscountPercent;
                 product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / 100 * (request.DiscountPercent)));
-                product.Status = request.Status;
+               
                 product.Decription = request.Decription;
                 //          product.Detail = request.Detail;
                   //  product.ShopId= request.ShopId;
-                product.ShopId = shopId;
+                product.ShopId = shopid;
                 await _context.SaveChangesAsync();
 
 
@@ -310,7 +310,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 {
                     await _context.SaveChangesAsync();
                 
-                    return Ok();
+                    return Ok("Add product successfully");
                 }
                 else
                 {

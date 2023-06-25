@@ -7,7 +7,7 @@ namespace BirdPlatFormEcommerce.Product
         public int ProductId { get; set; }
         public string Name { get; set; } = null!;
 
-        public bool? Status { get; set; }
+      
 
         public decimal Price { get; set; }
 
