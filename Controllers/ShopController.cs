@@ -276,19 +276,17 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             try
             {
-                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-                if (userIdClaim == null)
-                {
-                    return BadRequest("Can not find User");
-                }
-                int userId = int.Parse(userIdClaim.Value);
-                var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
-                //       var pro = await _context.TbProducts.FirstOrDefaultAsync(x => x.ShopId == shop.ShopId);
-                if (shop == null)
-                {
-                    throw new Exception("Shop not found");
-                }
-                int shopId = shop.ShopId;
+                //var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+                //if (userIdClaim == null)
+                //{
+                //    return BadRequest("Can not find User");
+                //}
+                //int userId = int.Parse(userIdClaim.Value);
+                //var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+                //{
+                //    throw new Exception("Shop not found");
+                //}
+                //int shopId = shop.ShopId;
 
 
                 var product = await _context.TbProducts.FindAsync(request.ProductId);
@@ -300,14 +298,23 @@ namespace BirdPlatFormEcommerce.Controllers
                 product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / 100 * (request.DiscountPercent)));
                 product.Status = request.Status;
                 product.Decription = request.Decription;
-      //          product.Detail = request.Detail;
-           //     product.ShopId= request.ShopId;
-               product.ShopId = shopId;
+                //          product.Detail = request.Detail;
+                    product.ShopId= request.ShopId;
+              //  product.ShopId = shopId;
                 await _context.SaveChangesAsync();
 
 
                 //delete Image 
-               
+
+                if (request.ImageFile == null || request.ImageFile.Length == 0)
+                {
+                    await _context.SaveChangesAsync();
+                
+                    return Ok();
+                }
+                else
+                {
+
                     string Filepath = GetFileProductPath(product.ProductId);
                     if (System.IO.Directory.Exists(Filepath))
                     {
@@ -317,37 +324,35 @@ namespace BirdPlatFormEcommerce.Controllers
                         {
                             fileInfo.Delete();
                         }
-                        
+
                     }
 
 
-                var imagesToRemove = await _context.TbImages
-          .Where(i => i.ProductId == product.ProductId)
-          .ToListAsync();
+                    var imagesToRemove = await _context.TbImages
+              .Where(i => i.ProductId == product.ProductId)
+              .ToListAsync();
 
-                _context.TbImages.RemoveRange(imagesToRemove);
-                await _context.SaveChangesAsync();
+                    _context.TbImages.RemoveRange(imagesToRemove);
+                    await _context.SaveChangesAsync();
 
 
-                //                return Ok("pass");
+                    //                return Ok("pass");
 
-                //add new image
-                APIResponse response = new APIResponse();
-                        int passcount = 0;
-                        int errorcount = 0;
-                        int maxImageCount = 6;
-                        try
-                        {
-
-                            string Filepath1 = GetFileProductPath(product.ProductId);
-                            if (!Directory.Exists(Filepath1))
-                            {
-                                Directory.CreateDirectory(Filepath1);
-                            }
-                            int imageCount = 0;
-
-                    if (request.ImageFile.Length > 0)
+                    //add new image
+                    APIResponse response = new APIResponse();
+                    int passcount = 0;
+                    int errorcount = 0;
+                    int maxImageCount = 6;
+                    try
                     {
+
+                        string Filepath1 = GetFileProductPath(product.ProductId);
+                        if (!Directory.Exists(Filepath1))
+                        {
+                            Directory.CreateDirectory(Filepath1);
+                        }
+                        int imageCount = 0;
+
                         foreach (var file in request.ImageFile)
                         {
                             if (imageCount >= maxImageCount)
@@ -382,22 +387,25 @@ namespace BirdPlatFormEcommerce.Controllers
                             imageCount++;
 
                         }
+
+                        await _context.SaveChangesAsync();
+
                     }
-                            await _context.SaveChangesAsync();
+                    catch (Exception ex)
+                    {
+                        errorcount++;
+                        response.Errormessage = ex.Message;
+                    }
 
-                        }
-                        catch (Exception ex)
-                        {
-                            errorcount++;
-                            response.Errormessage = ex.Message;
-                        }
-
-                        response.ResponseCode = 200;
-                        response.Result = passcount + "File uploaded &" + errorcount + "File failed";
-                        return Ok(response);
+                    response.ResponseCode = 200;
+                    response.Result = passcount + "File uploaded &" + errorcount + "File failed";
+                    return Ok(response);
 
 
+                }
             }
+
+
             catch
             {
                 return BadRequest("CanNot update check again");

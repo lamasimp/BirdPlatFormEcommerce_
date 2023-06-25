@@ -1,4 +1,6 @@
-﻿namespace BirdPlatFormEcommerce.Product
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+namespace BirdPlatFormEcommerce.Product
 {
     public class UpdateProductViewModel
     {
@@ -18,7 +20,9 @@
         public int? Quantity { get; set; }
 
         public decimal? SoldPrice { get; set; }
-        public IFormFile[] ImageFile { get; set; }
+
+        [BindNever]
+        public IFormFile[]? ImageFile { get; set; }
         public int ShopId { get; set; }
     }
 }
