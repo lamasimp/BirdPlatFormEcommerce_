@@ -12,7 +12,7 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public int UserId { get; set; }
 
         public string? Note { get; set; }
-
+        public int? AddressID { get; set; }
         public decimal TotalPrice { get; set; }
 
         public DateTime? OrderDate { get; set; }
