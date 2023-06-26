@@ -587,5 +587,49 @@ namespace BirdPlatFormEcommerce.Controllers
 
             return Ok(monthlyRevenue);
         }
+
+
+
+        [HttpGet("ToTal_Revenue")]
+        public async Task<IActionResult> GetToTalRevenue()
+        {
+
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+
+
+            var query = from od in _context.TbOrderDetails
+                        join p in _context.TbProducts on od.ProductId equals p.ProductId
+                        join s in _context.TbShops on p.ShopId equals s.ShopId
+                        where s.ShopId == shopid
+                        select new TbProfit
+                        {
+                            ShopId = s.ShopId,
+                            Orderdate = od.DateOrder,
+                            OrderDetailId = od.Id,
+                            Total = (decimal)od.Total
+                        };
+
+            var data = await query.ToListAsync();
+
+                // Tính tổng doanh thu của shop trong tháng hiện tại
+                decimal totalRevenue = data.Sum(p => p.Total ?? 0m);
+
+               
+              
+            
+
+            return Ok(totalRevenue);
+        }
     }
 }
