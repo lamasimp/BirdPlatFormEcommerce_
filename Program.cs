@@ -1,11 +1,11 @@
 
-using BirdPlatFormEcommerce.Entity;
+using BirdPlatFormEcommerce.IEntity;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.Order;
 using BirdPlatFormEcommerce.Payment;
 using BirdPlatFormEcommerce.Product;
-using BirdPlatFormEcommerce.TokenService;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +22,7 @@ namespace BirdPlatFormEcommerce
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddDbContext<SwpContext>(op =>
+            builder.Services.AddDbContext<SwpContextContext>(op =>
             {
                 op.UseSqlServer(builder.Configuration.GetConnectionString("BirdForm"));
             });
@@ -37,7 +37,7 @@ namespace BirdPlatFormEcommerce
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddScoped<ITokenBlacklistService, TokenBlackList>();
+
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
             builder.Services.AddScoped<IManageProductService, ManageProductService>();
             builder.Services.AddAutoMapper(typeof(Mappings).Assembly);

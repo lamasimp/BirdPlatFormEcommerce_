@@ -1,5 +1,5 @@
 ﻿using BirdPlatForm.UserRespon;
-using BirdPlatFormEcommerce.Entity;
+using BirdPlatFormEcommerce.IEntity;
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +15,7 @@ using MimeKit.Cryptography;
 using BirdPlatFormEcommerce.Helper;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static System.Net.Mime.MediaTypeNames;
+using BirdPlatFormEcommerce.IEntity;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -22,11 +23,11 @@ namespace BirdPlatFormEcommerce.Controllers
     [ApiController]
     public class ShopController : ControllerBase
     {
-        private readonly SwpContext _context;
+        private readonly SwpContextContext _context;
         private readonly IManageProductService _manageProductService;
         private readonly IWebHostEnvironment _enviroment;
 
-        public ShopController(SwpContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment)
+        public ShopController(SwpContextContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment)
         {
             _context = swp;
             _manageProductService = manageProductService;

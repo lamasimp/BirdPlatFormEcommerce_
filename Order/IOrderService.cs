@@ -1,4 +1,4 @@
-﻿using BirdPlatFormEcommerce.Entity;
+﻿using BirdPlatFormEcommerce.IEntity;
 using BirdPlatFormEcommerce.Order.Requests;
 using BirdPlatFormEcommerce.Payment;
 

@@ -1,18 +1,21 @@
-﻿using BirdPlatFormEcommerce.Entity;
+﻿using BirdPlatFormEcommerce.IEntity;
 using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.Order.Requests;
 using BirdPlatFormEcommerce.Payment;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using BirdPlatFormEcommerce.ViewModel;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BirdPlatFormEcommerce.Order
 {
     public class OrderService : IOrderService
     {
-        private readonly SwpContext _context;
+        private readonly SwpContextContext _context;
         private readonly IVnPayService _vnPayService;
         private readonly IMailService _mailService;
 
-        public OrderService(SwpContext context, IVnPayService vnPayService, IMailService mailService)
+        public OrderService(SwpContextContext context, IVnPayService vnPayService, IMailService mailService)
         {
             _context = context;
             _vnPayService = vnPayService;
@@ -43,8 +46,8 @@ namespace BirdPlatFormEcommerce.Order
                 // Create profit
                 var profit = new TbProfit
                 {
-                    OrderId = order.OrderId,
-                    Total = item.SubTotal,
+                    OrderDetailId = order.OrderId,
+                    Total = item.Total,
                     ShopId = (int)product.ShopId,
                     Orderdate = order.OrderDate,
                 };
@@ -93,7 +96,7 @@ namespace BirdPlatFormEcommerce.Order
             {
                 throw new Exception("User not found");
             }
-
+           
             var items = new List<TbOrderDetail>();
             foreach (var requestItem in orderModel.Items)
             {
@@ -119,7 +122,7 @@ namespace BirdPlatFormEcommerce.Order
                     DiscountPrice = (1 - product.DiscountPercent * (decimal)0.01) * product.Price
                 };
 
-                orderItem.SubTotal = orderItem.DiscountPrice * quantity;
+                orderItem.Total = orderItem.DiscountPrice * quantity;
 
                 items.Add(orderItem);
             }
@@ -130,14 +133,23 @@ namespace BirdPlatFormEcommerce.Order
                 Status = false,
                 OrderDate = DateTime.Now,
                 Note = orderModel.Note,
-                AddressID = orderModel.AddressID,
+                AddressId = (int)orderModel.AddressID,
                 TbOrderDetails = items,
-                TotalPrice = items.Sum(item => item.SubTotal ?? 0)
+                TotalPrice = items.Sum(item => item.Total ?? 0)
             };
 
 
             await _context.TbOrders.AddAsync(order);
             await _context.SaveChangesAsync();
+            int orderId = order.OrderId;
+
+            // Cập nhật addressId trong bảng tb_Address cho orderId tương ứng
+            var address = await _context.TbOrders.FirstOrDefaultAsync(a => a.AddressId == orderModel.AddressID);
+            if (address != null)
+            {
+                order.AddressId = address.AddressId;
+                await _context.SaveChangesAsync();
+            }
 
             return order;
         }
@@ -170,6 +182,7 @@ namespace BirdPlatFormEcommerce.Order
                 PaymentMethod = method.ToString(),
                 PaymentDate = DateTime.Now,
                 Amount = order.TotalPrice
+
             };
 
             order.Payment = payment;
