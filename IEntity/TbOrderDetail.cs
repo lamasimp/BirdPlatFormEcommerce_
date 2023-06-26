@@ -21,6 +21,7 @@ public partial class TbOrderDetail
 
     public decimal? Total { get; set; }
 
+    public DateTime? DateOrder { get; set; }
     public virtual TbOrder Order { get; set; } = null!;
 
     public virtual TbProduct Product { get; set; } = null!;

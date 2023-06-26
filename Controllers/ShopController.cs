@@ -536,7 +536,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
         [HttpGet("Revenue_month")]
-        public async Task<IActionResult> GetRevenueMonth(int year)
+        public async Task<IActionResult> GetRevenueMonth()
         {
 
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
@@ -551,21 +551,35 @@ namespace BirdPlatFormEcommerce.Controllers
                 throw new Exception("Shop not found");
             }
             int shopid = shop.ShopId;
+
+            int currentYear = DateTime.Now.Year;
+            var query = from od in _context.TbOrderDetails
+                        join p in _context.TbProducts on od.ProductId equals p.ProductId
+                        join s in _context.TbShops on p.ShopId equals s.ShopId
+                        where s.ShopId == shopid
+                        select new TbProfit
+                        {
+                            ShopId = s.ShopId,
+                            Orderdate = od.DateOrder,
+                            OrderDetailId = od.Id,
+                            Total = (decimal)od.Total
+                        };
+
+            var data = await query.ToListAsync();
+
             // Khoi tao mang chua kq TotalRevenue của moi thang
             decimal[] monthlyRevenue = new decimal[12];
 
             for (int i = 0; i < 12; i++)
             {
-                DateTime currentMonthStart = new DateTime(year, i + 1, 1);
+                DateTime currentMonthStart = new DateTime(currentYear, i + 1, 1);
                 DateTime currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
 
-                // Lấy danh sách các đơn hàng của shop trong tháng hiện tại
-                var orders = _context.TbProfits
-                    .Where(p => p.ShopId == shopid && p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd)
-                    .ToList();
+                
+              
 
                 // Tính tổng doanh thu của shop trong tháng hiện tại
-                decimal totalRevenue = orders.Sum(p => p.Total ?? 0m);
+                decimal totalRevenue = data.Where(p => p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd).Sum(p => p.Total ?? 0m);
 
                 // Gán đối tượng tháng vào mảng monthlyRevenue
                 monthlyRevenue[i] = totalRevenue;
