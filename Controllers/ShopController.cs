@@ -15,7 +15,6 @@ using MimeKit.Cryptography;
 using BirdPlatFormEcommerce.Helper;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static System.Net.Mime.MediaTypeNames;
-using BirdPlatFormEcommerce.IEntity;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -533,6 +532,46 @@ namespace BirdPlatFormEcommerce.Controllers
 
             };
             return Ok(shopManagementProductDetailVM);
+        }
+
+
+        [HttpGet("Revenue_month")]
+        public async Task<IActionResult> GetRevenueMonth(int year)
+        {
+
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+            // Khoi tao mang chua kq TotalRevenue của moi thang
+            decimal[] monthlyRevenue = new decimal[12];
+
+            for (int i = 0; i < 12; i++)
+            {
+                DateTime currentMonthStart = new DateTime(year, i + 1, 1);
+                DateTime currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
+
+                // Lấy danh sách các đơn hàng của shop trong tháng hiện tại
+                var orders = _context.TbProfits
+                    .Where(p => p.ShopId == shopid && p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd)
+                    .ToList();
+
+                // Tính tổng doanh thu của shop trong tháng hiện tại
+                decimal totalRevenue = orders.Sum(p => p.Total ?? 0m);
+
+                // Gán đối tượng tháng vào mảng monthlyRevenue
+                monthlyRevenue[i] = totalRevenue;
+            }
+
+            return Ok(monthlyRevenue);
         }
     }
 }
