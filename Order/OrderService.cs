@@ -135,7 +135,8 @@ namespace BirdPlatFormEcommerce.Order
                 Note = orderModel.Note,
                 AddressId = (int)orderModel.AddressID,
                 TbOrderDetails = items,
-                TotalPrice = items.Sum(item => item.Total ?? 0)
+                TotalPrice = items.Sum(item => item.Total ?? 0),
+                IsAccepted = false
             };
 
 

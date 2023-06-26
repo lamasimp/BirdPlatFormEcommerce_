@@ -20,6 +20,7 @@ public partial class TbOrder
     public int? PaymentId { get; set; }
 
     public int AddressId { get; set; }
+    public bool IsAccepted { get; set; }
 
     public virtual TbAddressReceive Address { get; set; } = null!;
 

@@ -67,9 +67,9 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             return Ok(new ErrorRespon
             {
-
-                Message = "Register shop Success"
-
+                
+                Message = "Register shop Success",
+                Roleid = user.RoleId
             });
         }
 
@@ -533,6 +533,21 @@ namespace BirdPlatFormEcommerce.Controllers
 
             };
             return Ok(shopManagementProductDetailVM);
+        }
+        [HttpGet("Getoder")]
+        public async Task<IActionResult> Getoderproduct()
+        {
+            var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (useridClaim == null) return BadRequest("No User");
+            int userid = int.Parse(useridClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+            var unacceptedOrders =  _context.TbOrders.Where(o => !o.IsAccepted && o.UserId == shopid);
+            return Ok(unacceptedOrders);
         }
     }
 }
