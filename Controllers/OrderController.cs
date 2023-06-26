@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BirdPlatFormEcommerce.Entity;
+using BirdPlatFormEcommerce.IEntity;
 using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.Order;
 using BirdPlatFormEcommerce.Order.Requests;
@@ -26,9 +26,9 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IVnPayService _vnPayService;
         private readonly IConfiguration _configuration;
         private readonly IMailService _mailService;
-        private readonly SwpContext _context;
+        private readonly SwpContextContext _context;
 
-        public OrderController(IOrderService orderService, IMapper mapper, ILogger<OrderController> logger, IVnPayService vnPayService, IConfiguration configuration, IMailService mailService, SwpContext swp)
+        public OrderController(IOrderService orderService, IMapper mapper, ILogger<OrderController> logger, IVnPayService vnPayService, IConfiguration configuration, IMailService mailService, SwpContextContext swp)
         {
             _orderService = orderService;
             _mapper = mapper;
@@ -48,7 +48,7 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 return Unauthorized();
             }
-
+           
             var order = await _orderService.CreateOrder(Int32.Parse(userId), request);
             var response = _mapper.Map<OrderRespponse>(order);
 
@@ -146,14 +146,46 @@ namespace BirdPlatFormEcommerce.Controllers
                             ProductID = od.ProductId ,
                             ProductName = p.Name,
                             Quantity = (int)od.Quantity,
-                            SubTotal = (decimal)od.SubTotal,
+                            SubTotal = (decimal)od.Total,
                             ShopID = (int)p.ShopId,
                             ShopName = s.ShopName,
                             ImagePath = i.ImagePath
                         };
 
-            var orders = query.ToList();
+            var orders = query.Distinct().ToList();
             return Ok(orders);
+        }
+        [HttpPost("AddressOder")]
+        public async Task<IActionResult> AddressOder(AddressModel add)
+        {
+            var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if(useridClaim == null)
+            {
+                return Unauthorized();
+            }
+            int userid = int.Parse(useridClaim.Value);
+            var address = new TbAddressReceive
+            {
+                UserId = userid,
+                Address = add.Address,
+                AddressDetail = add.AddressDetail,
+                Phone = add.Phone,
+                NameRg = add.NameRg
+
+
+            };
+            await _context.TbAddressReceives.AddAsync(address);
+            await _context.SaveChangesAsync();
+            return Ok(address);
+        }
+        [HttpGet("GetAddressOder")]
+        public async Task<IActionResult> GetAddressOder()
+        {
+            var useridClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (useridClaim == null) return Unauthorized();
+            int userid = int.Parse(useridClaim.Value);
+            var address =  _context.TbAddressReceives.Where(a => a.UserId == userid).ToList();
+            return Ok(address);
         }
 
     }

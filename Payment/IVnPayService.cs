@@ -1,4 +1,4 @@
-﻿using BirdPlatFormEcommerce.Entity;
+﻿using BirdPlatFormEcommerce.IEntity;
 using BirdPlatFormEcommerce.Payment.Requests;
 
 namespace BirdPlatFormEcommerce.Payment
@@ -6,5 +6,6 @@ namespace BirdPlatFormEcommerce.Payment
     public interface IVnPayService
     {
         string CreatePaymentUrl(TbPayment payment);
+        
     }
 }

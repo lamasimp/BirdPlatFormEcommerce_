@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Entity\" />
+    <Folder Include="IEntity\" />
     <Folder Include="wwwroot\user-content\user\" />
   </ItemGroup>
 

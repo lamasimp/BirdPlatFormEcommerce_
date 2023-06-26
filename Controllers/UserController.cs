@@ -2,10 +2,10 @@
 using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
 
-using BirdPlatFormEcommerce.Entity;
+using BirdPlatFormEcommerce.IEntity;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Product;
-using BirdPlatFormEcommerce.TokenService;
+
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,10 +27,10 @@ namespace BirdPlatForm.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly SwpContext _context;
+        private readonly SwpContextContext _context;
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _enviroment;
-        public UserController(SwpContext bird, IConfiguration config, IWebHostEnvironment enviroment)
+        public UserController(SwpContextContext bird, IConfiguration config, IWebHostEnvironment enviroment)
         {
             _context = bird;
             _config = config;
