@@ -20,7 +20,7 @@ public partial class TbOrderDetail
     public decimal? DiscountPrice { get; set; }
 
     public decimal? Total { get; set; }
-
+    public int ToConfirm { get; set; }
     public DateTime? DateOrder { get; set; }
     public virtual TbOrder Order { get; set; } = null!;
 
