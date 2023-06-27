@@ -119,7 +119,9 @@ namespace BirdPlatFormEcommerce.Order
                     ProductId = productId,
                     Quantity = quantity,
                     ProductPrice = product.Price,
-                    DiscountPrice = (1 - product.DiscountPercent * (decimal)0.01) * product.Price
+                    DiscountPrice = (1 - product.DiscountPercent * (decimal)0.01) * product.Price,
+                    ToConfirm = 1,
+
                 };
 
                 orderItem.Total = orderItem.DiscountPrice * quantity;
