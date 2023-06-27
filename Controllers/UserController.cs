@@ -486,6 +486,62 @@ namespace BirdPlatForm.Controllers
             
 
         }
-      
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPassword request)
+        {
+            try
+            {
+                var user = await _context.TbUsers.FirstOrDefaultAsync(u => u.Email == request.Email);
+                if (user == null)
+                {
+                    return BadRequest("Invalid email address.");
+                }
+
+               
+                string newPassword = "123456";
+
+                
+                user.Password = newPassword;
+                
+                await _context.SaveChangesAsync();
+
+               
+
+                return Ok("Password is 123456, Plase change your password");
+            }
+            catch (Exception ex)
+            {                
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPassword reset)
+        {
+            try
+            {
+                var user = await _context.TbUsers.FirstOrDefaultAsync(u => u.Email == reset.Email);
+                if (user == null)
+                {
+                    return BadRequest("Invalid email address.");
+                }               
+                if (user.Password != reset.CurrentPassword)
+                {
+                    return BadRequest("Invalid current password.");
+                }                
+                user.Password = reset.NewPassword;
+                await _context.SaveChangesAsync();
+
+                return Ok("Update Password success");
+            }
+            catch (Exception ex)
+            {                
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
+       
     }
+
 }
+
