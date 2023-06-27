@@ -185,13 +185,13 @@ namespace BirdPlatForm.Controllers
         [HttpPost("Register")]
         public async Task<ActionResult<TbUser>> Register(RegisterModel register)
         {
-            var regis =  _context.TbUsers.FirstOrDefault(o => o.Email == register.Email);
+            var regis = await _context.TbUsers.FirstOrDefaultAsync(o => o.Email == register.Email);
             if(regis != null)
             {
                 return Ok(new ErrorRespon
                 {
                     Error = false,
-                    Message ="Fail"
+                    Message ="Email đã tồn tại "
                 });
             }
             var user = new TbUser

@@ -67,8 +67,8 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(new ErrorRespon
             {
 
-                Message = "Register shop Success"
-
+                Message = "Register shop Success",
+                RoleId = user.RoleId
             });
         }
 
