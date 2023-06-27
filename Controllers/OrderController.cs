@@ -102,7 +102,11 @@ namespace BirdPlatFormEcommerce.Controllers
                 Subject = "[BIRD TRADING PALTFORM] XÁC NHẬN ĐƠN HÀNG",
                 Body = emailBody
             };
-
+            foreach (TbOrderDetail item in order.TbOrderDetails)
+            {
+                item.ToConfirm = 2;
+            }
+            await _context.SaveChangesAsync();
             await _mailService.SendEmailAsync(mailRequest);
 
             var response = _mapper.Map<PaymentResponse>(order.Payment);
@@ -130,30 +134,57 @@ namespace BirdPlatFormEcommerce.Controllers
             return Redirect(_configuration["Payment:SuccessUrl"]);
 
         }
-        [HttpGet("{userId}")]
-        public IActionResult GetOrders(int userId)
-        {
-            var query = from o in _context.TbOrders
-                        where o.UserId == userId && o.Status == false && o.Payment.PaymentMethod == "Vnpay"
-                        join od in _context.TbOrderDetails on o.OrderId equals od.OrderId
-                        join p in _context.TbProducts on od.ProductId equals p.ProductId
-                        join s in _context.TbShops on p.ShopId equals s.ShopId
-                        join i in _context.TbImages on p.ProductId equals i.ProductId
-                        where i.IsDefault == true
-                        select new Inforproduct
-                        {
-                            OrderID = o.OrderId,
-                            ProductID = od.ProductId ,
-                            ProductName = p.Name,
-                            Quantity = (int)od.Quantity,
-                            SubTotal = (decimal)od.Total,
-                            ShopID = (int)p.ShopId,
-                            ShopName = s.ShopName,
-                            ImagePath = i.ImagePath
-                        };
+        [HttpGet("OrderFailed")]
 
-            var orders = query.Distinct().ToList();
-            return Ok(orders);
+        public IActionResult GetOrdersByUserId()
+        {
+
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var orders = _context.TbOrders
+                .Where(o => o.UserId == userId && o.Payment.PaymentMethod == "Vnpay" && o.Status == false)
+                .Include(o => o.TbOrderDetails)
+                    .ThenInclude(od => od.Product)
+                        .ThenInclude(p => p.Shop)
+                .Include(o => o.Payment)
+                .ToList();
+
+            var response = new List<OrderResponses>();
+
+            foreach (var order in orders)
+            {
+                var orderItems = order.TbOrderDetails.Select(od => new OrderItemResponse
+                {
+                    ShopName = od.Product.Shop.ShopName,
+                    ShopId = od.Product.Shop.ShopId,
+                    ProductId = od.ProductId,
+                    Quantity = (int)od.Quantity,
+                    ProductName = od.Product.Name,
+                    Price = od.Product.Price,
+                    SoldPrice = (int)(od.Product.Price - od.Product.Price / 100 * od.Product.DiscountPercent),
+                    ImagePath = _context.TbImages
+                        .Where(i => i.ProductId == od.ProductId)
+                        .OrderBy(i => i.SortOrder)
+                        .Select(i => i.ImagePath)
+                        .FirstOrDefault()
+                }).ToList();
+
+                var orderResponse = new OrderResponses
+                {
+                    OrderId = order.OrderId,
+                    TotalPrice = order.TotalPrice,
+                    SubTotal = (decimal)order.TbOrderDetails.Sum(od => od.Total),
+                    Items = orderItems
+                };
+
+                response.Add(orderResponse);
+            }
+
+            return Ok(response);
         }
         [HttpPost("AddressOder")]
         public async Task<IActionResult> AddressOder(AddressModel add)

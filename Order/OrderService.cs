@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace BirdPlatFormEcommerce.Order
 {
@@ -65,6 +66,8 @@ namespace BirdPlatFormEcommerce.Order
             string listProductHtml = "";
             foreach (TbOrderDetail item in order.TbOrderDetails)
             {
+                item.ToConfirm = 2;
+
                 listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> VND {item.DiscountPrice:n0} VND - x{item.Quantity}</li>";
             }
             var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
@@ -119,7 +122,9 @@ namespace BirdPlatFormEcommerce.Order
                     ProductId = productId,
                     Quantity = quantity,
                     ProductPrice = product.Price,
-                    DiscountPrice = (1 - product.DiscountPercent * (decimal)0.01) * product.Price
+                    DiscountPrice = (1 - product.DiscountPercent * (decimal)0.01) * product.Price,
+                    ToConfirm = 1,
+
                 };
 
                 orderItem.Total = orderItem.DiscountPrice * quantity;
