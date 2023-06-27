@@ -102,12 +102,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 Subject = "[BIRD TRADING PALTFORM] XÁC NHẬN ĐƠN HÀNG",
                 Body = emailBody
             };
-            foreach (TbOrderDetail item in order.TbOrderDetails)
-            {
-                item.ToConfirm = 2;
-            }
-            await _context.SaveChangesAsync();
-            await _mailService.SendEmailAsync(mailRequest);
+           
 
             var response = _mapper.Map<PaymentResponse>(order.Payment);
             response.PaymentUrl = paymentUrl;
@@ -177,7 +172,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 {
                     OrderId = order.OrderId,
                     TotalPrice = order.TotalPrice,
-                    SubTotal = (decimal)order.TbOrderDetails.Sum(od => od.Total),
+                    Total = (decimal)order.TbOrderDetails.Sum(od => od.Total),
                     Items = orderItems
                 };
 
