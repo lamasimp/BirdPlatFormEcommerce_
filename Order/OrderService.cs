@@ -49,7 +49,7 @@ namespace BirdPlatFormEcommerce.Order
                     OrderDetailId = order.OrderId,
                     Total = item.Total,
                     ShopId = (int)product.ShopId,
-                    Orderdate = order.OrderDate,
+                    Orderdate = (DateTime)order.OrderDate,
                 };
 
                 _context.TbProfits.Update(profit);

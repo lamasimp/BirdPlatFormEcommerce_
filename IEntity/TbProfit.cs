@@ -9,7 +9,7 @@ public partial class TbProfit
 
     public int ShopId { get; set; }
 
-    public DateTime? Orderdate { get; set; }
+    public DateTime Orderdate { get; set; }
 
     public decimal? Total { get; set; }
 

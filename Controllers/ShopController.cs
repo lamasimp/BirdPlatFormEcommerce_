@@ -15,6 +15,7 @@ using MimeKit.Cryptography;
 using BirdPlatFormEcommerce.Helper;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static System.Net.Mime.MediaTypeNames;
+using System.Globalization;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -560,7 +561,7 @@ namespace BirdPlatFormEcommerce.Controllers
                         select new TbProfit
                         {
                             ShopId = s.ShopId,
-                            Orderdate = od.DateOrder,
+                            Orderdate = (DateTime)od.DateOrder,
                             OrderDetailId = od.Id,
                             Total = (decimal)od.Total
                         };
@@ -615,7 +616,7 @@ namespace BirdPlatFormEcommerce.Controllers
                         select new TbProfit
                         {
                             ShopId = s.ShopId,
-                            Orderdate = od.DateOrder,
+                            Orderdate =(DateTime)od.DateOrder,
                             OrderDetailId = od.Id,
                             Total = (decimal)od.Total
                         };
@@ -630,6 +631,74 @@ namespace BirdPlatFormEcommerce.Controllers
             
 
             return Ok(totalRevenue);
+        }
+
+        [HttpGet("Revenue_week")]
+        public async Task<IActionResult> GetRevenueWeek()
+        {
+            //lay shopid theo userid dang login
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+
+            DateTime today = DateTime.Today;
+            int currentYear = today.Year;
+            int currentWeek = (today.DayOfYear + 6) / 7;
+
+            var query = from od in _context.TbOrderDetails
+                        join p in _context.TbProducts on od.ProductId equals p.ProductId
+                        join s in _context.TbShops on p.ShopId equals s.ShopId
+                        where s.ShopId == shopid
+                        select new TbProfit
+                        {
+                            ShopId = s.ShopId,
+                            Orderdate = (DateTime)od.DateOrder,
+                            OrderDetailId = od.Id,
+                            Total = (decimal)od.Total
+                        };
+
+            var data = await query.ToListAsync();
+
+            // Khởi tạo mảng chứa kết quả TotalRevenue của mỗi ngày trong tuần
+            decimal[] dailyRevenue = new decimal[7];
+
+            for (int i = 0; i < 7; i++)
+            {
+                DateTime currentDate = FirstDateOfWeek(currentYear, currentWeek).AddDays(i);
+
+                // Tính tổng doanh thu của shop trong ngày hiện tại
+                decimal totalRevenue = data.Where(p => p.Orderdate.Date== currentDate.Date).Sum(p => p.Total ?? 0m);
+
+                // Gán giá trị tổng doanh thu vào mảng dailyRevenue
+                dailyRevenue[i] = totalRevenue;
+            }
+
+            return Ok(dailyRevenue);
+        }
+
+        // Hàm để lấy ngày đầu tiên của tuần dựa trên số tuần và năm
+        public static DateTime FirstDateOfWeek(int year, int week)
+        {
+            DateTime jan1 = new DateTime(year, 1, 1);
+            int daysToFirstDayOfWeek = (int)jan1.DayOfWeek - 1;
+
+            if (daysToFirstDayOfWeek <= 3)
+            {
+                return jan1.AddDays((week - 1) * 7 - daysToFirstDayOfWeek);
+            }
+            else
+            {
+                return jan1.AddDays(7 - daysToFirstDayOfWeek + (week - 1) * 7);
+            }
         }
     }
 }
