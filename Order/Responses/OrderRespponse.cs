@@ -26,7 +26,7 @@ namespace BirdPlatFormEcommerce.Order.Responses
     {
         public int OrderId { get; set; }
         public decimal TotalPrice { get; set; }
-        public decimal SubTotal { get; set; }
+        public decimal Total { get; set; }
         public List<OrderItemResponse> Items { get; set; }
     }
 

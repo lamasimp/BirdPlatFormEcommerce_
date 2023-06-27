@@ -60,7 +60,7 @@ namespace BirdPlatFormEcommerce.Order
             _context.TbOrders.Update(order);
 
             // save changes
-            _context.SaveChanges();
+           
 
             // send email
             string listProductHtml = "";
@@ -84,7 +84,7 @@ namespace BirdPlatFormEcommerce.Order
                 Subject = "[BIRD TRADING PALTFORM] THANH TOÁN THÀNH CÔNG",
                 Body = emailBody
             };
-
+            _context.SaveChanges();
             await _mailService.SendEmailAsync(mailRequest);
 
             return order;
