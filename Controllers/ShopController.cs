@@ -134,7 +134,7 @@ namespace BirdPlatFormEcommerce.Controllers
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
-                        where p.ShopId == shopid
+                        where p.ShopId == shopid && p.IsDelete == true && p.Status == true
                         select new { p, c, s, Image = images.FirstOrDefault() };
 
             var data = await query.Select(x => new HomeViewProductModel()
@@ -184,7 +184,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     DiscountPercent = request.DiscountPercent,
                     SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * (request.DiscountPercent))),
                     Decription = request.Decription,
-                   
+                    Status = true,
                     //          CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
                  // ShopId = request.ShopId,
@@ -437,16 +437,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 }
                 var product = await _context.TbProducts.FindAsync(productId);
                 if (product == null) throw new Exception("Can not find product.");
-            var oderDetail = await _context.TbOrderDetails.Where(o => o.ProductId == productId).ToListAsync();
-            foreach(var oderdetail in oderDetail)
-            {
-                oderdetail.ProductId = 1;
-            }
-            //         var productImage = await _context.TbImages.Where(x => x.ProductId == productId).ToListAsync();
-
-
-            //         _context.TbImages.RemoveRange(productImage);
-            //       _context.TbProducts.Remove(product);
+           
 
             product.IsDelete = false;
 
@@ -507,7 +498,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
             var cate = await (from c in _context.TbProductCategories
                               join p in _context.TbProducts on c.CateId equals p.CateId
-                              where p.ProductId == productId
+                              where p.ProductId == productId && p.IsDelete == true && p.Status == true
                               select c).FirstOrDefaultAsync();
 
 
@@ -519,7 +510,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 DiscountPercent = (int)product.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(product.Price - product.Price / 100 * product.DiscountPercent)),
                 Decription = product != null ? product.Decription : null,
-             
+               
                 Quantity = product.Quantity,
                 ShopId = shopid,
 
