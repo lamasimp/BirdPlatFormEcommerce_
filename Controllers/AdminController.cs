@@ -70,19 +70,19 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 return null;
             }
-            // Xóa các bản ghi trong bảng tb_Token
+          
             _context.TbTokens.RemoveRange(tokens);
             var user = await _context.TbUsers.FindAsync(Id);
 
-            // Tiếp tục xóa bản ghi trong bảng tb_User
+           
             if (user != null)
             {
                 _context.TbUsers.Remove(user);
             }
-            // Lưu thay đổi vào cơ sở dữ liệu
+            
             _context.SaveChanges();
 
-            return Ok();
+            return Ok("Delete Success");
 
         }
         [HttpGet("CountSellingProducts")]
