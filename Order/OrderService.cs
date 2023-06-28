@@ -124,7 +124,7 @@ namespace BirdPlatFormEcommerce.Order
                     ProductPrice = product.Price,
                     DiscountPrice = (1 - product.DiscountPercent * (decimal)0.01) * product.Price,
                     ToConfirm = 1,
-
+                    DateOrder = DateTime.Now
                 };
 
                 orderItem.Total = orderItem.DiscountPrice * quantity;

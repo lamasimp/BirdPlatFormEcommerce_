@@ -20,6 +20,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.IO;
+using Microsoft.Extensions.Configuration;
+using System.Net.Mail;
+using BirdPlatFormEcommerce.Helper.Mail;
 
 namespace BirdPlatForm.Controllers
 {
@@ -30,11 +33,14 @@ namespace BirdPlatForm.Controllers
         private readonly SwpContextContext _context;
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _enviroment;
-        public UserController(SwpContextContext bird, IConfiguration config, IWebHostEnvironment enviroment)
+        private readonly IMailService _mailService;
+
+        public UserController(SwpContextContext bird, IConfiguration config, IWebHostEnvironment enviroment, IMailService mailService)
         {
             _context = bird;
             _config = config;
             _enviroment = enviroment;
+            _mailService = mailService;
         }
         [HttpPost("Login")]
         public async Task<IActionResult> Login(UserView model)
@@ -207,10 +213,22 @@ namespace BirdPlatForm.Controllers
             };
             await _context.TbUsers.AddAsync(user);
             await _context.SaveChangesAsync();
+            var mailRequest = new MailRequest()
+            {
+                ToEmail = register.Email,
+                Subject = "[BIRD TRADING PLATFORM] Thông tin đăng kí của bạn",
+                Body = $"Thông tin đăng kí tài khoản của bạn:" +
+                $"-Email: {user.Email} " +
+                $" -Password: {user.Password} " +
+                $" -Name: {user.Name} " +
+                $" -Gender: {user.Gender} , Hãy đăng nhập và trải nghiệm"
+            };
+
+            await _mailService.SendEmailAsync(mailRequest);
             return Ok(new ErrorRespon
             {
-                Error = true,
-                Message = "Success"
+                Error = false,
+                Message = "Regiter Success, Please Check your email"
             });
         }
 
@@ -277,12 +295,9 @@ namespace BirdPlatForm.Controllers
         [HttpGet("Image_ShopID")]
         public async Task<IActionResult> GetImageByUserId(int userId)
         {
-            //   var image = await _context.TbImages.FindAsync(productId);
             var tb_User = await _context.TbUsers.Where(x => x.UserId == userId).FirstOrDefaultAsync();
             var shop = await _context.TbShops.Where(x => x.UserId == userId).FirstOrDefaultAsync();
-            //      if (image == null)
-
-            //          throw new Exception("can not find an image with id");
+            
 
             string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
             try
@@ -486,35 +501,7 @@ namespace BirdPlatForm.Controllers
             
 
         }
-        [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword(ForgotPassword request)
-        {
-            try
-            {
-                var user = await _context.TbUsers.FirstOrDefaultAsync(u => u.Email == request.Email);
-                if (user == null)
-                {
-                    return BadRequest("Invalid email address.");
-                }
-
-               
-                string newPassword = "123456";
-
-                
-                user.Password = newPassword;
-                
-                await _context.SaveChangesAsync();
-
-               
-
-                return Ok("Password is 123456, Plase change your password");
-            }
-            catch (Exception ex)
-            {                
-                return StatusCode(500, "An error occurred while processing the request.");
-            }
-        }
-
+        
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPassword reset)
         {
@@ -523,24 +510,29 @@ namespace BirdPlatForm.Controllers
                 var user = await _context.TbUsers.FirstOrDefaultAsync(u => u.Email == reset.Email);
                 if (user == null)
                 {
-                    return BadRequest("Invalid email address.");
-                }               
-                if (user.Password != reset.CurrentPassword)
-                {
-                    return BadRequest("Invalid current password.");
-                }                
-                user.Password = reset.NewPassword;
+                    return BadRequest("Địa chỉ email không hợp lệ.");
+                }
+
+                string newPassword = "abc12345";
+                user.Password = newPassword;
                 await _context.SaveChangesAsync();
 
-                return Ok("Update Password success");
+                var mailRequest = new MailRequest()
+                {
+                    ToEmail = reset.Email,
+                    Subject = "[BIRD TRADING PLATFORM] Thông tin mật khẩu mới",
+                    Body = $"Mật khẩu mới của bạn là: {newPassword}, Vui lòng đăng nhập và đổi mật khẩu"
+                };
+
+                await _mailService.SendEmailAsync(mailRequest);
+
+                return Ok("Mật khẩu đã được đặt lại. Vui lòng kiểm tra email để lấy mật khẩu mới.");
             }
             catch (Exception ex)
-            {                
-                return StatusCode(500, "An error occurred while processing the request.");
+            {
+                return StatusCode(500, "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.");
             }
         }
-
-       
     }
 
 }
