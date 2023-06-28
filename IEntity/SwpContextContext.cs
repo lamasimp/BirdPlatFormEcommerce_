@@ -49,7 +49,7 @@ public partial class SwpContextContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-JUMV5BN\\SQLEXPRESS2012;Initial Catalog=dtaswp;Integrated Security=True;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=DUONGHIENNEE\\SQLEXPRESS;Initial Catalog=swpp;Integrated Security=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -243,6 +243,7 @@ public partial class SwpContextContext : DbContext
             entity.Property(e => e.SoldPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Status).HasDefaultValueSql("((1))");
             entity.Property(e => e.Thumbnail).IsUnicode(false);
+            entity.Property(e => e.IsDelete).HasColumnName("IsDelete");
 
             entity.HasOne(d => d.Cate).WithMany(p => p.TbProducts)
                 .HasForeignKey(d => d.CateId)

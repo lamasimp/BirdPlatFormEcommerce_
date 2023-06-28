@@ -417,21 +417,21 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpDelete("Delete_Product")]
         public async Task<IActionResult> DeleteProduct(int productId)
         {
-            
-                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-                if (userIdClaim == null)
-                {
-                    return BadRequest("Can not find User");
-                }
-                int userId = int.Parse(userIdClaim.Value);
-                var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
-                //       var pro = await _context.TbProducts.FirstOrDefaultAsync(x => x.ShopId == shop.ShopId);
-                if (shop == null)
-                {
-                    throw new Exception("Shop not found");
-                }
 
-                if (!ModelState.IsValid)
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest("Can not find User");
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+            //       var pro = await _context.TbProducts.FirstOrDefaultAsync(x => x.ShopId == shop.ShopId);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+
+            if (!ModelState.IsValid)
                 {
                     return BadRequest();
                 }
@@ -442,13 +442,13 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 oderdetail.ProductId = 1;
             }
-              var productImage = await _context.TbImages.Where(x => x.ProductId == productId).ToListAsync();
-
-            
-              _context.TbImages.RemoveRange(productImage);
-             _context.TbProducts.Remove(product);
+            //         var productImage = await _context.TbImages.Where(x => x.ProductId == productId).ToListAsync();
 
 
+            //         _context.TbImages.RemoveRange(productImage);
+            //       _context.TbProducts.Remove(product);
+
+            product.IsDelete = false;
 
                 await _context.SaveChangesAsync();
                 return Ok("Delete Product Success");

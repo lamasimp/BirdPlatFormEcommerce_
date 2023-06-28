@@ -32,6 +32,7 @@ public partial class TbProduct
     public int? Quantity { get; set; }
 
     public decimal? SoldPrice { get; set; }
+    public bool IsDelete { get; set; }
 
     public virtual TbProductCategory Cate { get; set; } = null!;
 

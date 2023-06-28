@@ -23,7 +23,7 @@ namespace BirdPlatFormEcommerce.Product
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
                         orderby  p.QuantitySold descending , p.Rate descending
-                        where p.DiscountPercent >0 
+                        where p.DiscountPercent >0 && p.IsDelete == true && p.Status == true
                         select new { p, c ,s,
                             Image = images.FirstOrDefault()
                         };
@@ -54,8 +54,8 @@ namespace BirdPlatFormEcommerce.Product
             
             var cate =  await (from c in _context.TbProductCategories 
                        join p in _context.TbProducts on c.CateId equals p.CateId
-                       where p.ProductId == productId
-                       select c).FirstOrDefaultAsync();
+                       where p.ProductId == productId && p.IsDelete == true && p.Status == true
+                               select c).FirstOrDefaultAsync();
 
 
             var detailProductViewModel = new DetailProductViewModel()
@@ -91,7 +91,7 @@ namespace BirdPlatFormEcommerce.Product
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
-                        where p.ShopId.Equals(shopId)
+                        where p.ShopId.Equals(shopId) && p.IsDelete == true && p.Status == true
                         select new { p, c,s, Image = images.FirstOrDefault() };
 
 
@@ -121,7 +121,7 @@ namespace BirdPlatFormEcommerce.Product
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
-                      
+                        where p.IsDelete == true && p.Status == true
                         select new { p, c ,s, Image = images.FirstOrDefault() };
 
             var data = await query.Select(x => new HomeViewProductModel()
