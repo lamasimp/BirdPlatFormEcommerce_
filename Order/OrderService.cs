@@ -207,5 +207,18 @@ namespace BirdPlatFormEcommerce.Order
             await _context.SaveChangesAsync();
             return order;
         }
+        public async Task<List<TbOrder>> GetConfirmedOrdersByUser(int userId, int toConfirm)
+        {
+
+            return await _context.TbOrders
+         .Include(order => order.TbOrderDetails)
+             .ThenInclude(orderItem => orderItem.Product)
+             .ThenInclude(product => product.Shop) // Nạp thông tin bảng Shop vào Product
+         .Include(order => order.Payment)
+         .Include(order => order.User)
+         .Include(addr =>  addr.Address)
+         .Where(order => order.UserId == userId && order.TbOrderDetails.Any(item => item.ToConfirm == toConfirm))
+         .ToListAsync();
+        }
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Asn1.X9;
 using System.Net;
+using System.Numerics;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -48,7 +49,7 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 return Unauthorized();
             }
-           
+
             var order = await _orderService.CreateOrder(Int32.Parse(userId), request);
             var response = _mapper.Map<OrderRespponse>(order);
 
@@ -69,7 +70,6 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(response);
         }
 
-
         [HttpPost("{id:int}/Pay/")]
         [Authorize]
         public async Task<ActionResult<PaymentResponse>> CreatePayment([FromRoute] int id, [FromBody] PayOrderModel request)
@@ -77,15 +77,25 @@ namespace BirdPlatFormEcommerce.Controllers
             var order = await _orderService.GetOrder(id);
             if (order == null || order.Status == true)
             {
+
                 return NotFound("Order not found");
             }
 
+            if (request.Method.ToString() == "Cash")
+            {
+                foreach (TbOrderDetail item in order.TbOrderDetails)
+                {
+
+                    item.ToConfirm = 2;
+                }
+            }
             var paymentUrl = await _orderService.PayOrder(order, request.Method);
 
             // send confirmation email
             string listProductHtml = "";
             foreach (TbOrderDetail item in order.TbOrderDetails)
             {
+
                 listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> $ {item.DiscountPrice:n0} $ - x{item.Quantity}</li>";
             }
             var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
@@ -102,7 +112,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 Subject = "[BIRD TRADING PALTFORM] XÁC NHẬN ĐƠN HÀNG",
                 Body = emailBody
             };
-           
+            _context.SaveChanges();
+            await _mailService.SendEmailAsync(mailRequest);
 
             var response = _mapper.Map<PaymentResponse>(order.Payment);
             response.PaymentUrl = paymentUrl;
@@ -113,8 +124,10 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("PaymentCallback/{paymentId:int}")]
         public async Task<ActionResult> PaymentCallback([FromRoute] int paymentId, [FromQuery] VnPaymentCallbackModel request)
         {
+
             if (!request.Success)
             {
+
                 return Redirect(_configuration["Payment:Failed"]);
             }
 
@@ -172,7 +185,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 {
                     OrderId = order.OrderId,
                     TotalPrice = order.TotalPrice,
-                    Total = (decimal)order.TbOrderDetails.Sum(od => od.Total),
+                    SubTotal = (decimal)order.TbOrderDetails.Sum(od => od.Total),
                     Items = orderItems
                 };
 
@@ -185,7 +198,7 @@ namespace BirdPlatFormEcommerce.Controllers
         public async Task<IActionResult> AddressOder(AddressModel add)
         {
             var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-            if(useridClaim == null)
+            if (useridClaim == null)
             {
                 return Unauthorized();
             }
@@ -210,9 +223,94 @@ namespace BirdPlatFormEcommerce.Controllers
             var useridClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if (useridClaim == null) return Unauthorized();
             int userid = int.Parse(useridClaim.Value);
-            var address =  _context.TbAddressReceives.Where(a => a.UserId == userid).ToList();
+            var address = _context.TbAddressReceives.Where(a => a.UserId == userid).ToList();
             return Ok(address);
         }
+        [HttpGet("confirmed")]
+        public async Task<ActionResult<List<OrderResult>>> GetConfirmedOrdersByUser(int toConfirm)
+        {
+
+            var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (useridClaim == null)
+            {
+                return Unauthorized();
+            }
+            int userid = int.Parse(useridClaim.Value);
+
+            var orders = await _orderService.GetConfirmedOrdersByUser(userid, toConfirm);
+
+            List<OrderResult> orderResults = new List<OrderResult>();
+
+            foreach (var order in orders)
+            {
+                var group = order.TbOrderDetails
+                    .Where(d => d.ToConfirm == toConfirm) // Lọc chỉ những OrderDetail có ToConfirm=2
+                    .GroupBy(d => new
+                    {
+                        d.Product.Shop.ShopId,
+                        d.Order.Payment.PaymentMethod,
+                        d.ProductId,
+                        d.Order.Note,
+                        DateOrder = d.DateOrder.Value,
+                        d.Product.Shop.ShopName,
+                        d.Total,
+                        d.Order.AddressId,
+                        d.Order.Address.Address,
+                        d.Order.Address.AddressDetail,
+                        d.Order.Address.Phone,
+                        d.Order.Address.NameRg
+
+                    })
+                    .Select(g => new ShopOrder
+                    {
+                        ShopID = g.Key.ShopId,
+                        PaymentMethod = g.Key.PaymentMethod,
+                        ShopName = g.Key.ShopName,
+                        DateOrder = (DateTime)g.Key.DateOrder,
+                        Note = g.Key.Note,
+                        AddressId=g.Key.AddressId,
+                        Address= g.Key.Address,
+                        AddressDetail=g.Key.AddressDetail,
+                        Phone = g.Key.Phone,
+                        NameRg=g.Key.NameRg,
+                        Items = g.Select(d => new OrderItem
+                        {
+                            Id = d.Id,
+                            ProductId = d.ProductId,
+                            ProductName = d.Product.Name,
+                            Quantity = (int)d.Quantity,
+                            ProductPrice = (decimal)d.ProductPrice,
+                            DiscountPrice = (decimal)d.DiscountPrice,
+                            Total = (decimal)d.Total,
+                            FirstImagePath = _context.TbImages
+                                .Where(i => i.ProductId == d.ProductId)
+                                .OrderBy(i => i.SortOrder)
+                                .Select(i => i.ImagePath)
+                                .FirstOrDefault()
+                        }).ToList()
+                    })
+                    .GroupBy(s => s.ShopID)
+                    .Select(g => new ShopOrder
+                    {
+                        ShopID = g.Key,
+                        PaymentMethod = g.First().PaymentMethod,
+                        ShopName = g.First().ShopName,
+                        DateOrder = g.First().DateOrder,
+                        Note = g.First().Note,
+                        Items = g.SelectMany(s => s.Items).ToList()
+                    })
+                    .ToList();
+
+                orderResults.Add(new OrderResult
+                {
+                    OrderID = order.OrderId,
+                    Shops = group
+                });
+            }
+
+            return orderResults;
+        }
+
 
     }
 }
