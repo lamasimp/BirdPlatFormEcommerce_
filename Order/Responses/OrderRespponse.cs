@@ -91,5 +91,15 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public string FirstImagePath { get; set; }
         
     }
-
+    public class OrderInfo
+    {
+        public int orderId { get; set; }
+      
+        public DateTime OrderDate { get; set; }
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public bool Status { get; set; }
+       
+        public TbUser User { get; set; }
+    }
 }
