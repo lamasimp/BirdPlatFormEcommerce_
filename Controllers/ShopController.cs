@@ -16,6 +16,10 @@ using BirdPlatFormEcommerce.Helper;
 using Microsoft.AspNetCore.Mvc.Filters;
 using static System.Net.Mime.MediaTypeNames;
 using System.Globalization;
+using BirdPlatFormEcommerce.Order;
+using MailKit.Net.Imap;
+using System.ComponentModel;
+using BirdPlatFormEcommerce.Order.Responses;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -26,12 +30,14 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly SwpContextContext _context;
         private readonly IManageProductService _manageProductService;
         private readonly IWebHostEnvironment _enviroment;
+        private readonly IOrderService _oderService;
 
-        public ShopController(SwpContextContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment)
+        public ShopController(SwpContextContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment,IOrderService orderService )
         {
             _context = swp;
             _manageProductService = manageProductService;
             _enviroment = enviroment;
+            _oderService = orderService;
         }
         [HttpPost("registerShop")]
 
@@ -690,6 +696,53 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 return jan1.AddDays(7 - daysToFirstDayOfWeek + (week - 1) * 7);
             }
+        }
+
+        [HttpGet("orders")]
+        public async Task<ActionResult<List<OrderInfo>>> GetOrdersByShopId()
+        {
+            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdclaim == null)
+            {
+                return null;
+            }
+            int userid = int.Parse(userIdclaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+                return null;
+            int shopid = shop.ShopId;
+            var orders = await _context.TbOrders
+                .Where(o => o.TbOrderDetails.Any(od => od.ToConfirm == 2 && _context.TbProducts.Any(p => p.ProductId == od.ProductId && p.ShopId == shopid)))
+                .Select(o => new OrderInfo
+                {
+                    orderId = o.OrderId,
+                    
+                    OrderDate = (DateTime)o.OrderDate,
+                    UserName = o.User.Name,
+                    Email = o.User.Email,
+                    Status = (bool)o.Status
+                    
+                })
+                .ToListAsync();
+
+            return orders;
+        }
+
+
+        [HttpGet("Getodershop")]
+        public async Task<List<TbOrderDetail>> getoderShop()
+        {
+            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if(userIdclaim == null)
+            {
+                return null;
+            }
+            int userid = int.Parse(userIdclaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+                return null; 
+            var oder = await _oderService.Orderservice(shop.ShopId);
+            return oder;
         }
     }
 }
