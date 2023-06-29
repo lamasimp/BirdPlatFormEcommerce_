@@ -192,7 +192,7 @@ namespace BirdPlatFormEcommerce.Order
 
             order.Payment = payment;
             
-            order.Status = true;
+            
             _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
 
@@ -238,5 +238,19 @@ namespace BirdPlatFormEcommerce.Order
                 .Select(shop => shop.TbOrderDetail).ToListAsync();
             return orders;
         }
+
+        public async Task<List<TbOrder>> GetConfirmedOrdersByShop(int userId, int shopId)
+        {
+            return await _context.TbOrders
+                .Include(order => order.TbOrderDetails)
+                    .ThenInclude(orderItem => orderItem.Product)
+                    .ThenInclude(product => product.Shop)
+                .Include(order => order.Payment)
+                .Include(order => order.User)
+                .Include(addr => addr.Address)
+                .Where(order => order.User.UserId == userId && order.TbOrderDetails.Any(item => item.ToConfirm == 2 && item.Product.Shop.ShopId == shopId))
+                .ToListAsync();
+        }
+
     }
 }

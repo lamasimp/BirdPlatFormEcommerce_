@@ -102,4 +102,31 @@ namespace BirdPlatFormEcommerce.Order.Responses
        
         public TbUser User { get; set; }
     }
+    public class UserOder
+    {
+        public int UserId { get; set; }
+        public string PaymentMethod { get; set; }
+       
+        public DateTime DateOrder { get; set; }
+        public int AddressId { get; set; }
+        public string Note { get; set; }
+        public string Address { get; set; }
+        public string? AddressDetail { get; set; }
+        public string? Phone { get; set; }
+        public string? NameRg { get; set; }
+        public List<OrderItem> Items { get; set; }
+    }
+
+    public class UserItem
+    {
+        public int Id { get; set; }
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int Quantity { get; set; }
+        public decimal ProductPrice { get; set; }
+        public decimal DiscountPrice { get; set; }
+        public decimal Total { get; set; }
+        public string FirstImagePath { get; set; }
+
+    }
 }

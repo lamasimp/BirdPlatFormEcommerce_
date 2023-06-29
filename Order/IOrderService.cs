@@ -18,5 +18,6 @@ namespace BirdPlatFormEcommerce.Order
         public Task<TbOrder> CompleteOrder(TbOrder order);
         public Task<List<TbOrder>> GetConfirmedOrdersByUser(int userId, int toConfirm);
         public Task<List<TbOrderDetail>> Orderservice(int shopid);
+        public Task<List<TbOrder>> GetConfirmedOrdersByShop(int userId,int shopId);
     }
 }
