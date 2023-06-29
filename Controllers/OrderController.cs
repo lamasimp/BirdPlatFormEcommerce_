@@ -310,8 +310,93 @@ namespace BirdPlatFormEcommerce.Controllers
 
             return orderResults;
         }
+        [HttpGet("getoderofuser")]
+        public async Task<ActionResult<List<OrderResult>>> GetConfirmedOrdersByShop()
+        {
+            var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (useridClaim == null)
+            {
+                return Unauthorized();
+            }
 
-        
+            int userId = int.Parse(useridClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (shop == null) return BadRequest("No shop");
+            int shopid = shop.ShopId;
+            var orders = await _orderService.GetConfirmedOrdersByShop(userId,shopid);
+
+            List<OrderResult> orderResults = new List<OrderResult>();
+
+            foreach (var order in orders)
+            {
+                var group = order.TbOrderDetails
+                    .Where(d => d.ToConfirm == 2)
+                    .GroupBy(d => new
+                    {
+                        d.Product.Shop.ShopId,
+                        d.Order.Payment.PaymentMethod,
+                        d.ProductId,
+                        d.Order.Note,
+                        DateOrder = d.DateOrder.Value,
+                        d.Product.Shop.ShopName,
+                        d.Total,
+                        d.Order.AddressId,
+                        d.Order.Address.Address,
+                        d.Order.Address.AddressDetail,
+                        d.Order.Address.Phone,
+                        d.Order.Address.NameRg
+
+                    })
+                    .Select(g => new ShopOrder
+                    {
+                        ShopID = g.Key.ShopId,
+                        PaymentMethod = g.Key.PaymentMethod,
+                        ShopName = g.Key.ShopName,
+                        DateOrder = (DateTime)g.Key.DateOrder,
+                        Note = g.Key.Note,
+                        AddressId = g.Key.AddressId,
+                        Address = g.Key.Address,
+                        AddressDetail = g.Key.AddressDetail,
+                        Phone = g.Key.Phone,
+                        NameRg = g.Key.NameRg,
+                        Items = g.Select(d => new OrderItem
+                        {
+                            Id = d.Id,
+                            ProductId = d.ProductId,
+                            ProductName = d.Product.Name,
+                            Quantity = (int)d.Quantity,
+                            ProductPrice = (decimal)d.ProductPrice,
+                            DiscountPrice = (decimal)d.DiscountPrice,
+                            Total = (decimal)d.Total,
+                            FirstImagePath = _context.TbImages
+                                .Where(i => i.ProductId == d.ProductId)
+                                .OrderBy(i => i.SortOrder)
+                                .Select(i => i.ImagePath)
+                                .FirstOrDefault()
+                        }).ToList()
+                    })
+                    .GroupBy(s => s.ShopID)
+                    .Select(g => new ShopOrder
+                    {
+                        ShopID = g.Key,
+                        PaymentMethod = g.First().PaymentMethod,
+                        ShopName = g.First().ShopName,
+                        DateOrder = g.First().DateOrder,
+                        Note = g.First().Note,
+                        Items = g.SelectMany(s => s.Items).ToList()
+                    })
+                    .ToList();
+
+                orderResults.Add(new OrderResult
+                {
+                    OrderID = order.OrderId,
+                    Shops = group
+                });
+            }
+
+            return orderResults;
+        }
+
     }
 }
 
