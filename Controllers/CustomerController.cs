@@ -1,4 +1,5 @@
-﻿using BirdPlatFormEcommerce.IEntity;
+﻿using BirdPlatFormEcommerce.DEntity;
+
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,9 @@ namespace BirdPlatFormEcommerce.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private readonly SwpContextContext _context;
+        private readonly SwpDataContext _context;
 
-        public CustomerController(SwpContextContext swp)
+        public CustomerController(SwpDataContext swp)
         {
             _context = swp;
         }

@@ -1,5 +1,5 @@
 ﻿using BirdPlatForm.UserRespon;
-using BirdPlatFormEcommerce.IEntity;
+using BirdPlatFormEcommerce.DEntity;
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authorization;
@@ -27,12 +27,12 @@ namespace BirdPlatFormEcommerce.Controllers
     [ApiController]
     public class ShopController : ControllerBase
     {
-        private readonly SwpContextContext _context;
+        private readonly SwpDataContext _context;
         private readonly IManageProductService _manageProductService;
         private readonly IWebHostEnvironment _enviroment;
         private readonly IOrderService _oderService;
 
-        public ShopController(SwpContextContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment,IOrderService orderService )
+        public ShopController(SwpDataContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment,IOrderService orderService )
         {
             _context = swp;
             _manageProductService = manageProductService;
@@ -577,7 +577,7 @@ namespace BirdPlatFormEcommerce.Controllers
               
 
                 // Tính tổng doanh thu của shop trong tháng hiện tại
-                decimal totalRevenue = data.Where(p => p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd).Sum(p => p.Total ?? 0m);
+                decimal totalRevenue = data.Where(p => p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd).Sum(p => p.Total );
 
                 // Gán đối tượng tháng vào mảng monthlyRevenue
                 monthlyRevenue[i] = totalRevenue;
@@ -621,7 +621,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var data = await query.ToListAsync();
 
                 // Tính tổng doanh thu của shop trong tháng hiện tại
-                decimal totalRevenue = data.Sum(p => p.Total ?? 0m);
+                decimal totalRevenue = data.Sum(p => p.Total );
 
                
               
@@ -673,7 +673,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 DateTime currentDate = FirstDateOfWeek(currentYear, currentWeek).AddDays(i);
 
                 // Tính tổng doanh thu của shop trong ngày hiện tại
-                decimal totalRevenue = data.Where(p => p.Orderdate.Date== currentDate.Date).Sum(p => p.Total ?? 0m);
+                decimal totalRevenue = data.Where(p => p.Orderdate.Date== currentDate.Date).Sum(p => p.Total );
 
                 // Gán giá trị tổng doanh thu vào mảng dailyRevenue
                 dailyRevenue[i] = totalRevenue;

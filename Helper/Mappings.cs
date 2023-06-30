@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BirdPlatFormEcommerce.IEntity;
+using BirdPlatFormEcommerce.DEntity;
 using BirdPlatFormEcommerce.Order.Responses;
 using BirdPlatFormEcommerce.Payment.Responses;
 
@@ -17,6 +17,7 @@ namespace BirdPlatFormEcommerce.Helper
 
             // Payment mappings
             CreateMap<TbPayment, PaymentResponse>();
+            CreateMap<List<TbOrder>, OrderRespponse>();
         }
     }
 }
