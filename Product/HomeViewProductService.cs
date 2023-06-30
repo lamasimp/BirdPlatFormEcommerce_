@@ -1,5 +1,5 @@
 ﻿using Azure.Core;
-using BirdPlatFormEcommerce.IEntity;
+using BirdPlatFormEcommerce.DEntity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -9,9 +9,9 @@ namespace BirdPlatFormEcommerce.Product
 {
     public class HomeViewProductService :IHomeViewProductService
     {
-        private readonly SwpContextContext _context;
+        private readonly SwpDataContext _context;
 
-        public HomeViewProductService(SwpContextContext context)
+        public HomeViewProductService(SwpDataContext context)
         {
             _context = context;
         }

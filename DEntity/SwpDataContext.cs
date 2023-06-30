@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace BirdPlatFormEcommerce.IEntity;
+namespace BirdPlatFormEcommerce.DEntity;
 
-public partial class SwpContextContext : DbContext
+public partial class SwpDataContext : DbContext
 {
-    public SwpContextContext()
+    public SwpDataContext()
     {
     }
 
-    public SwpContextContext(DbContextOptions<SwpContextContext> options)
+    public SwpDataContext(DbContextOptions<SwpDataContext> options)
         : base(options)
     {
     }
@@ -20,6 +20,8 @@ public partial class SwpContextContext : DbContext
     public virtual DbSet<TbCart> TbCarts { get; set; }
 
     public virtual DbSet<TbFeedback> TbFeedbacks { get; set; }
+
+    public virtual DbSet<TbFeedbackImage> TbFeedbackImages { get; set; }
 
     public virtual DbSet<TbImage> TbImages { get; set; }
 
@@ -35,8 +37,6 @@ public partial class SwpContextContext : DbContext
 
     public virtual DbSet<TbProductCategory> TbProductCategories { get; set; }
 
-    public virtual DbSet<TbProfit> TbProfits { get; set; }
-
     public virtual DbSet<TbRole> TbRoles { get; set; }
 
     public virtual DbSet<TbShop> TbShops { get; set; }
@@ -49,7 +49,7 @@ public partial class SwpContextContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-JUMV5BN\\SQLEXPRESS2012;Initial Catalog=dtaswp;Integrated Security=True;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=ADMIN-PC\\SQLEXPRESS;Initial Catalog=swpData;Integrated Security=True;TrustServerCertificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -99,7 +99,6 @@ public partial class SwpContextContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Detail).HasColumnType("ntext");
-            entity.Property(e => e.Image).IsUnicode(false);
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
@@ -112,6 +111,21 @@ public partial class SwpContextContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_tb_Feedback_tb_User");
+        });
+
+        modelBuilder.Entity<TbFeedbackImage>(entity =>
+        {
+            entity.HasKey(e => e.FbImgId);
+
+            entity.ToTable("tb_FeedbackImage");
+
+            entity.Property(e => e.FbImgId).HasColumnName("FbImgID");
+            entity.Property(e => e.FeedbackId).HasColumnName("FeedbackID");
+            entity.Property(e => e.ImagePath).IsUnicode(false);
+
+            entity.HasOne(d => d.Feedback).WithMany(p => p.TbFeedbackImages)
+                .HasForeignKey(d => d.FeedbackId)
+                .HasConstraintName("FK_tb_FeedbackImage_tb_Feedback");
         });
 
         modelBuilder.Entity<TbImage>(entity =>
@@ -141,6 +155,7 @@ public partial class SwpContextContext : DbContext
             entity.Property(e => e.Note).HasMaxLength(500);
             entity.Property(e => e.OrderDate).HasColumnType("datetime");
             entity.Property(e => e.PaymentId).HasColumnName("PaymentID");
+            entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
@@ -153,6 +168,11 @@ public partial class SwpContextContext : DbContext
                 .HasForeignKey(d => d.PaymentId)
                 .HasConstraintName("FK_tb_Order_tb_Payment");
 
+            entity.HasOne(d => d.Shop).WithMany(p => p.TbOrders)
+                .HasForeignKey(d => d.ShopId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_tb_Order_tb_Shop");
+
             entity.HasOne(d => d.User).WithMany(p => p.TbOrders)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -164,12 +184,12 @@ public partial class SwpContextContext : DbContext
             entity.ToTable("tb_OrderDetail");
 
             entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.DateOrder).HasColumnType("datetime");
             entity.Property(e => e.DiscountPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.ProductPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Total).HasColumnType("decimal(18, 0)");
-            entity.Property(e => e.DateOrder).HasColumnType("datetime");
 
             entity.HasOne(d => d.Order).WithMany(p => p.TbOrderDetails)
                 .HasForeignKey(d => d.OrderId)
@@ -237,13 +257,13 @@ public partial class SwpContextContext : DbContext
             entity.Property(e => e.Decription).HasMaxLength(500);
             entity.Property(e => e.Detail).HasColumnType("ntext");
             entity.Property(e => e.DiscountPercent).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.IsDelete).HasDefaultValueSql("((1))");
             entity.Property(e => e.Name).HasMaxLength(250);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.SoldPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Status).HasDefaultValueSql("((1))");
             entity.Property(e => e.Thumbnail).IsUnicode(false);
-            entity.Property(e => e.IsDelete).HasColumnName("IsDelete");
 
             entity.HasOne(d => d.Cate).WithMany(p => p.TbProducts)
                 .HasForeignKey(d => d.CateId)
@@ -266,28 +286,6 @@ public partial class SwpContextContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("CateID");
             entity.Property(e => e.CateName).HasMaxLength(50);
-        });
-
-        modelBuilder.Entity<TbProfit>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_tb_Sales");
-
-            entity.ToTable("tb_Profit");
-
-            entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.OrderDetailId).HasColumnName("OrderDetailID");
-            entity.Property(e => e.Orderdate).HasColumnType("datetime");
-            entity.Property(e => e.ShopId).HasColumnName("ShopID");
-            entity.Property(e => e.Total).HasColumnType("decimal(18, 0)");
-
-            entity.HasOne(d => d.OrderDetail).WithMany(p => p.TbProfits)
-                .HasForeignKey(d => d.OrderDetailId)
-                .HasConstraintName("FK_tb_Profit_tb_OrderDetail");
-
-            entity.HasOne(d => d.Shop).WithMany(p => p.TbProfits)
-                .HasForeignKey(d => d.ShopId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_tb_Sales_tb_Shop");
         });
 
         modelBuilder.Entity<TbRole>(entity =>
@@ -347,6 +345,7 @@ public partial class SwpContextContext : DbContext
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Address).HasMaxLength(500);
+            entity.Property(e => e.Avatar).IsUnicode(false);
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
             entity.Property(e => e.Dob).HasColumnType("date");
             entity.Property(e => e.Email).HasMaxLength(50);

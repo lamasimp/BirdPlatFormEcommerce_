@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BirdPlatFormEcommerce.IEntity;
+using BirdPlatFormEcommerce.DEntity;
 using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.Order;
 using BirdPlatFormEcommerce.Order.Requests;
@@ -27,9 +27,9 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IVnPayService _vnPayService;
         private readonly IConfiguration _configuration;
         private readonly IMailService _mailService;
-        private readonly SwpContextContext _context;
+        private readonly SwpDataContext _context;
 
-        public OrderController(IOrderService orderService, IMapper mapper, ILogger<OrderController> logger, IVnPayService vnPayService, IConfiguration configuration, IMailService mailService, SwpContextContext swp)
+        public OrderController(IOrderService orderService, IMapper mapper, ILogger<OrderController> logger, IVnPayService vnPayService, IConfiguration configuration, IMailService mailService, SwpDataContext swp)
         {
             _orderService = orderService;
             _mapper = mapper;
@@ -42,7 +42,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
         [HttpPost("Create")]
 
-        public async Task<ActionResult<OrderRespponse>> CreateOrder([FromBody] CreateOrderModel request)
+        public async Task<ActionResult<List<OrderRespponse>>> CreateOrder([FromBody] CreateOrderModel request)
         {
             var userId = User.FindFirst("UserId")?.Value;
             if (userId == null)
@@ -51,7 +51,7 @@ namespace BirdPlatFormEcommerce.Controllers
             }
 
             var order = await _orderService.CreateOrder(Int32.Parse(userId), request);
-            var response = _mapper.Map<OrderRespponse>(order);
+            var response = _mapper.Map<List<OrderRespponse>>(order);
 
             return Ok(response);
         }
