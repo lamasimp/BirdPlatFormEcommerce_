@@ -655,10 +655,11 @@ namespace BirdPlatFormEcommerce.Controllers
                 TotalPrice = (decimal?)p.TotalPrice
             }).ToListAsync();
 
-           
+
 
             // Khởi tạo mảng chứa kết quả TotalRevenue của mỗi ngày trong tuần
             decimal[] dailyRevenue = new decimal[7];
+            string[] weekdays = new string[7];
 
             for (int i = 0; i < 7; i++)
             {
@@ -669,9 +670,16 @@ namespace BirdPlatFormEcommerce.Controllers
 
                 // Gán giá trị tổng doanh thu vào mảng dailyRevenue
                 dailyRevenue[i] = totalRevenue;
+                weekdays[i] = currentDate.ToString();
             }
+            RevenueData revenueData = new RevenueData
+            {
+                DailyRevenue = dailyRevenue,
+                Weekdays = weekdays
+            };
 
-            return Ok(dailyRevenue);
+
+            return Ok(revenueData);
         }
 
         // Hàm để lấy ngày đầu tiên của tuần dựa trên số tuần và năm
@@ -777,7 +785,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 Status = (bool)query.o.Status,
 
                 DateOrder = (DateTime)query.o.OrderDate,
-
+                OrderId= orderId,
                 TotalAll = (decimal?)query.o.TotalPrice,
                 ProductDetails =    product.Select(x => new ProductDetail
                 {
