@@ -723,7 +723,7 @@ namespace BirdPlatFormEcommerce.Controllers
                  Status =(bool) o.Status,
                  TotalPrice =(decimal?) o.TotalPrice,
 
-             //    PaymentDate = (DateTime)pay.PaymentDate,
+                 PaymentDate = (DateTime)pay.PaymentDate,
               //   Address = ad.Address,
               //   PaymentMethod = pay.PaymentMethod
               
