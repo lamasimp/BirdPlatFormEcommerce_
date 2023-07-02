@@ -727,16 +727,46 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("Detail_Order")]
         public async Task<IActionResult> getDetailOrder(int orderId)
         {
-     
-       var orderDetail = await _manageOrderService.GetListOrderDetail(orderId);
-            if (orderDetail == null)
+
+
+            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdclaim == null)
             {
-                return BadRequest("Cannot find OrderDetail");
-
-              
+                return null;
             }
-            return Ok(orderDetail);
+            int userid = int.Parse(userIdclaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+                return null;
+            int shopid = shop.ShopId;
 
+            var tb_orderDetail = await( from o in _context.TbOrderDetails
+                                       join od in _context.TbOrders on o.OrderId equals od.OrderId
+                                       where o.OrderId == orderId && od.ShopId == shopid
+                                       select new TbOrderDetail
+
+            {
+                OrderId = orderId,
+                Id = o.Id,
+                ProductId = o.ProductId,
+                Quantity = o.Quantity,
+                Discount = o.Discount,
+                ProductPrice = o.ProductPrice,
+                DiscountPrice = o.DiscountPrice,
+                Total = o.Total,
+                DateOrder = o.DateOrder,
+                ToConfirm = o.ToConfirm
+
+
+
+            }).ToListAsync();
+            return Ok(tb_orderDetail);
         }
+      
+        }
+
+
+
+
     }
-}
+
