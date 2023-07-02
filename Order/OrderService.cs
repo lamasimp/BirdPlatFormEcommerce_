@@ -45,13 +45,13 @@ namespace BirdPlatFormEcommerce.Order
                 _context.TbProducts.Update(product);
 
                 // Create profit
-                var profit = new TbProfit
-                {
-                    OrderDetailId = order.OrderId,
-                    Total = (int)item.Total,
-                    ShopId = (int)product.ShopId,
-                    Orderdate = (DateTime)order.OrderDate,
-                };
+                //var profit = new TbProfit
+                //{
+                //    OrderDetailId = order.OrderId,
+                //    Total = (int)item.Total,
+                //    ShopId = (int)product.ShopId,
+                //    Orderdate = (DateTime)order.OrderDate,
+                //};
 
                 
             }

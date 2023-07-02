@@ -95,11 +95,13 @@ namespace BirdPlatFormEcommerce.Order.Responses
     {
         public int orderId { get; set; }
       
-        public DateTime OrderDate { get; set; }
+        public DateTime? OrderDate { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
         public bool Status { get; set; }
-       
+        public string? Address { get; set; }
+        public DateTime? PaymentDate { get; set; }
+        public decimal? TotalPrice { get; set; }
         public TbUser User { get; set; }
     }
     public class UserOder

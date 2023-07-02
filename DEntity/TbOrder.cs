@@ -13,7 +13,7 @@ public partial class TbOrder
 
     public string? Note { get; set; }
 
-    public decimal TotalPrice { get; set; }
+    public decimal? TotalPrice { get; set; }
 
     public DateTime? OrderDate { get; set; }
 
