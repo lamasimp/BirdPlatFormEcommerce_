@@ -714,7 +714,8 @@ namespace BirdPlatFormEcommerce.Controllers
                  Status =(bool) o.Status,
                  TotalPrice =(decimal?) o.TotalPrice,
                  PaymentDate = (DateTime)pay.PaymentDate,
-                 Address = ad.Address
+                 Address = ad.Address,
+                 PaymentMethod = pay.PaymentMethod
               
             }).ToListAsync();
 
@@ -762,10 +763,50 @@ namespace BirdPlatFormEcommerce.Controllers
             }).ToListAsync();
             return Ok(tb_orderDetail);
         }
-      
+
+        [HttpPatch("ConfimOrder")]
+        public async Task<IActionResult> ChangeToConfirm(int orderId, ChangeToConfirmRequest request)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest("Can not find User");
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+           
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            var order = await _context.TbOrders.FindAsync(orderId);
+            if (order == null) throw new Exception("Can not find order.");
+
+
+            order.ToConfirm = request.ToConfirm ;
+
+            _context.TbOrders.Update(order);
+            await _context.SaveChangesAsync();
+
+
+            var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
+            foreach(var item in orderDetail)
+            {
+                item.ToConfirm = request.ToConfirm ;
+                _context.TbOrderDetails.Update(item);
+            }
+             await _context.SaveChangesAsync();
+            return Ok("Confirm successfully!");
+        }
         }
 
 
+    
 
 
     }
