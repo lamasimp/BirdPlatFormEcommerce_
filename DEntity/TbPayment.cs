@@ -13,7 +13,7 @@ public partial class TbPayment
 
     public DateTime? PaymentDate { get; set; }
 
-    public decimal? Amount { get; set; }
+    public decimal? Amount { get; set; }    
 
     public virtual ICollection<TbOrder> TbOrders { get; set; } = new List<TbOrder>();
 

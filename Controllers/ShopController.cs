@@ -20,6 +20,7 @@ using BirdPlatFormEcommerce.Order;
 using MailKit.Net.Imap;
 using System.ComponentModel;
 using BirdPlatFormEcommerce.Order.Responses;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -708,14 +709,15 @@ namespace BirdPlatFormEcommerce.Controllers
                               select new OrderInfo
             {
                 orderId = o.OrderId,
-                 OrderDate = (DateTime)o.OrderDate,
+            //     OrderDate = (DateTime)o.OrderDate,
                  UserName = o.User.Name,
                  Email = o.User.Email,
                  Status =(bool) o.Status,
                  TotalPrice =(decimal?) o.TotalPrice,
-                 PaymentDate = (DateTime)pay.PaymentDate,
-                 Address = ad.Address,
-                 PaymentMethod = pay.PaymentMethod
+
+             //    PaymentDate = (DateTime)pay.PaymentDate,
+              //   Address = ad.Address,
+              //   PaymentMethod = pay.PaymentMethod
               
             }).ToListAsync();
 
@@ -741,30 +743,60 @@ namespace BirdPlatFormEcommerce.Controllers
                 return null;
             int shopid = shop.ShopId;
 
-            var tb_orderDetail = await( from o in _context.TbOrderDetails
-                                       join od in _context.TbOrders on o.OrderId equals od.OrderId
-                                       where o.OrderId == orderId && od.ShopId == shopid
-                                       select new TbOrderDetail
+            var order = await _context.TbProducts.FindAsync(orderId);
+
+            var product = await (from odt in _context.TbOrderDetails 
+                                join p in _context.TbProducts on odt.ProductId equals p.ProductId
+                                join ig in _context.TbImages on p.ProductId equals ig.ProductId into images 
+                                where odt.OrderId == orderId        
+                               select new { p, odt,
+                                   Image = images.FirstOrDefault() }).ToArrayAsync();
+           
+          
+            var query = await (from o in _context.TbOrders
+                                       
+                                        join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
+                                        join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                                        join u in _context.TbUsers on o.UserId equals u.UserId
+                                        where o.OrderId == orderId && o.ShopId == shopid
+                                        select new {ad,pay,u,o}).FirstOrDefaultAsync();
+
+
+            var oderDetailInfo = new OrderDetailInfo()
 
             {
-                OrderId = orderId,
-                Id = o.Id,
-                ProductId = o.ProductId,
-                Quantity = o.Quantity,
-                Discount = o.Discount,
-                ProductPrice = o.ProductPrice,
-                DiscountPrice = o.DiscountPrice,
-                Total = o.Total,
-                DateOrder = o.DateOrder,
-                ToConfirm = o.ToConfirm
+                UserName = query.u.Name,
+                Email =   query.u.Email,
 
+                Address = query.ad.Address,
+                AddressDetail = query.ad.AddressDetail,
+                Phone = query.ad.Phone,
+                NameRg = query.ad.NameRg,
+                PaymentDate = query.pay.PaymentDate,
+                PaymentMethod = query.pay.PaymentMethod,
+                Status = (bool)query.o.Status,
 
+                DateOrder = (DateTime)query.o.OrderDate,
 
-            }).ToListAsync();
-            return Ok(tb_orderDetail);
+                TotalAll = (decimal?)query.o.TotalPrice,
+                ProductDetails =    product.Select(x => new ProductDetail
+                {
+                    NameProduct = x.p.Name,
+                    SoldPrice = (decimal?)x.p.SoldPrice,
+                    DiscountPrice= (decimal?)x.odt.DiscountPrice,
+                    ImagePath =  x.Image != null ? x.Image.ImagePath : "no-image.jpg",
+
+                    Quantity = x.odt.Quantity,
+                    TotalDetail = (decimal?)x.odt.Total
+                }).ToList()
+
+            } ;
+
+           
+            return Ok(oderDetailInfo);
         }
 
-        [HttpPatch("ConfimOrder")]
+        [HttpPatch("Confim_Success")]
         public async Task<IActionResult> ChangeToConfirm(int orderId, ChangeToConfirmRequest request)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
@@ -803,7 +835,47 @@ namespace BirdPlatFormEcommerce.Controllers
              await _context.SaveChangesAsync();
             return Ok("Confirm successfully!");
         }
+
+        [HttpPatch("Cancle_Success")]
+        public async Task<IActionResult> CancleToConfirm(int orderId, ChangeToConfirmRequest request)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest("Can not find User");
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
+
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            var order = await _context.TbOrders.FindAsync(orderId);
+            if (order == null) throw new Exception("Can not find order.");
+
+
+            order.ToConfirm = request.ToConfirm;
+
+            _context.TbOrders.Update(order);
+            await _context.SaveChangesAsync();
+
+
+            var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
+            foreach (var item in orderDetail)
+            {
+                item.ToConfirm = request.ToConfirm;
+                _context.TbOrderDetails.Update(item);
+            }
+            await _context.SaveChangesAsync();
+            return Ok("Cancle successfully!");
         }
+    }
 
 
     

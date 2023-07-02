@@ -99,12 +99,55 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public string UserName { get; set; }
         public string Email { get; set; }
         public bool Status { get; set; }
-        public string? Address { get; set; }
-        public DateTime? PaymentDate { get; set; }
-        public string? PaymentMethod { get; set; }
+       
         public decimal? TotalPrice { get; set; }
         public TbUser User { get; set; }
     }
+
+    public class OrderDetailInfo
+    {
+        public string UserName { get; set; }
+        public string Email { get; set; }
+
+        public string? Address { get; set; }
+
+        public string? AddressDetail { get; set; }
+
+        public string? Phone { get; set; }
+
+        public string? NameRg { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
+
+        public string? PaymentMethod { get; set; }
+
+        public bool Status { get; set; }
+
+ 
+        public int OrderId { get; set; }
+        public DateTime? DateOrder { get; set; }
+
+        
+
+        public decimal? TotalAll  { get; set; }
+        public List<ProductDetail> ProductDetails { get; set; }
+
+
+
+    }
+
+    public class ProductDetail
+    {
+        public string NameProduct { get; set; }
+        public decimal? SoldPrice { get; set; }
+        public string ImagePath { get; set; }
+        public int? Quantity { get; set; }
+        public decimal? DiscountPrice { get; set; }
+
+        public decimal? TotalDetail { get; set; }
+    }
+
+
     public class UserOder
     {
         public int UserId { get; set; }
@@ -132,4 +175,5 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public string FirstImagePath { get; set; }
 
     }
+
 }
