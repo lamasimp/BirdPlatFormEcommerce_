@@ -39,7 +39,7 @@ namespace BirdPlatFormEcommerce
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IHomeViewProductService, HomeViewProductService>();
-            builder.Services.AddScoped<IManageProductService, ManageProductService>();
+            builder.Services.AddScoped<IManageOrderService, ManageProductService>();
             builder.Services.AddAutoMapper(typeof(Mappings).Assembly);
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IMailService, MailService>();

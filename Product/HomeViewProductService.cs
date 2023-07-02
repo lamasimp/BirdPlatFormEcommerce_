@@ -145,7 +145,7 @@ namespace BirdPlatFormEcommerce.Product
 
         public async Task<DetailShopViewProduct> GetShopById(int id)
         {
-            var shopId = await _context.TbShops.FindAsync(id);
+            //var shopId = await _context.TbShops.FindAsync(id);
             var tb_shop = await _context.TbShops.Where(x=>x.ShopId == id).FirstOrDefaultAsync();
             var user = await _context.TbUsers.Where(x=>x.UserId == tb_shop.UserId && x.IsShop == true).Select(x => x.Avatar).FirstOrDefaultAsync();
             var totalProduct = await _context.TbProducts.CountAsync(p => p.ShopId == id);

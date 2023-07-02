@@ -22,16 +22,16 @@ namespace BirdPlatFormEcommerce.Controllers
     {
         private readonly SwpDataContext _context;
         private readonly IHomeViewProductService _homeViewProductService;
-        private readonly IManageProductService _manageProductService;
+       
         private readonly IWebHostEnvironment _enviroment;
       
 
-        public ProductsController(SwpDataContext context, IHomeViewProductService homeViewProductService, IManageProductService manageProductService,
+        public ProductsController(SwpDataContext context, IHomeViewProductService homeViewProductService,
             IWebHostEnvironment environment)
         {
             _context = context;
             _homeViewProductService = homeViewProductService;
-            _manageProductService = manageProductService;
+         
             _enviroment = environment;
          
         }

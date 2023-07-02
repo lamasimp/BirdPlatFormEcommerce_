@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BirdPlatFormEcommerce.Product
 {
-    public class ManageProductService : IManageProductService
+    public class ManageProductService : IManageOrderService
     {
         private readonly SwpDataContext _context;
 
@@ -30,49 +30,30 @@ namespace BirdPlatFormEcommerce.Product
          
         }
 
-      //  public async Task<int> AddImages(int productId, ProductImageCreateRequest request)
-      //  {
-      //     var image = new TbImage()
-      //          {
-                    
-      //                  Caption = "Image",
-      //                  CreateDate = DateTime.Now,
-      //                  IsDefault = request.IsDefault,
-      //                  SortOrder = request.SortOrder,
-      //                 ProductId = productId,
-                        
-                    
-      //          };
-      //      if(request.ImageFile != null)
-      //      {
-      ////          image.ImagePath = await this.SaveFile(request.ImageFile);
-      //          image.FileSize = request.ImageFile.Length;
-      //      }
-      //      //}
-      //      _context.TbImages.Add(image);
-      //      await _context.SaveChangesAsync();
-      //      return image.ProductId;
-
-      //  }
-
-       
-        public Task<List<TbImage>> GetListImage(int productId)
+        public async Task<List<TbOrderDetail>> GetListOrderDetail(int orderId)
         {
-            throw new NotImplementedException();
+          
+
+            var tb_orderDetail = await _context.TbOrderDetails.Where( x=> x.OrderId == orderId).ToListAsync();
+            var orderDetails =  tb_orderDetail.Select(tb_orderDetail => new TbOrderDetail()
+  
+          
+            {
+                OrderId = orderId,
+                Id = tb_orderDetail.Id,
+                ProductId = tb_orderDetail.ProductId,
+                Quantity = tb_orderDetail.Quantity,
+                Discount = tb_orderDetail.Discount,
+                ProductPrice = tb_orderDetail.ProductPrice,
+                DiscountPrice = tb_orderDetail.DiscountPrice,
+                Total = tb_orderDetail.Total,
+                DateOrder = tb_orderDetail.DateOrder,
+                ToConfirm = tb_orderDetail.ToConfirm,
+
+
+
+            }).ToList();
+            return orderDetails;
         }
-
-        public Task<int> RemoveImages(int imageId)
-        {
-            throw new NotImplementedException();
-        }
-
-      
-
-        public Task<int> UpdateImages(int imageId, string caption, bool isDefault)
-        {
-            throw new NotImplementedException();
-        }
-
-        
     }
-}
+    }
