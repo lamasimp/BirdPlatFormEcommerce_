@@ -640,8 +640,11 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             DateTime today = DateTime.Today;
+            DateTimeFormatInfo dfi = DateTimeFormatInfo.CurrentInfo;
+            Calendar cal = dfi.Calendar;
+
+            int currentWeek = cal.GetWeekOfYear(today, dfi.CalendarWeekRule, dfi.FirstDayOfWeek);
             int currentYear = today.Year;
-            int currentWeek = (today.DayOfYear + 6) / 7;
 
             var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
             {
@@ -674,16 +677,14 @@ namespace BirdPlatFormEcommerce.Controllers
         public static DateTime FirstDateOfWeek(int year, int week)
         {
             DateTime jan1 = new DateTime(year, 1, 1);
-            int daysToFirstDayOfWeek = (int)jan1.DayOfWeek - 1;
+            int daysToFirstDayOfWeek = (int)jan1.DayOfWeek - (int)CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
 
-            if (daysToFirstDayOfWeek <= 3)
+            if (daysToFirstDayOfWeek < 0)
             {
-                return jan1.AddDays((week - 1) * 7 - daysToFirstDayOfWeek);
+                daysToFirstDayOfWeek += 7;
             }
-            else
-            {
-                return jan1.AddDays(7 - daysToFirstDayOfWeek + (week - 1) * 7);
-            }
+           int firstWeekDay = 7*(week -1) - daysToFirstDayOfWeek;
+            return jan1.AddDays(firstWeekDay);
         }
 
         [HttpGet("orders")]
