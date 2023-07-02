@@ -28,14 +28,14 @@ namespace BirdPlatFormEcommerce.Controllers
     public class ShopController : ControllerBase
     {
         private readonly SwpDataContext _context;
-        private readonly IManageProductService _manageProductService;
+        private readonly IManageOrderService _manageOrderService;
         private readonly IWebHostEnvironment _enviroment;
         private readonly IOrderService _oderService;
 
-        public ShopController(SwpDataContext swp, IManageProductService manageProductService, IWebHostEnvironment enviroment,IOrderService orderService )
+        public ShopController(SwpDataContext swp, IManageOrderService manageOrderService, IWebHostEnvironment enviroment,IOrderService orderService )
         {
             _context = swp;
-            _manageProductService = manageProductService;
+           _manageOrderService = manageOrderService;
             _enviroment = enviroment;
             _oderService = orderService;
         }
@@ -724,20 +724,19 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
 
-        //[HttpGet("Getodershop")]
-        //public async Task<List<TbOrderDetail>> getoderShop()
-        //{
-        //    var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-        //    if(userIdclaim == null)
-        //    {
-        //        return null;
-        //    }
-        //    int userid = int.Parse(userIdclaim.Value);
-        //    var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
-        //    if (shop == null)
-        //        return null; 
-        //    var oder = await _oderService.Orderservice(shop.ShopId);
-        //    return oder;
-        //}
+        [HttpGet("Detail_Order")]
+        public async Task<IActionResult> getDetailOrder(int orderId)
+        {
+     
+       var orderDetail = await _manageOrderService.GetListOrderDetail(orderId);
+            if (orderDetail == null)
+            {
+                return BadRequest("Cannot find OrderDetail");
+
+              
+            }
+            return Ok(orderDetail);
+
+        }
     }
 }
