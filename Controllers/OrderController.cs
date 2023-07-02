@@ -184,7 +184,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 var orderResponse = new OrderResponses
                 {
                     OrderId = order.OrderId,
-                    TotalPrice = order.TotalPrice,
+                    TotalPrice = (decimal)order.TotalPrice,
                     SubTotal = (decimal)order.TbOrderDetails.Sum(od => od.Total),
                     Items = orderItems
                 };

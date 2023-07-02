@@ -191,7 +191,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * (request.DiscountPercent))),
                     Decription = request.Decription,
                     Status = true,
-                    //          CreateDate = request.CreateDate,
+             //      CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
                  // ShopId = request.ShopId,
                     ShopId = shopid,
@@ -551,19 +551,15 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             int currentYear = DateTime.Now.Year;
-            var query = from od in _context.TbOrderDetails
-                        join p in _context.TbProducts on od.ProductId equals p.ProductId
-                        join s in _context.TbShops on p.ShopId equals s.ShopId
-                        where s.ShopId == shopid
-                        select new TbProfit
-                        {
-                            ShopId = s.ShopId,
-                            Orderdate = (DateTime)od.DateOrder,
-                            OrderDetailId = od.Id,
-                            Total = (decimal)od.Total
-                        };
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            {     
+                            ShopId = shopid,
+                            Orderdate =(DateTime)p.OrderDate,
+                            OrderId = p.OrderId,
+                            TotalPrice = (decimal?)p.TotalPrice
+                        }).ToListAsync();
 
-            var data = await query.ToListAsync();
+           
 
             // Khoi tao mang chua kq TotalRevenue của moi thang
             decimal[] monthlyRevenue = new decimal[12];
@@ -577,7 +573,7 @@ namespace BirdPlatFormEcommerce.Controllers
               
 
                 // Tính tổng doanh thu của shop trong tháng hiện tại
-                decimal totalRevenue = data.Where(p => p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd).Sum(p => p.Total );
+                decimal totalRevenue = query.Where(p => p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd).Sum(p => p.TotalPrice ?? 0m);
 
                 // Gán đối tượng tháng vào mảng monthlyRevenue
                 monthlyRevenue[i] = totalRevenue;
@@ -606,22 +602,18 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = from od in _context.TbOrderDetails
-                        join p in _context.TbProducts on od.ProductId equals p.ProductId
-                        join s in _context.TbShops on p.ShopId equals s.ShopId
-                        where s.ShopId == shopid
-                        select new TbProfit
-                        {
-                            ShopId = s.ShopId,
-                            Orderdate =(DateTime)od.DateOrder,
-                            OrderDetailId = od.Id,
-                            Total = (decimal)od.Total
-                        };
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            {
+                ShopId = shopid,
+                Orderdate = (DateTime)p.OrderDate,
+                OrderId = p.OrderId,
+                TotalPrice = (decimal?)p.TotalPrice
+            }).ToListAsync();
 
-            var data = await query.ToListAsync();
+        
 
                 // Tính tổng doanh thu của shop trong tháng hiện tại
-                decimal totalRevenue = data.Sum(p => p.Total );
+                decimal totalRevenue = query.Sum(p => p.TotalPrice ?? 0m );
 
                
               
@@ -651,19 +643,15 @@ namespace BirdPlatFormEcommerce.Controllers
             int currentYear = today.Year;
             int currentWeek = (today.DayOfYear + 6) / 7;
 
-            var query = from od in _context.TbOrderDetails
-                        join p in _context.TbProducts on od.ProductId equals p.ProductId
-                        join s in _context.TbShops on p.ShopId equals s.ShopId
-                        where s.ShopId == shopid
-                        select new TbProfit
-                        {
-                            ShopId = s.ShopId,
-                            Orderdate = (DateTime)od.DateOrder,
-                            OrderDetailId = od.Id,
-                            Total = (decimal)od.Total
-                        };
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            {
+                ShopId = shopid,
+                Orderdate = (DateTime)p.OrderDate,
+                OrderId = p.OrderId,
+                TotalPrice = (decimal?)p.TotalPrice
+            }).ToListAsync();
 
-            var data = await query.ToListAsync();
+           
 
             // Khởi tạo mảng chứa kết quả TotalRevenue của mỗi ngày trong tuần
             decimal[] dailyRevenue = new decimal[7];
@@ -673,7 +661,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 DateTime currentDate = FirstDateOfWeek(currentYear, currentWeek).AddDays(i);
 
                 // Tính tổng doanh thu của shop trong ngày hiện tại
-                decimal totalRevenue = data.Where(p => p.Orderdate.Date== currentDate.Date).Sum(p => p.Total );
+                decimal totalRevenue = query.Where(p => p.Orderdate.Date== currentDate.Date).Sum(p => p.TotalPrice ?? 0m );
 
                 // Gán giá trị tổng doanh thu vào mảng dailyRevenue
                 dailyRevenue[i] = totalRevenue;
@@ -711,38 +699,44 @@ namespace BirdPlatFormEcommerce.Controllers
             if (shop == null)
                 return null;
             int shopid = shop.ShopId;
-            var orders = await _context.TbOrders
-                .Where(o => o.TbOrderDetails.Any(od => od.ToConfirm == 2 && _context.TbProducts.Any(p => p.ProductId == od.ProductId && p.ShopId == shopid)))
-                .Select(o => new OrderInfo
-                {
-                    orderId = o.OrderId,
-                    
-                    OrderDate = (DateTime)o.OrderDate,
-                    UserName = o.User.Name,
-                    Email = o.User.Email,
-                    Status = (bool)o.Status
-                    
-                })
-                .ToListAsync();
 
-            return orders;
-        }
-
-
-        [HttpGet("Getodershop")]
-        public async Task<List<TbOrderDetail>> getoderShop()
-        {
-            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-            if(userIdclaim == null)
+            var query = await (from o in _context.TbOrders
+                              join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                              join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
+                              where o.ShopId == shopid && o.ToConfirm == 2
+                              select new OrderInfo
             {
-                return null;
-            }
-            int userid = int.Parse(userIdclaim.Value);
-            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
-            if (shop == null)
-                return null; 
-            var oder = await _oderService.Orderservice(shop.ShopId);
-            return oder;
+                orderId = o.OrderId,
+                 OrderDate = (DateTime)o.OrderDate,
+                 UserName = o.User.Name,
+                 Email = o.User.Email,
+                 Status =(bool) o.Status,
+                 TotalPrice =(decimal?) o.TotalPrice,
+                 PaymentDate = (DateTime)pay.PaymentDate,
+                 Address = ad.Address
+              
+            }).ToListAsync();
+
+            return Ok(query);
+              
+
         }
+
+
+        //[HttpGet("Getodershop")]
+        //public async Task<List<TbOrderDetail>> getoderShop()
+        //{
+        //    var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+        //    if(userIdclaim == null)
+        //    {
+        //        return null;
+        //    }
+        //    int userid = int.Parse(userIdclaim.Value);
+        //    var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+        //    if (shop == null)
+        //        return null; 
+        //    var oder = await _oderService.Orderservice(shop.ShopId);
+        //    return oder;
+        //}
     }
 }
