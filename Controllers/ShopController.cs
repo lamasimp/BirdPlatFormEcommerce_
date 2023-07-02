@@ -551,7 +551,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             int currentYear = DateTime.Now.Year;
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
             {     
                             ShopId = shopid,
                             Orderdate =(DateTime)p.OrderDate,
@@ -602,7 +602,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -640,10 +640,13 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             DateTime today = DateTime.Today;
-            int currentYear = today.Year;
-            int currentWeek = (today.DayOfYear + 6) / 7;
+            DateTimeFormatInfo dfi = DateTimeFormatInfo.CurrentInfo;
+            Calendar cal = dfi.Calendar;
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            int currentWeek = cal.GetWeekOfYear(today, dfi.CalendarWeekRule, dfi.FirstDayOfWeek);
+            int currentYear = today.Year;
+
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -674,16 +677,14 @@ namespace BirdPlatFormEcommerce.Controllers
         public static DateTime FirstDateOfWeek(int year, int week)
         {
             DateTime jan1 = new DateTime(year, 1, 1);
-            int daysToFirstDayOfWeek = (int)jan1.DayOfWeek - 1;
+            int daysToFirstDayOfWeek = (int)jan1.DayOfWeek - (int)CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
 
-            if (daysToFirstDayOfWeek <= 3)
+            if (daysToFirstDayOfWeek < 0)
             {
-                return jan1.AddDays((week - 1) * 7 - daysToFirstDayOfWeek);
+                daysToFirstDayOfWeek += 7;
             }
-            else
-            {
-                return jan1.AddDays(7 - daysToFirstDayOfWeek + (week - 1) * 7);
-            }
+           int firstWeekDay = 7*(week -1) - daysToFirstDayOfWeek;
+            return jan1.AddDays(firstWeekDay);
         }
 
         [HttpGet("orders")]
