@@ -790,7 +790,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 ProductDetails =    product.Select(x => new ProductDetail
                 {
                     NameProduct = x.p.Name,
-                    SoldPrice = (decimal?)x.p.SoldPrice,
+                    SoldPrice = (decimal?)x.odt.ProductPrice,
                     DiscountPrice= (decimal?)x.odt.DiscountPrice,
                     ImagePath =  x.Image != null ? x.Image.ImagePath : "no-image.jpg",
 
