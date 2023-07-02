@@ -551,7 +551,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             int currentYear = DateTime.Now.Year;
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
             {     
                             ShopId = shopid,
                             Orderdate =(DateTime)p.OrderDate,
@@ -602,7 +602,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -646,7 +646,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int currentWeek = cal.GetWeekOfYear(today, dfi.CalendarWeekRule, dfi.FirstDayOfWeek);
             int currentYear = today.Year;
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
