@@ -797,7 +797,7 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
         [HttpPatch("Confim_Success")]
-        public async Task<IActionResult> ChangeToConfirm(int orderId, ChangeToConfirmRequest request)
+        public async Task<IActionResult> ChangeToConfirm(int orderId)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
             if (userIdClaim == null)
@@ -820,7 +820,7 @@ namespace BirdPlatFormEcommerce.Controllers
             if (order == null) throw new Exception("Can not find order.");
 
 
-            order.ToConfirm = request.ToConfirm ;
+            order.ToConfirm = 3 ;
 
             _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
@@ -829,7 +829,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
             foreach(var item in orderDetail)
             {
-                item.ToConfirm = request.ToConfirm ;
+                item.ToConfirm = 3;
                 _context.TbOrderDetails.Update(item);
             }
              await _context.SaveChangesAsync();
@@ -837,7 +837,7 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
         [HttpPatch("Cancle_Success")]
-        public async Task<IActionResult> CancleToConfirm(int orderId, ChangeToConfirmRequest request)
+        public async Task<IActionResult> CancleToConfirm(int orderId)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
             if (userIdClaim == null)
@@ -860,7 +860,7 @@ namespace BirdPlatFormEcommerce.Controllers
             if (order == null) throw new Exception("Can not find order.");
 
 
-            order.ToConfirm = request.ToConfirm;
+            order.ToConfirm = 4;
 
             _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
@@ -869,7 +869,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
             foreach (var item in orderDetail)
             {
-                item.ToConfirm = request.ToConfirm;
+                item.ToConfirm = 4;
                 _context.TbOrderDetails.Update(item);
             }
             await _context.SaveChangesAsync();
