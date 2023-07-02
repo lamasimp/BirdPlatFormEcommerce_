@@ -717,7 +717,7 @@ namespace BirdPlatFormEcommerce.Controllers
                               select new OrderInfo
             {
                 orderId = o.OrderId,
-            //     OrderDate = (DateTime)o.OrderDate,
+                 OrderDate = (DateTime)o.OrderDate,
                  UserName = o.User.Name,
                  Email = o.User.Email,
                  Status =(bool) o.Status,
