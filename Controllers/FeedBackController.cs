@@ -47,8 +47,20 @@ namespace BirdPlatForm.Controllers
             _context.TbFeedbacks.Add(tbfeedback);
             await _context.SaveChangesAsync();
 
-            
+            var rate = await GetProductAverageRates(feedback.ProductId);
+            var updateRate = await _context.TbProducts.FirstOrDefaultAsync(u => u.ProductId == feedback.ProductId);
+            {
+                updateRate.Rate = (int?)rate;
 
+                
+            }
+            await _context.SaveChangesAsync();
+            var rateshop = await GetProductAverageRates((int)updateRate.ShopId);
+            var updateRateShop = await _context.TbShops.FirstOrDefaultAsync(u => u.ShopId == updateRate.ShopId);
+            {
+                updateRateShop.Rate = (int?)rateshop;
+            }
+            await _context.SaveChangesAsync();
 
             return Ok("success");
             
@@ -59,16 +71,20 @@ namespace BirdPlatForm.Controllers
             var feedback = _context.TbFeedbacks.ToList();
             return Ok(feedback);
         }
-        [HttpGet("Rate/Product")]
-        public async Task<IActionResult> GetProductAverageRates(int productID)
+       
+        private async Task<double> GetProductAverageRates(int productID)
         {
-            try {
                 double argRate =(double) await _context.TbFeedbacks.Where(p => p.ProductId == productID).AverageAsync(x => x.Rate);
                 double roundRate = Math.Round(argRate, 1);
-            return Ok(roundRate);
-            } catch(Exception ex ) {
-               return StatusCode(500, ex.Message);
-            }
+            return roundRate;
+            
+        }
+        private async Task<double> GetShopAverageRates(int shopId)
+        {
+            double argRate = (double)await _context.TbProducts.Where(p => p.ShopId == shopId).AverageAsync(x => x.Rate);
+            double roundRate = Math.Round(argRate, 1);
+            return roundRate;
+
         }
     }
 }
