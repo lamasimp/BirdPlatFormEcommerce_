@@ -24,6 +24,8 @@ public partial class TbOrder
     public int ShopId { get; set; }
 
     public int? ToConfirm { get; set; }
+    public DateTime? ConfirmDate { get; set; }
+    public DateTime? CancleDate { get; set; }
 
     public virtual TbAddressReceive Address { get; set; } = null!;
 
