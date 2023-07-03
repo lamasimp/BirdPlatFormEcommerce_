@@ -101,7 +101,7 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public bool Status { get; set; }
         public DateTime? PaymentDate { get; set; }
         public decimal? TotalPrice { get; set; }
-
+        public int? ToConfirm { get; set; }
         public TbUser User { get; set; }
     }
 
