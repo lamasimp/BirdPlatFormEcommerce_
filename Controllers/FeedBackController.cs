@@ -52,15 +52,16 @@ namespace BirdPlatForm.Controllers
             {
                 updateRate.Rate = (int?)rate;
 
-                
+                await _context.SaveChangesAsync();
             }
-            await _context.SaveChangesAsync();
-            var rateshop = await GetProductAverageRates((int)updateRate.ShopId);
+            
+            var rateshop = await GetShopAverageRates((int)updateRate.ShopId);
             var updateRateShop = await _context.TbShops.FirstOrDefaultAsync(u => u.ShopId == updateRate.ShopId);
             {
                 updateRateShop.Rate = (int?)rateshop;
+                await _context.SaveChangesAsync();
             }
-            await _context.SaveChangesAsync();
+            
 
             return Ok("success");
             
