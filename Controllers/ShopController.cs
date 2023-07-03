@@ -786,6 +786,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
                 DateOrder = (DateTime)query.o.OrderDate,
                 OrderId= orderId,
+                ToConfirm= query.o.ToConfirm,
                 TotalAll = (decimal?)query.o.TotalPrice,
                 ProductDetails =    product.Select(x => new ProductDetail
                 {
@@ -804,7 +805,7 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(oderDetailInfo);
         }
 
-        [HttpPatch("Confim_Success")]
+        [HttpPut("Confim_Order")]
         public async Task<IActionResult> ChangeToConfirm(int orderId)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
@@ -828,23 +829,25 @@ namespace BirdPlatFormEcommerce.Controllers
             if (order == null) throw new Exception("Can not find order.");
 
 
-            order.ToConfirm = 3 ;
+                order.ToConfirm = 3;
+                order.ConfirmDate= DateTime.Now;
 
-            _context.TbOrders.Update(order);
+        _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
 
 
             var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
             foreach(var item in orderDetail)
             {
-                item.ToConfirm = 3;
+
+                item.ToConfirm = 3;  
                 _context.TbOrderDetails.Update(item);
             }
              await _context.SaveChangesAsync();
             return Ok("Confirm successfully!");
         }
 
-        [HttpPatch("Cancle_Success")]
+        [HttpPut("Cancle_Order")]
         public async Task<IActionResult> CancleToConfirm(int orderId)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
@@ -869,6 +872,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
             order.ToConfirm = 4;
+            order.CancleDate = DateTime.Now;
 
             _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();

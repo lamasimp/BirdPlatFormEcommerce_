@@ -158,6 +158,8 @@ public partial class SwpDataContext : DbContext
             entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UserId).HasColumnName("UserID");
+            entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
+            entity.Property(e => e.CancleDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Address).WithMany(p => p.TbOrders)
                 .HasForeignKey(d => d.AddressId)
