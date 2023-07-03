@@ -18,6 +18,7 @@
 
         public int? Rate { get; set; }
 
+        public string? Address { get; set; }
         public string? Thumbnail { get; set; }
 
 

@@ -2,6 +2,7 @@
 using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
 using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.Helper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,14 +14,15 @@ namespace BirdPlatForm.Controllers
     public class FeedBackController : ControllerBase
     {
         private readonly SwpDataContext _context;
+        private readonly IWebHostEnvironment _enviroment;
 
-        public FeedBackController(SwpDataContext bird)
+        public FeedBackController(SwpDataContext bird, IWebHostEnvironment enviroment)
         {
             _context = bird;
-
+            _enviroment = enviroment;
         }
         [HttpPost("Feedback")]
-        public async Task<IActionResult> Feedback( FeedbackModel feedback)
+        public async Task<IActionResult> Feedback([FromForm] FeedbackModel feedback)
         {
             var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if(userIdClaim == null)
@@ -46,6 +48,58 @@ namespace BirdPlatForm.Controllers
             };
             _context.TbFeedbacks.Add(tbfeedback);
             await _context.SaveChangesAsync();
+
+            //add image
+     
+            int passcount = 0;
+           
+            int maxImageCount = 6;
+           
+
+                string Filepath = GetFileProductPath(tbfeedback.Id);
+                if (!Directory.Exists(Filepath))
+                {
+                    Directory.CreateDirectory(Filepath);
+                }
+                int imageCount = 0;
+                if (feedback.ImageFile.Length > 0)
+                {
+                    foreach (var file in feedback.ImageFile)
+                    {
+                        if (imageCount >= maxImageCount)
+                        {
+                            break;
+                        }
+
+                        var image = new TbFeedbackImage()
+                        {
+                            FeedbackId= tbfeedback.Id,
+                            
+                           
+                            ImagePath = GetImageProductPath(tbfeedback.Id, file.FileName),
+
+
+
+                        };
+                        string imagepath = Path.Combine(Filepath, file.FileName);
+                        if (System.IO.File.Exists(imagepath))
+                        {
+                            System.IO.File.Delete(imagepath);
+                        }
+                        using (FileStream stream = System.IO.File.Create(imagepath))
+                        {
+                            await file.CopyToAsync(stream);
+                            passcount++;
+                        }
+                        _context.Add(image);
+                        imageCount++;
+
+                    }
+                }
+                await _context.SaveChangesAsync();
+
+            
+
 
             var rate = await GetProductAverageRates(feedback.ProductId);
             var updateRate = await _context.TbProducts.FirstOrDefaultAsync(u => u.ProductId == feedback.ProductId);
@@ -85,6 +139,19 @@ namespace BirdPlatForm.Controllers
             double argRate = (double)await _context.TbProducts.Where(p => p.ShopId == shopId).AverageAsync(x => x.Rate);
             double roundRate = Math.Round(argRate, 1);
             return roundRate;
+
+        }
+
+        private string GetFileProductPath(int productId)
+        {
+            return this._enviroment.WebRootPath + "\\user-content\\feedback\\" + productId.ToString();
+        }
+
+
+        private string GetImageProductPath(int productId, string fileName)
+        {
+            string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
+            return hosturl + "/user-content/feedback/" + productId + "/" + fileName;
 
         }
     }
