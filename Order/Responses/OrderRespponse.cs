@@ -129,7 +129,8 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public DateTime? DateOrder { get; set; }
 
         public int? ToConfirm { get; set; }
-
+        public DateTime? ConfirmDate { get; set; }
+        public DateTime? CancleDate { get; set; }
 
         public decimal? TotalAll  { get; set; }
 

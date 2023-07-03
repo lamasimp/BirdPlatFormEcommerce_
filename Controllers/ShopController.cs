@@ -785,6 +785,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 Status = (bool)query.o.Status,
 
                 DateOrder = (DateTime)query.o.OrderDate,
+                ConfirmDate= (DateTime)query.o.ConfirmDate,
+                CancleDate= (DateTime)query.o.CancleDate,
                 OrderId= orderId,
                 ToConfirm= query.o.ToConfirm,
                 TotalAll = (decimal?)query.o.TotalPrice,
