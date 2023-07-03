@@ -722,7 +722,7 @@ namespace BirdPlatFormEcommerce.Controllers
                  Email = o.User.Email,
                  Status =(bool) o.Status,
                  TotalPrice =(decimal?) o.TotalPrice,
-
+                 ToConfirm = o.ToConfirm,
                  PaymentDate = (DateTime)pay.PaymentDate,
               //   Address = ad.Address,
               //   PaymentMethod = pay.PaymentMethod
