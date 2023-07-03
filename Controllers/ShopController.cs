@@ -188,7 +188,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     Name = request.ProductName,
 
                     Price = request.Price,
-                    DiscountPercent = request.DiscountPercent,
+                    DiscountPercent = (decimal?)request.DiscountPercent,
                     SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * (request.DiscountPercent))),
                     Decription = request.Decription,
                     Status = true,
