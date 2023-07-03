@@ -41,6 +41,7 @@ namespace BirdPlatFormEcommerce.Product
                 ShopName= x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
+                Address= x.s.Address,
                 Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
 
             }).ToListAsync();
@@ -110,6 +111,7 @@ namespace BirdPlatFormEcommerce.Product
                 ShopName = x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
+                Address = x.s.Address,
                 Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
             }).ToListAsync();
             return data;
@@ -137,6 +139,7 @@ namespace BirdPlatFormEcommerce.Product
                 ShopName = x.s.ShopName,
                 QuantitySold = x.p.QuantitySold,
                 Rate = x.p.Rate,
+                Address = x.s.Address,
                 Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
 
             }).ToListAsync();

@@ -713,7 +713,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var query = await (from o in _context.TbOrders
                               join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
                               join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
-                              where o.ShopId == shopid && o.ToConfirm == 2
+                              where o.ShopId == shopid && o.ToConfirm > 1
                               select new OrderInfo
             {
                 orderId = o.OrderId,
