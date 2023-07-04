@@ -79,8 +79,7 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 return NotFound("Order(s) not found");
             }
-
-            var processedOrderIds = new List<int>(); // Danh sách các OrderId đã được xử lý
+            var processedOrderIds = new List<int>();
             string listProductHtml = "";
             decimal total = 0;
 
@@ -91,10 +90,6 @@ namespace BirdPlatFormEcommerce.Controllers
                     order.ToConfirm = 2;
                 }
 
-
-
-
-                // Gửi email chỉ khi OrderId chưa được xử lý trước đó
                 if (!processedOrderIds.Contains(order.OrderId))
                 {
                     total = (decimal)(total + order.TotalPrice);
@@ -107,9 +102,6 @@ namespace BirdPlatFormEcommerce.Controllers
                 }
                 if (processedOrderIds.Count == orders.Count)
                 {
-
-                    // Xây dựng phần nội dung email cho OrderId hiện tại
-
 
                     var toEmail = order.User?.Email ?? string.Empty;
                     var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
@@ -171,54 +163,113 @@ namespace BirdPlatFormEcommerce.Controllers
 
         }
         [HttpGet("OrderFailed")]
-
         public IActionResult GetOrdersByUserId()
         {
-
             var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if (userIdClaim == null)
             {
                 return Unauthorized();
             }
+
             int userId = int.Parse(userIdClaim.Value);
+
             var orders = _context.TbOrders
                 .Where(o => o.UserId == userId && o.Payment.PaymentMethod == "Vnpay" && o.Status == false)
                 .Include(o => o.TbOrderDetails)
-                    .ThenInclude(od => od.Product)
-                        .ThenInclude(p => p.Shop)
+                .ThenInclude(od => od.Product)
+                .Include(o => o.Shop)
                 .Include(o => o.Payment)
                 .ToList();
 
-            var response = new List<OrderResponses>();
+            var response = orders
+                .GroupBy(o => o.PaymentId) // Gom nhóm các đơn hàng theo PaymentId
+                .Select(g => new
+                {
+                    PaymentId = g.Key,
+                    Amount = _context.TbPayments
+                    .Where(p => p.PaymentId == g.Key)
+                    .Select(p => p.Amount),
+                    Orders = g.Select(o => new
+                    {
+                        OrderId = o.OrderId,
+                        Status = o.Status,
+                        UserId = o.UserId,
+                        Note = o.Note,
+                        TotalPrice = o.TotalPrice,
+                        OrderDate = o.OrderDate,
+                        ShopId = o.ShopId,
+                        ShopName = o.Shop.ShopName,
+                        Items = o.TbOrderDetails.Select(od => new
+                        {
+                            Id = od.Id,
+                            ProductId = od.ProductId,
+                            ProductName = od.Product.Name,
+                            Quantity = od.Quantity,
+                            Discount = od.Discount,
+                            ProductPrice = od.ProductPrice,
+                            DiscountPrice = od.DiscountPrice,
+                            Total = od.Total,
+                            FirstImagePath = _context.TbImages
+                                .Where(d => d.ProductId == od.ProductId)
+                                .OrderBy(d => d.SortOrder)
+                                .Select(d => d.ImagePath)
+                                .FirstOrDefault()
+                        })
+                    })
+                })
+                .ToList();
 
-            foreach (var order in orders)
+            return Ok(response);
+        }
+        [HttpGet("ToConFirmOfuserId/{ToConfirm:int}")]
+        public IActionResult GetOrdersByToConfirm(int ToConfirm)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null)
             {
-                var orderItems = order.TbOrderDetails.Select(od => new OrderItemResponse
-                {
-                    ShopName = od.Product.Shop.ShopName,
-                    ShopId = od.Product.Shop.ShopId,
-                    ProductId = od.ProductId,
-                    Quantity = (int)od.Quantity,
-                    ProductName = od.Product.Name,
-                    Price = od.Product.Price,
-                    SoldPrice = (int)(od.Product.Price - od.Product.Price / 100 * od.Product.DiscountPercent),
-                    ImagePath = _context.TbImages
-                        .Where(i => i.ProductId == od.ProductId)
-                        .OrderBy(i => i.SortOrder)
-                        .Select(i => i.ImagePath)
-                        .FirstOrDefault()
-                }).ToList();
-
-                var orderResponse = new OrderResponses
-                {
-                    OrderId = order.OrderId,
-                    TotalPrice = (decimal)order.TotalPrice,
-                    SubTotal = (decimal)order.TbOrderDetails.Sum(od => od.Total),
-                    Items = orderItems
-                };
-
-                response.Add(orderResponse);
+                return Unauthorized();
             }
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            var orders = _context.TbOrders
+                .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm)
+                .Include(o => o.TbOrderDetails)
+                .ThenInclude(od => od.Product)
+                .Include(o => o.Shop)
+                .Include(o => o.Payment)
+                .ToList();
+
+            var response = orders
+                .Select(o => new
+                {
+                        OrderId = o.OrderId,
+                        Status = o.Status,
+                        UserId = o.UserId,
+                        Note = o.Note,
+                        TotalPrice = o.TotalPrice,
+                        OrderDate = o.OrderDate,
+                        ShopId = o.ShopId,
+                        ShopName = o.Shop.ShopName,
+                        Items = o.TbOrderDetails.Select(od => new
+                        {
+                            Id = od.Id,
+                            ProductId = od.ProductId,
+                            ProductName = od.Product.Name,
+                            Quantity = od.Quantity,
+                            Discount = od.Discount,
+                            ProductPrice = od.ProductPrice,
+                            DiscountPrice = od.DiscountPrice,
+                            Total = od.Total,
+                            FirstImagePath = _context.TbImages
+                                .Where(d => d.ProductId == od.ProductId)
+                                .OrderBy(d => d.SortOrder)
+                                .Select(d => d.ImagePath)
+                                .FirstOrDefault()
+                        })
+                   
+                })
+                .ToList();
 
             return Ok(response);
         }
@@ -296,11 +347,11 @@ namespace BirdPlatFormEcommerce.Controllers
                         ShopName = g.Key.ShopName,
                         DateOrder = (DateTime)g.Key.DateOrder,
                         Note = g.Key.Note,
-                        AddressId=g.Key.AddressId,
-                        Address= g.Key.Address,
-                        AddressDetail=g.Key.AddressDetail,
+                        AddressId = g.Key.AddressId,
+                        Address = g.Key.Address,
+                        AddressDetail = g.Key.AddressDetail,
                         Phone = g.Key.Phone,
-                        NameRg=g.Key.NameRg,
+                        NameRg = g.Key.NameRg,
                         Items = g.Select(d => new OrderItem
                         {
                             Id = d.Id,
@@ -351,7 +402,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
             if (shop == null) return BadRequest("No shop");
             int shopid = shop.ShopId;
-            var orders = await _orderService.GetConfirmedOrdersByShop(userId,shopid);
+            var orders = await _orderService.GetConfirmedOrdersByShop(userId, shopid);
 
             List<OrderResult> orderResults = new List<OrderResult>();
 
