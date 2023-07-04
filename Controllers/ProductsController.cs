@@ -1,6 +1,6 @@
 ﻿
 using Azure.Core;
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Product;
 using Microsoft.AspNetCore.Http;
@@ -13,20 +13,19 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System.Diagnostics.Eventing.Reader;
 using static System.Net.Mime.MediaTypeNames;
 
-
 namespace BirdPlatFormEcommerce.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
         private readonly IHomeViewProductService _homeViewProductService;
        
         private readonly IWebHostEnvironment _enviroment;
       
 
-        public ProductsController(SwpDataContext context, IHomeViewProductService homeViewProductService,
+        public ProductsController(SwpDataBaseContext context, IHomeViewProductService homeViewProductService,
             IWebHostEnvironment environment)
         {
             _context = context;

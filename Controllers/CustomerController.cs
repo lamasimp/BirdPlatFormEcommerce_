@@ -1,4 +1,4 @@
-﻿using BirdPlatFormEcommerce.DEntity;
+﻿using BirdPlatFormEcommerce.NEntity;
 
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Http;
@@ -11,57 +11,43 @@ namespace BirdPlatFormEcommerce.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
 
-        public CustomerController(SwpDataContext swp)
+        public CustomerController(SwpDataBaseContext swp)
         {
             _context = swp;
         }
 
-        //[HttpPost("OderProduct")]
-        //public async Task<IActionResult> OderProduct(TbOrder oder)
-        //{
-        //    var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-        //    if (useridClaim == null)
-        //    {
-        //        throw new Exception("Please Login");
-        //    }
-        //    int userid = int.Parse(useridClaim.Value);
-        //    //kiem tra xem null hay khong
-        //    if (oder == null || oder.TbOrderDetails == null || oder.TbOrderDetails.Count == 0)
-        //    {
-        //        return BadRequest("Invalid order data");
-        //    }
-        //    //kiem tra thong tin va ngay mua hang 
-        //    oder.UserId = userid;
-        //    oder.OrderDate = DateTime.Now;
+        [HttpGet("GetcatoryReport")]
+        public async Task<IActionResult> getcategoryReport()
+        {
+            var report = _context.TbCategoryReports.ToList();
+            return Ok(report);
+        }
+        [HttpPost("reportShop")]
+        public async Task<IActionResult> cretaereport(ReportShopModel model)
+        {
+            var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (useridClaim == null)
+            {
+                return Unauthorized();
+                
+               
+            }
+            int userid = int.Parse(useridClaim.Value);
+            var report = new TbReport
+            {
+                Detail = model.Detail,
+                Status = false,
+                ShopId = model.ShopId,
+                UserId = userid,
+                CateRpId = model.categoriaId
+            };
+             _context.TbReports.Add(report);
+            await _context.SaveChangesAsync();
+            return Ok(report);
 
-        //    //tinh tien mua hang 
-        //    foreach (var oderDetail in oder.TbOrderDetails)
-        //    {
-        //        var product = await _context.TbProducts.FirstOrDefaultAsync(x => x.ProductId == oderDetail.ProductId);
-        //        if (product == null)
-        //        {
-        //            return BadRequest($"Invalid product id: {oderDetail.ProductId}");
-        //        }
-        //        oderDetail.SubTotal = product.Price * oderDetail.Quantity;
-        //    }
-        //    try
-        //    {
-        //        await _context.TbOrders.AddAsync(oder);
-        //        await _context.SaveChangesAsync();
-
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return StatusCode(500, $"Error creating order: {e.Message}");
-
-        //    }
-        //    return Ok("Success");
-
-        //}
-       
-
-
+        }
     }
 }
+

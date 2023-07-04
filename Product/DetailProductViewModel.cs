@@ -24,8 +24,8 @@ namespace BirdPlatFormEcommerce.Product
         public int? QuantitySold { get; set; }
 
         public int? ShopId { get; set; }
- //       public string ShopName { get; set; } = null!;
- //       public int? ShopRate { get; set; }
+        //       public string ShopName { get; set; } = null!;
+        //       public int? ShopRate { get; set; }
         public string CateId { get; set; } = null!;
         public string? CateName { get; set; }
         public DateTime? CreateDate { get; set; }

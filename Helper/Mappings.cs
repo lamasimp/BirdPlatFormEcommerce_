@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Order.Responses;
 using BirdPlatFormEcommerce.Payment.Responses;
 
