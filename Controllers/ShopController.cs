@@ -1,5 +1,5 @@
 ﻿using BirdPlatForm.UserRespon;
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +21,8 @@ using MailKit.Net.Imap;
 using System.ComponentModel;
 using BirdPlatFormEcommerce.Order.Responses;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Win32;
+using BirdPlatFormEcommerce.Helper.Mail;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -28,17 +30,19 @@ namespace BirdPlatFormEcommerce.Controllers
     [ApiController]
     public class ShopController : ControllerBase
     {
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
         private readonly IManageOrderService _manageOrderService;
         private readonly IWebHostEnvironment _enviroment;
         private readonly IOrderService _oderService;
+        private readonly IMailService _mailService;
 
-        public ShopController(SwpDataContext swp, IManageOrderService manageOrderService, IWebHostEnvironment enviroment,IOrderService orderService )
+        public ShopController(SwpDataBaseContext swp, IMailService mailService,IManageOrderService manageOrderService, IWebHostEnvironment enviroment,IOrderService orderService )
         {
             _context = swp;
            _manageOrderService = manageOrderService;
             _enviroment = enviroment;
             _oderService = orderService;
+            _mailService = mailService;
         }
         [HttpPost("registerShop")]
 
@@ -72,10 +76,22 @@ namespace BirdPlatFormEcommerce.Controllers
                 user.IsShop = true; 
                 await _context.SaveChangesAsync();
             }
+            string email = user.Email;
+            var mailRequest = new MailRequest()
+            {
+                ToEmail = email,
+                Subject = "[BIRD TRADING PLATFORM] Thông tin đăng kí của bạn",
+                Body = $"Thông tin đăng kí Shop của bạn:" +
+              $"-ShopName : {shop.ShopName}" +
+              $"  -Address : {shop.Address}" +
+              $"   -Phone :{shop.Phone}    Hãy đăng nhập và bán hàng"
+            };
+
+            await _mailService.SendEmailAsync(mailRequest);
             return Ok(new ErrorRespon
             {
 
-                Message = "Register shop Success",
+                Message = "Đăng kí shop thành công , hãy check email của bạn ",
                 RoleId = user.RoleId
             });
         }
@@ -188,7 +204,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     Name = request.ProductName,
 
                     Price = request.Price,
-                    DiscountPercent = request.DiscountPercent,
+                    DiscountPercent = (decimal?)request.DiscountPercent,
                     SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * (request.DiscountPercent))),
                     Decription = request.Decription,
                     Status = true,
@@ -722,7 +738,7 @@ namespace BirdPlatFormEcommerce.Controllers
                  Email = o.User.Email,
                  Status =(bool) o.Status,
                  TotalPrice =(decimal?) o.TotalPrice,
-
+                 ToConfirm = o.ToConfirm,
                  PaymentDate = (DateTime)pay.PaymentDate,
               //   Address = ad.Address,
               //   PaymentMethod = pay.PaymentMethod
@@ -784,8 +800,12 @@ namespace BirdPlatFormEcommerce.Controllers
                 PaymentMethod = query.pay.PaymentMethod,
                 Status = (bool)query.o.Status,
 
-                DateOrder = (DateTime)query.o.OrderDate,
+                DateOrder = (DateTime?)query.o.OrderDate,
+                ConfirmDate= (DateTime?)query.o.ConfirmDate,
+                CancleDate= (DateTime?)query.o.CancleDate,
                 OrderId= orderId,
+                ToConfirm= query.o.ToConfirm,
+               
                 TotalAll = (decimal?)query.o.TotalPrice,
                 ProductDetails =    product.Select(x => new ProductDetail
                 {
@@ -804,7 +824,7 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(oderDetailInfo);
         }
 
-        [HttpPatch("Confim_Success")]
+        [HttpPut("Confim_Order")]
         public async Task<IActionResult> ChangeToConfirm(int orderId)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
@@ -828,23 +848,25 @@ namespace BirdPlatFormEcommerce.Controllers
             if (order == null) throw new Exception("Can not find order.");
 
 
-            order.ToConfirm = 3 ;
+                order.ToConfirm = 3;
+                order.ConfirmDate= DateTime.Now;
 
-            _context.TbOrders.Update(order);
+        _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
 
 
             var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
             foreach(var item in orderDetail)
             {
-                item.ToConfirm = 3;
+
+                item.ToConfirm = 3;  
                 _context.TbOrderDetails.Update(item);
             }
              await _context.SaveChangesAsync();
             return Ok("Confirm successfully!");
         }
 
-        [HttpPatch("Cancle_Success")]
+        [HttpPut("Cancle_Order")]
         public async Task<IActionResult> CancleToConfirm(int orderId)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
@@ -869,6 +891,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
             order.ToConfirm = 4;
+            order.CancleDate = DateTime.Now;
 
             _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();

@@ -9,7 +9,7 @@ using System.IO;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Data.SqlClient;
 using System;
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using Azure.Core;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
@@ -18,12 +18,12 @@ namespace BirdPlatFormEcommerce.Product
 {
     public class ManageProductService : IManageOrderService
     {
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
 
       
 
 
-        public ManageProductService(SwpDataContext context)
+        public ManageProductService(SwpDataBaseContext context)
         {
             _context = context;
           

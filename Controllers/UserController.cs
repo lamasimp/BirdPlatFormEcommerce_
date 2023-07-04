@@ -2,7 +2,7 @@
 using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
 
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Product;
 
@@ -28,12 +28,12 @@ namespace BirdPlatForm.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _enviroment;
         private readonly IMailService _mailService;
 
-        public UserController(SwpDataContext bird, IConfiguration config, IWebHostEnvironment enviroment,IMailService mailService)
+        public UserController(SwpDataBaseContext bird, IConfiguration config, IWebHostEnvironment enviroment,IMailService mailService)
         {
             _context = bird;
             _config = config;

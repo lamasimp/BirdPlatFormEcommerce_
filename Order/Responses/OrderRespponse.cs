@@ -1,4 +1,4 @@
-﻿using BirdPlatFormEcommerce.DEntity;
+﻿using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Payment.Responses;
 
 namespace BirdPlatFormEcommerce.Order.Responses
@@ -101,7 +101,7 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public bool Status { get; set; }
         public DateTime? PaymentDate { get; set; }
         public decimal? TotalPrice { get; set; }
-
+        public int? ToConfirm { get; set; }
         public TbUser User { get; set; }
     }
 
@@ -128,9 +128,12 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public int OrderId { get; set; }
         public DateTime? DateOrder { get; set; }
 
-        
+        public int? ToConfirm { get; set; }
+        public DateTime? ConfirmDate { get; set; }
+        public DateTime? CancleDate { get; set; }
 
         public decimal? TotalAll  { get; set; }
+
         public List<ProductDetail> ProductDetails { get; set; }
 
 

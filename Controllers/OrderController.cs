@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.Order;
 using BirdPlatFormEcommerce.Order.Requests;
@@ -27,9 +27,9 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IVnPayService _vnPayService;
         private readonly IConfiguration _configuration;
         private readonly IMailService _mailService;
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
 
-        public OrderController(IOrderService orderService, IMapper mapper, ILogger<OrderController> logger, IVnPayService vnPayService, IConfiguration configuration, IMailService mailService, SwpDataContext swp)
+        public OrderController(IOrderService orderService, IMapper mapper, ILogger<OrderController> logger, IVnPayService vnPayService, IConfiguration configuration, IMailService mailService, SwpDataBaseContext swp)
         {
             _orderService = orderService;
             _mapper = mapper;

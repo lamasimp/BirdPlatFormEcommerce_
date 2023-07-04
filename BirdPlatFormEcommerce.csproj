@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DEntity\" />
+    <Folder Include="NEntity\" />
     <Folder Include="wwwroot\user-content\feedback\" />
     <Folder Include="wwwroot\user-content\user\" />
   </ItemGroup>

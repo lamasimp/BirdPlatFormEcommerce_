@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BirdPlatFormEcommerce.DEntity;
+namespace BirdPlatFormEcommerce.NEntity;
 
 public partial class TbOrder
 {
@@ -13,7 +13,7 @@ public partial class TbOrder
 
     public string? Note { get; set; }
 
-    public decimal? TotalPrice { get; set; }
+    public decimal TotalPrice { get; set; }
 
     public DateTime? OrderDate { get; set; }
 
@@ -24,7 +24,9 @@ public partial class TbOrder
     public int ShopId { get; set; }
 
     public int? ToConfirm { get; set; }
+    public DateTime? ConfirmDate { get; set; }
 
+    public DateTime? CancleDate { get; set; }
     public virtual TbAddressReceive Address { get; set; } = null!;
 
     public virtual TbPayment? Payment { get; set; }

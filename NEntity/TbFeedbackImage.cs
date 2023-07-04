@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BirdPlatFormEcommerce.DEntity;
+namespace BirdPlatFormEcommerce.NEntity;
 
 public partial class TbFeedbackImage
 {

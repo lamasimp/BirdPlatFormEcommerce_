@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace BirdPlatFormEcommerce.DEntity;
+namespace BirdPlatFormEcommerce.NEntity;
 
-public partial class SwpDataContext : DbContext
+public partial class SwpDataBaseContext : DbContext
 {
-    public SwpDataContext()
+    public SwpDataBaseContext()
     {
     }
 
-    public SwpDataContext(DbContextOptions<SwpDataContext> options)
+    public SwpDataBaseContext(DbContextOptions<SwpDataBaseContext> options)
         : base(options)
     {
     }
@@ -18,6 +18,8 @@ public partial class SwpDataContext : DbContext
     public virtual DbSet<TbAddressReceive> TbAddressReceives { get; set; }
 
     public virtual DbSet<TbCart> TbCarts { get; set; }
+
+    public virtual DbSet<TbCategoryReport> TbCategoryReports { get; set; }
 
     public virtual DbSet<TbFeedback> TbFeedbacks { get; set; }
 
@@ -37,6 +39,8 @@ public partial class SwpDataContext : DbContext
 
     public virtual DbSet<TbProductCategory> TbProductCategories { get; set; }
 
+    public virtual DbSet<TbReport> TbReports { get; set; }
+
     public virtual DbSet<TbRole> TbRoles { get; set; }
 
     public virtual DbSet<TbShop> TbShops { get; set; }
@@ -49,7 +53,7 @@ public partial class SwpDataContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=DUONGHIENNEE\\SQLEXPRESS;Initial Catalog=swpData;Integrated Security=True;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=LAPTOP-I2GP951T\\LONGNHAT;Initial Catalog=swpDataBase;Integrated Security=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -91,6 +95,15 @@ public partial class SwpDataContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_tb_Cart_tb_User");
+        });
+
+        modelBuilder.Entity<TbCategoryReport>(entity =>
+        {
+            entity.HasKey(e => e.CateRpId);
+
+            entity.ToTable("tb_CategoryReport");
+
+            entity.Property(e => e.CateRpId).HasColumnName("CateRpID");
         });
 
         modelBuilder.Entity<TbFeedback>(entity =>
@@ -158,7 +171,8 @@ public partial class SwpDataContext : DbContext
             entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UserId).HasColumnName("UserID");
-
+            entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
+            entity.Property(e => e.CancleDate).HasColumnType("datetime");
             entity.HasOne(d => d.Address).WithMany(p => p.TbOrders)
                 .HasForeignKey(d => d.AddressId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -286,6 +300,32 @@ public partial class SwpDataContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("CateID");
             entity.Property(e => e.CateName).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<TbReport>(entity =>
+        {
+            entity.HasKey(e => e.ReportId);
+
+            entity.ToTable("tb_Report");
+
+            entity.Property(e => e.ReportId).HasColumnName("ReportID");
+            entity.Property(e => e.CateRpId).HasColumnName("CateRpID");
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.ShopId).HasColumnName("ShopID");
+            entity.Property(e => e.UserId).HasColumnName("UserID");
+
+            entity.HasOne(d => d.CateRp).WithMany(p => p.TbReports)
+                .HasForeignKey(d => d.CateRpId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_tb_Report_tb_CategoryReport");
+
+            entity.HasOne(d => d.Shop).WithMany(p => p.TbReports)
+                .HasForeignKey(d => d.ShopId)
+                .HasConstraintName("FK_tb_Report_tb_Shop");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TbReports)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_tb_Report_tb_User");
         });
 
         modelBuilder.Entity<TbRole>(entity =>
