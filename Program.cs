@@ -1,5 +1,5 @@
 
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Helper;
 using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.Order;
@@ -22,7 +22,7 @@ namespace BirdPlatFormEcommerce
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddDbContext<SwpDataContext>(op =>
+            builder.Services.AddDbContext<SwpDataBaseContext>(op =>
             {
                 op.UseSqlServer(builder.Configuration.GetConnectionString("BirdForm"));
             });

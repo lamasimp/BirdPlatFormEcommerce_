@@ -1,4 +1,4 @@
-﻿using BirdPlatFormEcommerce.DEntity;
+﻿using BirdPlatFormEcommerce.NEntity;
 
 namespace BirdPlatFormEcommerce.Payment.Responses
 {

@@ -23,7 +23,7 @@ namespace BirdPlatFormEcommerce.Product
         [MinLength(100, ErrorMessage = "Desciption must be at least 100 characters")]
         public string? Decription { get; set; }
 
-        
+
         //     public string? Detail { get; set; }
 
         //    [Required(ErrorMessage = "Quantity is required")]

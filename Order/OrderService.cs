@@ -1,4 +1,4 @@
-﻿using BirdPlatFormEcommerce.DEntity;
+﻿using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.Order.Requests;
 using BirdPlatFormEcommerce.Payment;
@@ -12,11 +12,11 @@ namespace BirdPlatFormEcommerce.Order
 {
     public class OrderService : IOrderService
     {
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
         private readonly IVnPayService _vnPayService;
         private readonly IMailService _mailService;
 
-        public OrderService(SwpDataContext context, IVnPayService vnPayService, IMailService mailService)
+        public OrderService(SwpDataBaseContext context, IVnPayService vnPayService, IMailService mailService)
         {
             _context = context;
             _vnPayService = vnPayService;

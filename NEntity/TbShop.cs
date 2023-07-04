@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BirdPlatFormEcommerce.DEntity;
+namespace BirdPlatFormEcommerce.NEntity;
 
 public partial class TbShop
 {
@@ -28,6 +28,8 @@ public partial class TbShop
     public virtual ICollection<TbPost> TbPosts { get; set; } = new List<TbPost>();
 
     public virtual ICollection<TbProduct> TbProducts { get; set; } = new List<TbProduct>();
+
+    public virtual ICollection<TbReport> TbReports { get; set; } = new List<TbReport>();
 
     public virtual TbUser? User { get; set; }
 }

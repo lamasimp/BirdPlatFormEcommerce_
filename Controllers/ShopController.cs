@@ -1,5 +1,5 @@
 ﻿using BirdPlatForm.UserRespon;
-using BirdPlatFormEcommerce.DEntity;
+using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.Product;
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +21,8 @@ using MailKit.Net.Imap;
 using System.ComponentModel;
 using BirdPlatFormEcommerce.Order.Responses;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Win32;
+using BirdPlatFormEcommerce.Helper.Mail;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -28,17 +30,19 @@ namespace BirdPlatFormEcommerce.Controllers
     [ApiController]
     public class ShopController : ControllerBase
     {
-        private readonly SwpDataContext _context;
+        private readonly SwpDataBaseContext _context;
         private readonly IManageOrderService _manageOrderService;
         private readonly IWebHostEnvironment _enviroment;
         private readonly IOrderService _oderService;
+        private readonly IMailService _mailService;
 
-        public ShopController(SwpDataContext swp, IManageOrderService manageOrderService, IWebHostEnvironment enviroment,IOrderService orderService )
+        public ShopController(SwpDataBaseContext swp, IMailService mailService,IManageOrderService manageOrderService, IWebHostEnvironment enviroment,IOrderService orderService )
         {
             _context = swp;
            _manageOrderService = manageOrderService;
             _enviroment = enviroment;
             _oderService = orderService;
+            _mailService = mailService;
         }
         [HttpPost("registerShop")]
 
@@ -72,10 +76,22 @@ namespace BirdPlatFormEcommerce.Controllers
                 user.IsShop = true; 
                 await _context.SaveChangesAsync();
             }
+            string email = user.Email;
+            var mailRequest = new MailRequest()
+            {
+                ToEmail = email,
+                Subject = "[BIRD TRADING PLATFORM] Thông tin đăng kí của bạn",
+                Body = $"Thông tin đăng kí Shop của bạn:" +
+              $"-ShopName : {shop.ShopName}" +
+              $"  -Address : {shop.Address}" +
+              $"   -Phone :{shop.Phone}    Hãy đăng nhập và bán hàng"
+            };
+
+            await _mailService.SendEmailAsync(mailRequest);
             return Ok(new ErrorRespon
             {
 
-                Message = "Register shop Success",
+                Message = "Đăng kí shop thành công , hãy check email của bạn ",
                 RoleId = user.RoleId
             });
         }
