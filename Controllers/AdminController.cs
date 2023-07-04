@@ -149,5 +149,53 @@ namespace BirdPlatFormEcommerce.Controllers
         .ToList();
             return shopTotalAmounts;
         }
+        
+        [HttpGet("CountReport")]
+        public async Task<IActionResult> Countreport()
+        {  
+            var shopReportCounts = await _context.TbShops
+                .Select(s => new ReportModel
+                {
+                    shopId = s.ShopId,
+                    Shopname = s.ShopName,
+                    Count = _context.TbReports.Count(r => r.ShopId == s.ShopId)
+                })
+                .ToListAsync();
+
+            
+            return Ok(shopReportCounts);
+
+           
+        }
+        [HttpGet("getreport")]
+        public async Task<IActionResult> getreportShop(int shopid)
+        {
+            var shop = await _context.TbShops.FindAsync(shopid);
+            if (shop == null)
+            {
+                return BadRequest("No shop");
+            }
+            var report = await _context.TbReports.Include(r => r.CateRp)
+                .Where(r => r.ShopId == shopid)
+                .Select(r => new ShopreportModel
+                {
+                    reportID = r.ReportId,
+                    detail = r.Detail,
+                    DetailCate = r.CateRp.Detail
+
+                })
+                .ToListAsync();
+            var shopreport = new Shopreport
+            {
+                shopId = shop.ShopId,
+                shopname = shop.ShopName,
+                reports = report
+            };
+
+            return Ok(shopreport);
+
+
+        }
+
     }
 }
