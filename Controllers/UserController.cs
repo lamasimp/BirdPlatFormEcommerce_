@@ -33,7 +33,7 @@ namespace BirdPlatForm.Controllers
         private readonly IWebHostEnvironment _enviroment;
         private readonly IMailService _mailService;
 
-        public UserController(SwpDataBaseContext bird, IConfiguration config, IWebHostEnvironment enviroment,IMailService mailService)
+        public UserController(SwpDataBaseContext bird, IConfiguration config, IWebHostEnvironment enviroment, IMailService mailService)
         {
             _context = bird;
             _config = config;
@@ -42,9 +42,9 @@ namespace BirdPlatForm.Controllers
         }
         [HttpPost("Login")]
         public async Task<IActionResult> Login(UserView model)
-        
+
         {
-            var user =  _context.TbUsers.Include(x => x.Role).SingleOrDefault(o => o.Email == model.Email && model.Password == o.Password);
+            var user = _context.TbUsers.Include(x => x.Role).SingleOrDefault(o => o.Email == model.Email && model.Password == o.Password);
             if (user == null) return Ok(new ErrorRespon
             {
                 Error = false,
@@ -91,11 +91,11 @@ namespace BirdPlatForm.Controllers
             new Claim(JwtRegisteredClaimNames.Sub, user.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
          new Claim("Email", user.Email),
-         new Claim("Gender", user.Gender.ToString()),        
-         new Claim("Username", user.Name.ToString()),        
-         new Claim(ClaimTypes.Role, user.RoleId),       
+         new Claim("Gender", user.Gender.ToString()),
+         new Claim("Username", user.Name.ToString()),
+         new Claim(ClaimTypes.Role, user.RoleId),
     };
-           if (user.Avatar != null)
+            if (user.Avatar != null)
             {
                 claims.Add(new Claim("Avatar", user.Avatar));
             }
@@ -103,7 +103,7 @@ namespace BirdPlatForm.Controllers
             {
                 claims.Add(new Claim("Avatar", "null"));
             }
-            if(user.Address != null)
+            if (user.Address != null)
             {
                 claims.Add(new Claim("Address", user.Address.ToString()));
             }
@@ -111,7 +111,7 @@ namespace BirdPlatForm.Controllers
             {
                 claims.Add(new Claim("Address", "null"));
             }
-            if(user.Phone != null)
+            if (user.Phone != null)
             {
                 claims.Add(new Claim("Phone", user.Phone.ToString()));
             }
@@ -119,7 +119,7 @@ namespace BirdPlatForm.Controllers
             {
                 claims.Add(new Claim("Phone", "null"));
             }
-            if(user.Dob != null)
+            if (user.Dob != null)
             {
                 claims.Add(new Claim("Dob", user.Dob.ToString()));
             }
@@ -127,26 +127,44 @@ namespace BirdPlatForm.Controllers
             {
                 claims.Add(new Claim("Dob", "null"));
             }
-            if(user.IsShop != null)
+            if (user.IsShop != null)
             {
                 claims.Add(new Claim("IsShop", user.IsShop.ToString()));
-            }else
+            }
+            else
             {
                 claims.Add(new Claim("IsShop", "null"));
             }
-
+            if (user.Status)
+            {
+                claims.Add(new Claim("Status", "false"));
+            }
+            else
+            {
+                claims.Add(new Claim("Status", "true"));
+            }
             var tokendescription = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
                 Issuer = _config["JWT:Issuer"],
                 Audience = _config["JWT:Audience"],
                 Expires = DateTime.UtcNow.AddHours(24),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretkey), SecurityAlgorithms.HmacSha512)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretkey), SecurityAlgorithms.HmacSha512),
+                Claims = new Dictionary<string, object>
+            {
+            { "Status", "false" }
+           }
             };
 
             var token = jwttokenHandler.CreateToken(tokendescription);
-            var accessToken = jwttokenHandler.WriteToken(token);
 
+            
+            var accessToken = jwttokenHandler.WriteToken(token);
+            if (user.Status)
+            {
+
+                return null;
+            }
             return new TokenRespon
             {
                 AccessToken = accessToken,
@@ -173,9 +191,9 @@ namespace BirdPlatForm.Controllers
         //    AccessToken = accessToken,
         //    RefreshToken = refreshToken
         //};
-    
 
-    private string GenerateRefreshToken()
+
+        private string GenerateRefreshToken()
         {
 
             var random = new byte[32];
@@ -190,23 +208,23 @@ namespace BirdPlatForm.Controllers
         public async Task<ActionResult<TbUser>> Register(RegisterModel register)
         {
             var regis = await _context.TbUsers.FirstOrDefaultAsync(o => o.Email == register.Email);
-            if(regis != null)
+            if (regis != null)
             {
                 return Ok(new ErrorRespon
                 {
                     Error = false,
-                    Message ="Email đã tồn tại "
+                    Message = "Email đã tồn tại "
                 });
             }
             var user = new TbUser
             {
-                
+
                 Gender = register.Gender,
                 Email = register.Email,
                 Name = register.Name,
                 Password = register.Password,
                 RoleId = register.RoleId,
-               
+                Status = false,
 
             };
             await _context.TbUsers.AddAsync(user);
@@ -386,14 +404,14 @@ namespace BirdPlatForm.Controllers
                 Address = user.Address ?? "",
                 Phone = user.Phone ?? "",
                 avatar = user.Avatar ?? "",
-                
+
 
             };
 
             return accountModel;
         }
         [HttpPut("UpdateMee")]
-        public async Task<IActionResult> UpdateMee([FromForm]UserModel model)
+        public async Task<IActionResult> UpdateMee([FromForm] UserModel model)
         {
             var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if (userIdClaim == null)
@@ -426,7 +444,7 @@ namespace BirdPlatForm.Controllers
             {
                 user.Gender = model.Gender;
             }
-            if(model.avatar != null && model.avatar.Length > 0)
+            if (model.avatar != null && model.avatar.Length > 0)
             {
                 string avatarPath = await SaveAvatarFile(userId, model.avatar);
                 user.Avatar = avatarPath;
@@ -448,7 +466,7 @@ namespace BirdPlatForm.Controllers
             {
                 Directory.CreateDirectory(fileDirectory);
             }
-            string filePath = Path.Combine(fileDirectory, userId + ".png");           
+            string filePath = Path.Combine(fileDirectory, userId + ".png");
             if (System.IO.Directory.Exists(filePath))
             {
                 DirectoryInfo directoryInfo = new DirectoryInfo(filePath);
@@ -458,7 +476,7 @@ namespace BirdPlatForm.Controllers
                     fileInfo.Delete();
                 }
 
-            }            
+            }
             using (FileStream stream = new FileStream(filePath, FileMode.Create))
             {
                 await avatarFile.CopyToAsync(stream);
@@ -469,37 +487,37 @@ namespace BirdPlatForm.Controllers
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword(PasswordModel model)
         {
-          
-                var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
-                if (userIdClaim == null)
-                {
-                    return Unauthorized();
-                }
-                int userId = int.Parse(userIdClaim.Value);
-                var user = await _context.TbUsers.FirstOrDefaultAsync(x => x.UserId == userId);
-                if (user == null)
-                {
-                    return Ok("User Not Logged In");
-                }
-                if(model.OldPassword != user.Password)
+
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+            int userId = int.Parse(userIdClaim.Value);
+            var user = await _context.TbUsers.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (user == null)
+            {
+                return Ok("User Not Logged In");
+            }
+            if (model.OldPassword != user.Password)
             {
                 return BadRequest(new { Message = "Incorrect old password" });
             }
-                if(model.NewPassword != model.ConfirmNewPassword)
+            if (model.NewPassword != model.ConfirmNewPassword)
             {
                 return BadRequest(new { Message = "New passwords do not match" });
             }
             user.Password = model.NewPassword;
-                try
-                {
-                    await _context.SaveChangesAsync();
-                    return Ok(new { Message = "Password changed successfully" });
-                }
-                catch (Exception ex)
-                {
-                    return BadRequest(new { Message = "Failed to change password" });
-                }
-            
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "Password changed successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Failed to change password" });
+            }
+
 
         }
         [HttpPost("reset-password")]

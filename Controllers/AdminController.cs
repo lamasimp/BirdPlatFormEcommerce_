@@ -1,5 +1,6 @@
 ﻿using BirdPlatForm.UserRespon;
 using BirdPlatForm.ViewModel;
+using BirdPlatFormEcommerce.Helper.Mail;
 using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.ViewModel;
 
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -16,10 +18,12 @@ namespace BirdPlatFormEcommerce.Controllers
     public class AdminController : ControllerBase
     {
         private readonly SwpDataBaseContext _context;
+        private readonly IMailService _mailService;
 
-        public AdminController(SwpDataBaseContext swp)
+        public AdminController(SwpDataBaseContext swp, IMailService mailService)
         {
             _context = swp;
+            _mailService = mailService;
         }
         [HttpGet]
         public async Task<IActionResult> getAlluser()
@@ -196,6 +200,36 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
         }
+        [HttpPost("Sendwarning")]
+        public async Task<IActionResult> SendwarningShop(int shopid)
+        {
+            var shop = _context.TbShops.Find(shopid);
+            if(shop == null) { return BadRequest("Shop not found"); };
+            var user = await _context.TbUsers.FindAsync(shop.UserId);
+            if (user == null) { return NotFound(); }
+            string email = user.Email;
+            var reports = await _context.TbReports
+                 .Include(r => r.CateRp).Where(r => r.ShopId == shop.ShopId).ToListAsync();
+            var emailBody = $"Shop Name: {shop.ShopName}\n\n";
+            emailBody += "Các cảnh báo dành cho shop của bạn hãy sửa đổi ngay nếu không chúng tôi sẽ cấm tài khoản của bạn:\n";
+            foreach (var report in reports)
+            {
+                emailBody += $"- Report ID: {report.ReportId}\n";
+                emailBody += $"  Detail: {report.Detail}\n";
+                emailBody += $"  DetailCategory: {report.CateRp.Detail}\n";
 
+            }
+
+            var mailRequest = new MailRequest()
+            {
+                ToEmail = email,
+                Subject = "[BIRD TRADING PLATFORM] Cảnh cáo tới shop của bạn ",
+                Body = emailBody
+            };
+
+            await _mailService.SendEmailAsync(mailRequest);
+
+            return Ok("Warning email sent successfully.");
+        }
     }
 }

@@ -18,7 +18,7 @@ public partial class TbUser
     public string Password { get; set; } = null!;
 
     public string RoleId { get; set; } = null!;
-
+    public bool Status { get; set; }
     public DateTime? UpdateDate { get; set; }
 
     public DateTime? CreateDate { get; set; }
