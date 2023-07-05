@@ -43,7 +43,8 @@ namespace BirdPlatForm.Controllers
                 ProductId = feedback.ProductId,
                 UserId = userid,
                 Rate = feedback.Rate,
-                Detail = feedback.Detail
+                Detail = feedback.Detail,
+                FeedbackDate = DateTime.Now
 
             };
             _context.TbFeedbacks.Add(tbfeedback);
@@ -132,6 +133,7 @@ namespace BirdPlatForm.Controllers
                     Rate = (int)u.Rate,
                     Detail = u.Detail,
                     UserName = u.User.Name,
+                    CreateDate = u.FeedbackDate,
                     imgAvatar = u.User.Avatar,
                     imgFeedback = u.TbFeedbackImages.Where(f => f.FeedbackId == u.Id)
                     .Select(f => f.ImagePath).ToList(),

@@ -300,7 +300,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
                 ToEmail = email,
                 Subject = "[BIRD TRADING PLATFORM] Tài khoản và sản phẩm của bạn đã được mở lại \n\n",
-                Body =emailBody + "Tài khoản và sản phẩm của bạn đã được mở lại.\n\n Xin chào mừng bạn quay trở lại sử dụng dịch vụ của chúng tôi."
+                Body =emailBody + " Tài khoản và sản phẩm của bạn đã được mở lại.\n\n Xin chào mừng bạn quay trở lại sử dụng dịch vụ của chúng tôi."
             };
 
             await _mailService.SendEmailAsync(mailRequest);

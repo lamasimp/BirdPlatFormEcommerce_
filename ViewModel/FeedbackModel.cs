@@ -21,6 +21,7 @@
         public string UserName { get; set; }
         public List<string?> imgFeedback { get; set; }
         public string imgAvatar { get; set; }
+        public DateTime CreateDate { get; set; }
 
     }
 }
