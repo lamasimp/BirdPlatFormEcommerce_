@@ -951,7 +951,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
         [HttpGet("Product_To_Feedback")]
-        public async Task<IActionResult> GetPreoductToFeedback(int orderDetailId )
+        public async Task<IActionResult> GetPreoductToFeedback()
         {
 
 
@@ -963,14 +963,14 @@ namespace BirdPlatFormEcommerce.Controllers
             int userid = int.Parse(userIdclaim.Value);
            
 
-            var order = await _context.TbProducts.FindAsync(orderDetailId);
+           
 
             var query = from odt in _context.TbOrderDetails
                           join p in _context.TbProducts on odt.ProductId equals p.ProductId
                           join s in _context.TbShops on p.ShopId equals s.ShopId
                           join o in _context.TbOrders on odt.OrderId equals o.OrderId
                           join ig in _context.TbImages on p.ProductId equals ig.ProductId into images
-                          where odt.Id == orderDetailId && odt.ToConfirm==5
+                          where odt.ToConfirm==5 && o.UserId == userid
                           select new
                           {
                               p,
@@ -982,6 +982,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var product = await query.Select(x => new ProductFeedBackInfo()
 
             {
+
                 ShopName = x.s.ShopName,
                 ProductId = x.p.ProductId,
                 NameProduct = x.p.Name,
