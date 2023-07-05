@@ -121,9 +121,23 @@ namespace BirdPlatForm.Controllers
             
         }
         [HttpGet]
-        public async Task<IActionResult> getFeedBack()
+        public async Task<IActionResult> getFeedBack(int productID)
         {
-            var feedback = _context.TbFeedbacks.ToList();
+            var feedback = _context.TbFeedbacks
+                .Include(u => u.TbFeedbackImages)
+                .Include(u => u.User)
+                .Where(u => u.ProductId == productID)
+                .Select(u => new FeedbackReponse {
+                    ProductId = productID,
+                    Rate = (int)u.Rate,
+                    Detail = u.Detail,
+                    UserName = u.User.Name,
+                    imgAvatar = u.User.Avatar,
+                    imgFeedback = u.TbFeedbackImages.Where(f => f.FeedbackId == u.Id)
+                    .Select(f => f.ImagePath).ToList(),
+                })
+                .ToList();
+            
             return Ok(feedback);
         }
        

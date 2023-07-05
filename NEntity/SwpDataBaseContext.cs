@@ -392,6 +392,7 @@ public partial class SwpDataBaseContext : DbContext
             entity.Property(e => e.Gender).HasMaxLength(50);
             entity.Property(e => e.IsShop).HasColumnName("isShop");
             entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.Password)
                 .HasMaxLength(100)
                 .IsUnicode(false);
