@@ -114,7 +114,7 @@ public partial class SwpDataBaseContext : DbContext
             entity.Property(e => e.Detail).HasColumnType("ntext");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
-
+            entity.Property(e => e.FeedbackDate).HasColumnType("datetime");
             entity.HasOne(d => d.Product).WithMany(p => p.TbFeedbacks)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
