@@ -19,7 +19,7 @@
         public int Rate { get; set; }
         public string? Detail { get; set; }
         public string UserName { get; set; }
-        public List<string> imgFeedback { get; set; }
+        public List<string?> imgFeedback { get; set; }
         public string imgAvatar { get; set; }
 
     }
