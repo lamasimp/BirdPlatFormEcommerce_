@@ -224,9 +224,9 @@ namespace BirdPlatFormEcommerce.Controllers
 
                 foreach (var report in reports)
                 {
-                    emailBody += $"- Report ID: {report.ReportId}\n";
-                    emailBody += $"  Detail: {report.Detail}\n";
-                    emailBody += $"  DetailCategory: {report.CateRp.Detail}\n";
+                    
+                    emailBody += $"  Detail: {report.CateRp.Detail} , {report.Detail}\n";
+                    
                 }
 
                 var mailRequest = new MailRequest()
@@ -241,22 +241,71 @@ namespace BirdPlatFormEcommerce.Controllers
 
             if (reports.Count > 3)
             {
+                var emailBody = $"Shop Name: {shop.ShopName}\n\n";
+                emailBody += "Dưới đây là những báo cáo của người dùng";
+
+                foreach (var report in reports)
+                {
+
+                    emailBody += $"  Detail: {report.CateRp.Detail} , {report.Detail}\n";
+
+                }
                 user.Status = true;
                 _context.TbUsers.Update(user);
+                var product =await _context.TbProducts.Where(p => p.ShopId == shop.ShopId).ToListAsync();
+                foreach(var products in product)
+                {
+                    products.IsDelete = false;
+                    _context.TbProducts.Update(products);
+                }
                 await _context.SaveChangesAsync();
 
                 var mailRequest = new MailRequest()
                 {
                     ToEmail = email,
                     Subject = "[BIRD TRADING PLATFORM] Tài khoản của bạn đã bị khóa",
-                    Body = "Tài khoản của bạn đã bị khóa do vi phạm quy định của chúng tôi. Mọi thắc mắc hãy liên hệ với chúng tôi." +
+                    Body = emailBody + "  Tài khoản của bạn đã bị khóa do vi phạm quy định của chúng tôi. Mọi thắc mắc hãy liên hệ với chúng tôi." +
                     "Email: longnhatlekk@gmail.com"
-                };
 
+                };
+               
+              
                 await _mailService.SendEmailAsync(mailRequest);
             }
 
             return Ok("Warning email sent successfully.");
+        }
+        [HttpPost("Openaccountshop")]
+        public async Task<IActionResult> openAccount(int shopid)
+        {
+            var shop = _context.TbShops.Find(shopid);
+            if (shop == null) { return BadRequest("No shop"); };
+            var user = await _context.TbUsers.FindAsync(shop.UserId);
+            if (user == null) { return BadRequest("No user"); }
+            string email = user.Email;
+            user.Status = false;
+            _context.TbUsers.Update(user);
+            var product = await _context.TbProducts.Where(p => p.ShopId == shop.ShopId).ToListAsync();
+            foreach(var products in product)
+            {
+                products.IsDelete = true;
+                _context.TbProducts.Update(products);
+            }
+            await _context.SaveChangesAsync();
+
+            var emailBody = $"Shop Name: {shop.ShopName}\n\n";
+            
+            var mailRequest = new MailRequest()
+            {
+
+                ToEmail = email,
+                Subject = "[BIRD TRADING PLATFORM] Tài khoản và sản phẩm của bạn đã được mở lại \n\n",
+                Body =emailBody + "Tài khoản và sản phẩm của bạn đã được mở lại.\n\n Xin chào mừng bạn quay trở lại sử dụng dịch vụ của chúng tôi."
+            };
+
+            await _mailService.SendEmailAsync(mailRequest);
+
+            return Ok("Account and products reopened successfully. Check your Email");
         }
 
     }
