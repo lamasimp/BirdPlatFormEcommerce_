@@ -133,7 +133,7 @@ namespace BirdPlatForm.Controllers
                     Detail = u.Detail,
                     UserName = u.User.Name,
                     imgAvatar = u.User.Avatar,
-                    imgFeedback = u.TbFeedbackImages.Where(f => f.FeedbackId == productID)
+                    imgFeedback = u.TbFeedbackImages.Where(f => f.FeedbackId == u.Id)
                     .Select(f => f.ImagePath).ToList(),
                 })
                 .ToList();
