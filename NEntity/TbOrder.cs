@@ -27,6 +27,8 @@ public partial class TbOrder
     public DateTime? ConfirmDate { get; set; }
 
     public DateTime? CancleDate { get; set; }
+
+    public DateTime? ReceivedDate { get; set; }
     public virtual TbAddressReceive Address { get; set; } = null!;
 
     public virtual TbPayment? Payment { get; set; }
