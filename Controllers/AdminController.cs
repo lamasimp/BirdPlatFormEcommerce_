@@ -75,16 +75,16 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 return null;
             }
-          
+
             _context.TbTokens.RemoveRange(tokens);
             var user = await _context.TbUsers.FindAsync(Id);
 
-           
+
             if (user != null)
             {
                 _context.TbUsers.Remove(user);
             }
-            
+
             _context.SaveChanges();
 
             return Ok("Delete Success");
@@ -153,10 +153,10 @@ namespace BirdPlatFormEcommerce.Controllers
         .ToList();
             return shopTotalAmounts;
         }
-        
+
         [HttpGet("CountReport")]
         public async Task<IActionResult> Countreport()
-        {  
+        {
             var shopReportCounts = await _context.TbShops
                 .Select(s => new ReportModel
                 {
@@ -166,10 +166,10 @@ namespace BirdPlatFormEcommerce.Controllers
                 })
                 .ToListAsync();
 
-            
+
             return Ok(shopReportCounts);
 
-           
+
         }
         [HttpGet("getreport")]
         public async Task<IActionResult> getreportShop(int shopid)
@@ -204,32 +204,60 @@ namespace BirdPlatFormEcommerce.Controllers
         public async Task<IActionResult> SendwarningShop(int shopid)
         {
             var shop = _context.TbShops.Find(shopid);
-            if(shop == null) { return BadRequest("Shop not found"); };
+            if (shop == null) { return BadRequest("Shop not found"); }
+
             var user = await _context.TbUsers.FindAsync(shop.UserId);
             if (user == null) { return NotFound(); }
-            string email = user.Email;
-            var reports = await _context.TbReports
-                 .Include(r => r.CateRp).Where(r => r.ShopId == shop.ShopId).ToListAsync();
-            var emailBody = $"Shop Name: {shop.ShopName}\n\n";
-            emailBody += "Các cảnh báo dành cho shop của bạn hãy sửa đổi ngay nếu không chúng tôi sẽ cấm tài khoản của bạn:\n";
-            foreach (var report in reports)
-            {
-                emailBody += $"- Report ID: {report.ReportId}\n";
-                emailBody += $"  Detail: {report.Detail}\n";
-                emailBody += $"  DetailCategory: {report.CateRp.Detail}\n";
 
+            string email = user.Email;
+
+            var reports = await _context.TbReports
+                .Include(r => r.CateRp)
+                .Where(r => r.ShopId == shop.ShopId)
+                .ToListAsync();
+
+            if (reports.Count >= 1 && reports.Count <= 3)
+            {
+                var emailBody = $"Shop Name: {shop.ShopName}\n\n";
+                emailBody += " Cảnh báo lần đầu tiên dành cho shop của nếu quá 3 lần report tài khoản của bạn sẽ bị khóa:\n" +
+                    "Mọi thắc mắc hãy liên hệ với chúng tôi.\n";
+
+                foreach (var report in reports)
+                {
+                    emailBody += $"- Report ID: {report.ReportId}\n";
+                    emailBody += $"  Detail: {report.Detail}\n";
+                    emailBody += $"  DetailCategory: {report.CateRp.Detail}\n";
+                }
+
+                var mailRequest = new MailRequest()
+                {
+                    ToEmail = email,
+                    Subject = "[BIRD TRADING PLATFORM] Cảnh cáo tới shop của bạn",
+                    Body = emailBody
+                };
+
+                await _mailService.SendEmailAsync(mailRequest);
             }
 
-            var mailRequest = new MailRequest()
+            if (reports.Count > 3)
             {
-                ToEmail = email,
-                Subject = "[BIRD TRADING PLATFORM] Cảnh cáo tới shop của bạn ",
-                Body = emailBody
-            };
+                user.Status = true;
+                _context.TbUsers.Update(user);
+                await _context.SaveChangesAsync();
 
-            await _mailService.SendEmailAsync(mailRequest);
+                var mailRequest = new MailRequest()
+                {
+                    ToEmail = email,
+                    Subject = "[BIRD TRADING PLATFORM] Tài khoản của bạn đã bị khóa",
+                    Body = "Tài khoản của bạn đã bị khóa do vi phạm quy định của chúng tôi. Mọi thắc mắc hãy liên hệ với chúng tôi." +
+                    "Email: longnhatlekk@gmail.com"
+                };
+
+                await _mailService.SendEmailAsync(mailRequest);
+            }
 
             return Ok("Warning email sent successfully.");
         }
+
     }
 }
