@@ -907,7 +907,7 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok("Cancle successfully!");
         }
 
-        [HttpPut("Confim_To_Feedback")]
+        [HttpPut("Confim_To_Feedback/{orderId:int}")]
         public async Task<IActionResult> ConfirmToFeedack(int orderId)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
@@ -943,9 +943,19 @@ namespace BirdPlatFormEcommerce.Controllers
             {
 
                 item.ToConfirm = 5;
+               
                 _context.TbOrderDetails.Update(item);
+
+                var productId = await _context.TbProducts.FindAsync(item.ProductId);
+                productId.QuantitySold += item.Quantity;
+               _context.TbProducts.Update(productId);
+
+
             }
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); 
+
+           
+
             return Ok("Confirm successfully!");
         }
 

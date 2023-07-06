@@ -43,7 +43,7 @@ namespace BirdPlatFormEcommerce.Order
                     }
 
                     product.Quantity -= item.Quantity;
-                    product.QuantitySold += item.Quantity;
+       //             product.QuantitySold += item.Quantity;
 
                     _context.TbProducts.Update(product);
 
