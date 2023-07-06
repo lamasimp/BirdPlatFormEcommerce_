@@ -24,6 +24,7 @@ public partial class TbOrderDetail
     public DateTime? DateOrder { get; set; }
 
     public int? ToConfirm { get; set; }
+    public bool? ToFeedback { get; set; }
 
     public virtual TbOrder Order { get; set; } = null!;
 

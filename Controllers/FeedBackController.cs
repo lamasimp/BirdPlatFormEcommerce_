@@ -116,8 +116,11 @@ namespace BirdPlatForm.Controllers
                 updateRateShop.Rate = (int?)rateshop;
                 await _context.SaveChangesAsync();
             }
-            
 
+
+            var orderDetail = await _context.TbOrderDetails.FindAsync(feedback.OrderDetailId);
+            orderDetail.ToFeedback = true;
+            await _context.SaveChangesAsync();
             return Ok("success");
             
         }

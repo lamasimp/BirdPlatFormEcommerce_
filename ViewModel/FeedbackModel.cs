@@ -11,6 +11,7 @@
         public int Rate { get; set; }
 
         public string? Detail { get; set; }
+        public int OrderDetailId { get; set; }
         public IFormFile[] ImageFile { get; set; }
     }
     public class FeedbackReponse
