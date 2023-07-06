@@ -51,6 +51,7 @@ namespace BirdPlatForm.Controllers
                 Message = "Email Or Password Incorrect :("
             });
             var token = await GeneratToken(user);
+            if (token == null) return BadRequest("Account not Valid");
             return Ok(new ErrorRespon
             {
                 Error = true,
