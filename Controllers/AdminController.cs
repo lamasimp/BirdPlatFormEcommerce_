@@ -52,7 +52,20 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             return BadRequest("Faill ");
         }
+        [HttpPost("Bandaccount")]
+        public async Task<IActionResult> Bandaccount(int userid)
+        {
+            var user = await _context.TbUsers.FindAsync(userid);
+            if (user != null)
+            {
+                user.Status = true;
+                _context.TbUsers.Update(user);
 
+            }
+            await _context.SaveChangesAsync();
+            return Ok("band User Success");
+
+        }
 
         [HttpGet("GetUser/{id}")]
         public async Task<IActionResult> GetUserByid(int id)
