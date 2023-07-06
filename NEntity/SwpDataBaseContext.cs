@@ -114,7 +114,7 @@ public partial class SwpDataBaseContext : DbContext
             entity.Property(e => e.Detail).HasColumnType("ntext");
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
-
+            entity.Property(e => e.FeedbackDate).HasColumnType("datetime");
             entity.HasOne(d => d.Product).WithMany(p => p.TbFeedbacks)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -171,8 +171,9 @@ public partial class SwpDataBaseContext : DbContext
             entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UserId).HasColumnName("UserID");
-            entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
+            entity.Property(e => e.ConfirmDate).HasColumnType("datetime");          
             entity.Property(e => e.CancleDate).HasColumnType("datetime");
+            entity.Property(e => e.ReceivedDate).HasColumnType("datetime");
             entity.HasOne(d => d.Address).WithMany(p => p.TbOrders)
                 .HasForeignKey(d => d.AddressId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -392,6 +393,7 @@ public partial class SwpDataBaseContext : DbContext
             entity.Property(e => e.Gender).HasMaxLength(50);
             entity.Property(e => e.IsShop).HasColumnName("isShop");
             entity.Property(e => e.Name).HasMaxLength(250);
+            entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.Password)
                 .HasMaxLength(100)
                 .IsUnicode(false);

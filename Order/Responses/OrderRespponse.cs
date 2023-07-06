@@ -147,8 +147,26 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public string ImagePath { get; set; }
         public int? Quantity { get; set; }
         public decimal? DiscountPrice { get; set; }
-
+        public int? ToConfirm { get; set; }
         public decimal? TotalDetail { get; set; }
+
+    }
+
+    public class ProductFeedBackInfo
+    {
+
+        public string ShopName { get; set; } = null!;
+        public int ProductId { get; set; }
+        public string NameProduct { get; set; }
+
+        public decimal? SoldPrice { get; set; }
+        public decimal? DiscountPrice { get; set; }
+        public string ImagePath { get; set; }
+        public int? Quantity { get; set; }
+        
+        public DateTime? ReceivedDate { get; set; }
+        public decimal? TotalDetail { get; set; }
+
     }
 
 
