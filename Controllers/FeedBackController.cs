@@ -116,8 +116,11 @@ namespace BirdPlatForm.Controllers
                 updateRateShop.Rate = (int?)rateshop;
                 await _context.SaveChangesAsync();
             }
-            
 
+
+            var orderDetail = await _context.TbOrderDetails.FindAsync(feedback.OrderDetailId);
+            orderDetail.ToFeedback = true;
+            await _context.SaveChangesAsync();
             return Ok("success");
             
         }
@@ -142,7 +145,36 @@ namespace BirdPlatForm.Controllers
             
             return Ok(feedback);
         }
-       
+
+        [HttpGet("getFeedbackuser")]
+        public async Task<IActionResult> GetfeedbackUser()
+        {
+            var useridClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (useridClaim == null) return Unauthorized("No user");
+            int userid = int.Parse(useridClaim.Value);
+            var feedback = await _context.TbFeedbacks
+                .Include(u => u.TbFeedbackImages)
+                .Include(u => u.User)
+                .Include(u => u.Product)
+                .ThenInclude(u => u.TbImages)
+                .Where(u => u.UserId == userid)
+                .Select(u => new FeedbackUser
+                {
+                    feedbackID = u.Id,
+                    Username = u.User.Name,
+                    rate =(int) u.Rate,
+                    Detail = u.Detail,
+                    CreateDate = u.FeedbackDate,
+                    imgFeedback = u.TbFeedbackImages.Where(f => f.FeedbackId == u.Id)
+                    .Select(f => f.ImagePath).ToList(),
+                    productId = u.Product.ProductId,
+                    productName = u.Product.Name,
+                    imgProduct = u.Product.TbImages.FirstOrDefault().ImagePath,
+
+
+                }).ToListAsync();
+            return Ok(feedback);
+        }
         private async Task<double> GetProductAverageRates(int productID)
         {
                 double argRate =(double) await _context.TbFeedbacks.Where(p => p.ProductId == productID).AverageAsync(x => x.Rate);

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using System;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -51,7 +52,20 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             return BadRequest("Faill ");
         }
+        [HttpPost("Bandaccount")]
+        public async Task<IActionResult> Bandaccount(int userid)
+        {
+            var user = await _context.TbUsers.FindAsync(userid);
+            if (user != null)
+            {
+                user.Status = true;
+                _context.TbUsers.Update(user);
 
+            }
+            await _context.SaveChangesAsync();
+            return Ok("band User Success");
+
+        }
 
         [HttpGet("GetUser/{id}")]
         public async Task<IActionResult> GetUserByid(int id)
@@ -109,6 +123,26 @@ namespace BirdPlatFormEcommerce.Controllers
             var countCus = await CountCus();
             return Ok(countCus);
         }
+        [HttpGet("detailcus")]
+        public async Task<IActionResult> getdetailCus()
+        {
+            var customers =  _context.TbUsers
+                .Where(r => r.RoleId == "CUS")
+                .Select(r => new Customer
+                {
+                    UserId = r.UserId,
+                    birth = (DateTime)(r.Dob != null ? (DateTime?)r.Dob : null),
+                    Gender = r.Gender,
+                    Username = r.Name,
+                    Email = r.Email,
+                    
+                    Phone =r.Phone ?? null,
+                    Address =r.Address ?? null,
+                    Avatar = r.Avatar ?? null,
+
+                }).ToList();
+            return Ok(customers);
+        }
         private async Task<int> CountCus()
         {
             var countcus = await _context.TbUsers.CountAsync(x => x.RoleId == "CUS");
@@ -119,6 +153,34 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             var countshop = await CountShop();
             return Ok(countshop);
+        }
+        [HttpGet("DetailShop")]
+        public async Task<IActionResult> getDetailShop()
+        {
+            var shop = await _context.TbUsers
+                
+                .Where(r => r.RoleId == "SP")
+                
+                .Join( _context.TbShops,
+                user => user.UserId,
+                shop => shop.UserId,
+                (user,shop) => new Shop
+                {
+                    UserId = user.UserId,
+                    birth = (DateTime)(user.Dob != null ? (DateTime?)user.Dob : null),
+                    Gender = user.Gender,
+                    Username = user.Name,
+                    
+                    Email = user.Email,
+                    
+                    PhoneHome = user.Phone ?? null,
+                    AddressHome = user.Address ?? null,
+                    Avatar = user.Avatar ?? null,
+                    shopName = shop.ShopName,
+                    addressShop = shop.Address ?? null,
+                    phoneShop = shop.Phone ?? null,
+                }).ToListAsync();
+            return Ok(shop);
         }
         private async Task<int> CountShop()
         {
@@ -147,6 +209,7 @@ namespace BirdPlatFormEcommerce.Controllers
         .Select(g => new ShoptotalAmount
         {
             shopId = g.Key,
+            shopName = g.FirstOrDefault().Shop.ShopName,
             TotalAmount = (decimal)g.Sum(result => result.OrderDetail.Quantity * result.OrderDetail.Product.Price)
         })
         .OrderByDescending(sta => sta.TotalAmount)

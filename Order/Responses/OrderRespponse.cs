@@ -154,7 +154,7 @@ namespace BirdPlatFormEcommerce.Order.Responses
 
     public class ProductFeedBackInfo
     {
-
+        public int OrderDetailId { get; set; }
         public string ShopName { get; set; } = null!;
         public int ProductId { get; set; }
         public string NameProduct { get; set; }
