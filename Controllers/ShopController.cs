@@ -916,13 +916,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 return BadRequest("Can not find User");
             }
             int userId = int.Parse(userIdClaim.Value);
-            //var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
-
-            //if (shop == null)
-            //{
-            //    throw new Exception("Shop not found");
-            //}
-            //int shopid = shop.ShopId;
+         
             if (!ModelState.IsValid)
             {
                 return BadRequest();
@@ -930,9 +924,15 @@ namespace BirdPlatFormEcommerce.Controllers
             var order = await _context.TbOrders.FindAsync(orderId);
             if (order == null) throw new Exception("Can not find order.");
 
+            //var query = await( from od in _context.TbOrderDetails
+            //                        join o in _context.TbOrders on od.OrderId equals o.OrderId
+            //                        where od.OrderId == orderId
+            //                        select od).FirstOrDefaultAsync();
 
-            order.ToConfirm = 5;
+            //query.RecievedStatus = true;
             order.ReceivedDate = DateTime.Now;
+        
+          
 
             _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
@@ -942,7 +942,7 @@ namespace BirdPlatFormEcommerce.Controllers
             foreach (var item in orderDetail)
             {
 
-                item.ToConfirm = 5;
+                item.RecievedStatus= true;
                
                 _context.TbOrderDetails.Update(item);
 
@@ -980,7 +980,7 @@ namespace BirdPlatFormEcommerce.Controllers
                           join s in _context.TbShops on p.ShopId equals s.ShopId
                           join o in _context.TbOrders on odt.OrderId equals o.OrderId
                           join ig in _context.TbImages on p.ProductId equals ig.ProductId into images
-                          where odt.ToConfirm==5 && o.UserId == userid && odt.ToFeedback == null
+                          where odt.RecievedStatus==true && o.UserId == userid && odt.ToFeedback == null
                           select new
                           {
                               p,

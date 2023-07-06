@@ -9,7 +9,7 @@ namespace BirdPlatFormEcommerce.Product
 
       
 
-        Task<List<TbOrderDetail>> GetListOrderDetail(int orderId);
+       
     }
 }
 
