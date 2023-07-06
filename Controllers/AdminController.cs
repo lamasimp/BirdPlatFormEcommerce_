@@ -237,27 +237,46 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(pro);
         }
         [HttpGet("TotalAmount/HighShop")]
-        public List<ShoptotalAmount> gettotalAmounthighShop()
+        public async Task<IActionResult> gettotalAmounthighShop()
         {
-            var shopTotalAmounts = _context.TbShops
-        .Join(_context.TbProducts,
-            shop => shop.ShopId,
-            product => product.ShopId,
-            (shop, product) => new { Shop = shop, Product = product })
-        .Join(_context.TbOrderDetails,
-            joinResult => joinResult.Product.ProductId,
-            orderDetail => orderDetail.ProductId,
-            (joinResult, orderDetail) => new { Shop = joinResult.Shop, OrderDetail = orderDetail })
-        .GroupBy(result => result.Shop.ShopId)
-        .Select(g => new ShoptotalAmount
-        {
-            shopId = g.Key,
-            shopName = g.FirstOrDefault().Shop.ShopName,
-            TotalAmount = (decimal)g.Sum(result => result.OrderDetail.Quantity * result.OrderDetail.Product.Price)
-        })
-        .OrderByDescending(sta => sta.TotalAmount)
-        .ToList();
-            return shopTotalAmounts;
+                var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+                if (userIdClaim == null)
+                {
+                    throw new Exception("User not found");
+                }
+                int userid = int.Parse(userIdClaim.Value);
+
+                int currentMonth = DateTime.Now.Month;
+                int currentYear = DateTime.Now.Year;
+
+                var query = from o in _context.TbOrders
+                            join s in _context.TbShops on o.ShopId equals s.ShopId
+                            where o.ToConfirm == 3 && o.OrderDate.Month == currentMonth && o.OrderDate.Year == currentYear
+                            select new { s, o };
+
+            var results = await query
+                  .GroupBy(x => x.s.ShopId )
+                  .Select(x => new ShoptotalAmount()
+             {
+                  ShopId= x.Key,
+                  shopName = x.FirstOrDefault().s.ShopName,
+                  Total =(decimal?) x.Sum(p => (decimal?)p.o.TotalPrice ?? 0m)
+                 })
+                  .OrderByDescending(x => x.Total)
+                  .Take(10)
+                  .ToListAsync();
+
+                List<decimal> totalAmounts = results.Select(x =>(decimal) x.Total).ToList();
+                List<string> shopNames = results.Select(x => x.shopName).ToList();
+
+                var response = new
+                {
+                    TotalAmounts = totalAmounts,
+                    ShopNames = shopNames
+                };
+
+                return Ok(response);
+            
         }
 
         [HttpGet("CountReport")]

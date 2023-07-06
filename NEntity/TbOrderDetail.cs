@@ -26,6 +26,8 @@ public partial class TbOrderDetail
     public int? ToConfirm { get; set; }
     public bool? ToFeedback { get; set; }
 
+    public bool? RecievedStatus { get; set; }
+
     public virtual TbOrder Order { get; set; } = null!;
 
     public virtual TbProduct Product { get; set; } = null!;

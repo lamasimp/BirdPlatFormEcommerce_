@@ -30,30 +30,6 @@ namespace BirdPlatFormEcommerce.Product
          
         }
 
-        public async Task<List<TbOrderDetail>> GetListOrderDetail(int orderId)
-        {
-          
-
-            var tb_orderDetail = await _context.TbOrderDetails.Where( x=> x.OrderId == orderId).ToListAsync();
-            var orderDetails =  tb_orderDetail.Select(tb_orderDetail => new TbOrderDetail()
-  
-          
-            {
-                OrderId = orderId,
-                Id = tb_orderDetail.Id,
-                ProductId = tb_orderDetail.ProductId,
-                Quantity = tb_orderDetail.Quantity,
-                Discount = tb_orderDetail.Discount,
-                ProductPrice = tb_orderDetail.ProductPrice,
-                DiscountPrice = tb_orderDetail.DiscountPrice,
-                Total = tb_orderDetail.Total,
-                DateOrder = tb_orderDetail.DateOrder,
-                ToConfirm = tb_orderDetail.ToConfirm,
-
-
-
-            }).ToList();
-            return orderDetails;
-        }
+       
     }
     }
