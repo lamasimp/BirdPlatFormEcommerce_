@@ -970,7 +970,7 @@ namespace BirdPlatFormEcommerce.Controllers
                           join s in _context.TbShops on p.ShopId equals s.ShopId
                           join o in _context.TbOrders on odt.OrderId equals o.OrderId
                           join ig in _context.TbImages on p.ProductId equals ig.ProductId into images
-                          where odt.ToConfirm==5 && o.UserId == userid
+                          where odt.ToConfirm==5 && o.UserId == userid && odt.ToFeedback == null
                           select new
                           {
                               p,
@@ -982,7 +982,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var product = await query.Select(x => new ProductFeedBackInfo()
 
             {
-
+                OrderDetailId= x.odt.Id,
                 ShopName = x.s.ShopName,
                 ProductId = x.p.ProductId,
                 NameProduct = x.p.Name,
