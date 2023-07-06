@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using System;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -108,6 +109,25 @@ namespace BirdPlatFormEcommerce.Controllers
         {
             var countCus = await CountCus();
             return Ok(countCus);
+        }
+        [HttpGet("detailcus")]
+        public async Task<IActionResult> getdetailCus()
+        {
+            var customers =  _context.TbUsers
+                .Where(r => r.RoleId == "CUS")
+                .Select(r => new Customer
+                {
+                    birth = (DateTime)(r.Dob != null ? (DateTime?)r.Dob : null),
+                    Gender = r.Gender,
+                    Username = r.Name,
+                    Email = r.Email,
+                    Password = r.Password,
+                    Phone =r.Phone ?? null,
+                    Address =r.Address ?? null,
+                    Avatar = r.Avatar ?? null,
+
+                }).ToList();
+            return Ok(customers);
         }
         private async Task<int> CountCus()
         {
