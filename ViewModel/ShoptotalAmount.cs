@@ -4,5 +4,6 @@
     {
         public int shopId { get; set; }
         public decimal TotalAmount { get; set; }
+        public string shopName { get; set; }
     }
 }

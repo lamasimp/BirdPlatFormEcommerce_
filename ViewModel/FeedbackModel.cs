@@ -24,4 +24,16 @@
         public DateTime CreateDate { get; set; }
 
     }
+    public class FeedbackUser
+    {
+        public string Username { get; set; }
+        public int rate { get; set; }
+        public string Detail { get; set; }
+        public DateTime CreateDate { get; set; }
+
+        public List<string> imgFeedback { get; set; }
+        public int productId { get; set; }
+        public string productName { get; set; }
+        public string imgProduct { get; set; }
+    }
 }

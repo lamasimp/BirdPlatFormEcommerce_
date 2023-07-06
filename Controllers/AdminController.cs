@@ -117,11 +117,12 @@ namespace BirdPlatFormEcommerce.Controllers
                 .Where(r => r.RoleId == "CUS")
                 .Select(r => new Customer
                 {
+                    UserId = r.UserId,
                     birth = (DateTime)(r.Dob != null ? (DateTime?)r.Dob : null),
                     Gender = r.Gender,
                     Username = r.Name,
                     Email = r.Email,
-                    Password = r.Password,
+                    
                     Phone =r.Phone ?? null,
                     Address =r.Address ?? null,
                     Avatar = r.Avatar ?? null,
@@ -152,13 +153,13 @@ namespace BirdPlatFormEcommerce.Controllers
                 shop => shop.UserId,
                 (user,shop) => new Shop
                 {
-
+                    UserId = user.UserId,
                     birth = (DateTime)(user.Dob != null ? (DateTime?)user.Dob : null),
                     Gender = user.Gender,
                     Username = user.Name,
                     
                     Email = user.Email,
-                    Password = user.Password,
+                    
                     PhoneHome = user.Phone ?? null,
                     AddressHome = user.Address ?? null,
                     Avatar = user.Avatar ?? null,
@@ -195,6 +196,7 @@ namespace BirdPlatFormEcommerce.Controllers
         .Select(g => new ShoptotalAmount
         {
             shopId = g.Key,
+            shopName = g.FirstOrDefault().Shop.ShopName,
             TotalAmount = (decimal)g.Sum(result => result.OrderDetail.Quantity * result.OrderDetail.Product.Price)
         })
         .OrderByDescending(sta => sta.TotalAmount)
