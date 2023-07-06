@@ -22,5 +22,19 @@
         public string Avatar { get; set; }
 
         }
+    public class Shop
+    {
+        public DateTime? birth { get; set; }
+        public string Gender { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string PhoneHome { get; set; }
+        public string AddressHome { get; set; }
+        public string Avatar { get; set; }
+        public string shopName { get; set; }
+        public string addressShop { get; set; }
+        public string phoneShop { get; set; }
+    }
 
 }
