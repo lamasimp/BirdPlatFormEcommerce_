@@ -26,6 +26,7 @@
     }
     public class FeedbackUser
     {
+        public int feedbackID { get; set; }
         public string Username { get; set; }
         public int rate { get; set; }
         public string Detail { get; set; }
