@@ -181,7 +181,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     Phone =r.Phone ?? null,
                     Address =r.Address ?? null,
                     Avatar = r.Avatar ?? null,
-
+                    Status = r.Status,
                 }).ToList();
             return Ok(customers);
         }
@@ -221,6 +221,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     shopName = shop.ShopName,
                     addressShop = shop.Address ?? null,
                     phoneShop = shop.Phone ?? null,
+                    Status = user.Status
                 }).ToListAsync();
             return Ok(shop);
         }
