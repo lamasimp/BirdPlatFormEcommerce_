@@ -140,6 +140,34 @@ namespace BirdPlatFormEcommerce.Controllers
             var countshop = await CountShop();
             return Ok(countshop);
         }
+        [HttpGet("DetailShop")]
+        public async Task<IActionResult> getDetailShop()
+        {
+            var shop = await _context.TbUsers
+                
+                .Where(r => r.RoleId == "SP")
+                
+                .Join( _context.TbShops,
+                user => user.UserId,
+                shop => shop.UserId,
+                (user,shop) => new Shop
+                {
+
+                    birth = (DateTime)(user.Dob != null ? (DateTime?)user.Dob : null),
+                    Gender = user.Gender,
+                    Username = user.Name,
+                    
+                    Email = user.Email,
+                    Password = user.Password,
+                    PhoneHome = user.Phone ?? null,
+                    AddressHome = user.Address ?? null,
+                    Avatar = user.Avatar ?? null,
+                    shopName = shop.ShopName,
+                    addressShop = shop.Address ?? null,
+                    phoneShop = shop.Phone ?? null,
+                }).ToListAsync();
+            return Ok(shop);
+        }
         private async Task<int> CountShop()
         {
             var countcus = await _context.TbUsers.CountAsync(x => x.RoleId == "SP");
