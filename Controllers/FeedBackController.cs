@@ -157,6 +157,7 @@ namespace BirdPlatForm.Controllers
                 .Where(u => u.UserId == userid)
                 .Select(u => new FeedbackUser
                 {
+                    feedbackID = u.Id,
                     Username = u.User.Name,
                     rate =(int) u.Rate,
                     Detail = u.Detail,
