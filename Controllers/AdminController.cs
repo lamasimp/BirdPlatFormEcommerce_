@@ -52,18 +52,60 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             return BadRequest("Faill ");
         }
-        [HttpPost("Bandaccount")]
+        [HttpPut("Bandaccount")]
         public async Task<IActionResult> Bandaccount(int userid)
         {
             var user = await _context.TbUsers.FindAsync(userid);
+            string Email = user.Email;
+
             if (user != null)
             {
                 user.Status = true;
                 _context.TbUsers.Update(user);
 
+
+                var mailRequest = new MailRequest()
+                {
+                    ToEmail = Email,
+                    Subject = "[BIRD TRADING PLATFORM] Tài khoản của bạn đã bị khóa",
+                    Body =  "  Tài khoản của bạn đã bị khóa do vi phạm quy định của chúng tôi. Mọi thắc mắc hãy liên hệ với chúng tôi." +
+                    "Email: longnhatlekk@gmail.com"
+
+                };
+
+
+                await _mailService.SendEmailAsync(mailRequest);
             }
             await _context.SaveChangesAsync();
             return Ok("band User Success");
+
+        }
+        [HttpPut("OpenAccount")]
+        public async Task<IActionResult> OpenAccount(int userid)
+        {
+            var user = await _context.TbUsers.FindAsync(userid);
+            string Email = user.Email;
+
+            if (user != null)
+            {
+                user.Status = false;
+                _context.TbUsers.Update(user);
+
+
+                var mailRequest = new MailRequest()
+                {
+                    ToEmail = Email,
+                    Subject = "[BIRD TRADING PLATFORM] Tài khoản của bạn đã được mở  khóa",
+                    Body = "  Tài khoản của bạn được chúng tôi xem xét và mở khóa . Mọi thắc mắc hãy liên hệ với chúng tôi." +
+                    "Email: longnhatlekk@gmail.com"
+
+                };
+
+
+                await _mailService.SendEmailAsync(mailRequest);
+            }
+            await _context.SaveChangesAsync();
+            return Ok("Open User Success");
 
         }
 
