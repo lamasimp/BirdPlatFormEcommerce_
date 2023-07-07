@@ -15,7 +15,7 @@ public partial class TbOrder
 
     public decimal TotalPrice { get; set; }
 
-    public DateTime? OrderDate { get; set; }
+    public DateTime OrderDate { get; set; }
 
     public int? PaymentId { get; set; }
 

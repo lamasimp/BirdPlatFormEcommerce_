@@ -206,6 +206,7 @@ public partial class SwpDataBaseContext : DbContext
             entity.Property(e => e.ProductPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.Total).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.ToFeedback).HasDefaultValueSql("((0))");
+            entity.Property(e => e.RecievedStatus).HasDefaultValueSql("((0))");
 
             entity.HasOne(d => d.Order).WithMany(p => p.TbOrderDetails)
                 .HasForeignKey(d => d.OrderId)

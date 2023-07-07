@@ -20,7 +20,7 @@
         public string Phone { get; set; }
         public string Address { get; set; }
         public string Avatar { get; set; }
-
+        public bool Status { get; set; }
         }
     public class Shop
     {
@@ -36,6 +36,7 @@
         public string shopName { get; set; }
         public string addressShop { get; set; }
         public string phoneShop { get; set; }
+        public bool Status { get; set; }
     }
 
 }
