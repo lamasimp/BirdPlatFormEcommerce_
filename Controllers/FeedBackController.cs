@@ -40,7 +40,7 @@ namespace BirdPlatForm.Controllers
 
             var tbfeedback = new TbFeedback
             {
-                ProductId = feedback.ProductId,
+                ProductId = (int)feedback.ProductId,
                 UserId = userid,
                 Rate = feedback.Rate,
                 Detail = feedback.Detail,
@@ -99,10 +99,12 @@ namespace BirdPlatForm.Controllers
                 }
                 await _context.SaveChangesAsync();
 
-            
 
+            var orderDetail = await _context.TbOrderDetails.FindAsync(feedback.OrderDetailId);
+            orderDetail.ToFeedback = true;
+            await _context.SaveChangesAsync();
 
-            var rate = await GetProductAverageRates(feedback.ProductId);
+            var rate = await GetProductAverageRates((int)feedback.ProductId);
             var updateRate = await _context.TbProducts.FirstOrDefaultAsync(u => u.ProductId == feedback.ProductId);
             {
                 updateRate.Rate = (int?)rate;
@@ -118,9 +120,7 @@ namespace BirdPlatForm.Controllers
             }
 
 
-            var orderDetail = await _context.TbOrderDetails.FindAsync(feedback.OrderDetailId);
-            orderDetail.ToFeedback = true;
-            await _context.SaveChangesAsync();
+
             return Ok("success");
             
         }

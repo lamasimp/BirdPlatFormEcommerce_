@@ -104,11 +104,22 @@ namespace BirdPlatFormEcommerce.Controllers
                 {
 
                     var toEmail = order.User?.Email ?? string.Empty;
+                    var fullName = order.Address?.NameRg ?? string.Empty;
+                    var toPhone = order.Address?.Phone ?? string.Empty;
+                    var address = order.Address?.Address ?? string.Empty;
+                    var addressDetail = order.Address?.AddressDetail ?? string.Empty;
                     var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
+                        <div>
+                            <h3>Thông tin nhận hàng</h3> 
+                              <span>Tên người nhận: </span> <strong>{fullName}</strong><br>
+                            <span>Số Điện thoại: </span> <strong>{toPhone:n0}</strong><br>
+                            <span>Địa Chỉ Nhận hàng: </span> <strong>{addressDetail}, {address}</strong>
+                        </div>
                         <ul>{listProductHtml} </ul>
                         <div>
                             <span>Tổng tiền: </span> <strong>{total:n0} VND</strong>
                         </div>
+                           
                         <p>Xin trân trọng cảm ơn</p>
                     </div>";
 
@@ -208,6 +219,7 @@ namespace BirdPlatFormEcommerce.Controllers
                             Discount = od.Discount,
                             ProductPrice = od.ProductPrice,
                             DiscountPrice = od.DiscountPrice,
+                           
                             Total = od.Total,
                             FirstImagePath = _context.TbImages
                                 .Where(d => d.ProductId == od.ProductId)
@@ -221,8 +233,9 @@ namespace BirdPlatFormEcommerce.Controllers
 
             return Ok(response);
         }
-        [HttpGet("ToConFirmOfuserId/{ToConfirm:int}")]
-        public IActionResult GetOrdersByToConfirm(int ToConfirm)
+
+        [HttpGet("ToReceived/{ToConfirm:int}")]
+        public IActionResult GetOrdersByToReceived(int ToConfirm)
         {
             var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if (userIdClaim == null)
@@ -233,41 +246,111 @@ namespace BirdPlatFormEcommerce.Controllers
             int userId = int.Parse(userIdClaim.Value);
 
             var orders = _context.TbOrders
-                .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm)
+                .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm && o.ReceivedDate != null)
                 .Include(o => o.TbOrderDetails)
                 .ThenInclude(od => od.Product)
                 .Include(o => o.Shop)
                 .Include(o => o.Payment)
+                .Include(o => o.Address)
                 .ToList();
 
             var response = orders
                 .Select(o => new
                 {
-                        OrderId = o.OrderId,
-                        Status = o.Status,
-                        UserId = o.UserId,
-                        Note = o.Note,
-                        TotalPrice = o.TotalPrice,
-                        OrderDate = o.OrderDate,
-                        ShopId = o.ShopId,
-                        ShopName = o.Shop.ShopName,
-                        Items = o.TbOrderDetails.Select(od => new
-                        {
-                            Id = od.Id,
-                            ProductId = od.ProductId,
-                            ProductName = od.Product.Name,
-                            Quantity = od.Quantity,
-                            Discount = od.Discount,
-                            ProductPrice = od.ProductPrice,
-                            DiscountPrice = od.DiscountPrice,
-                            Total = od.Total,
-                            FirstImagePath = _context.TbImages
+                    OrderId = o.OrderId,
+                    Status = o.Status,
+                    UserId = o.UserId,
+                    Note = o.Note,
+                    ToConfirm = o.ToConfirm,
+                    // PaymentMethod = o.Payment.PaymentMethod??null,
+                    TotalPrice = o.TotalPrice,
+                    OrderDate = o.OrderDate,
+                    ShopId = o.ShopId,
+                    ShopName = o.Shop.ShopName,
+                    AddressId = o.AddressId,
+                    Address = o.Address.Address,
+                    AddressDetail = o.Address.AddressDetail,
+                    ReceivedDate= o.ReceivedDate,
+                    Phone = o.Address.Phone,
+                    NameRg = o.Address.NameRg,
+                    Items = o.TbOrderDetails.Select(od => new
+                    {
+                        Id = od.Id,
+                        ProductId = od.ProductId,
+                        ProductName = od.Product.Name,
+                        Quantity = od.Quantity,
+                        Discount = od.Discount,
+                        ProductPrice = od.ProductPrice,
+                        DiscountPrice = od.DiscountPrice,
+                        ToFeedback = od.ToFeedback,
+                        Total = od.Total,
+                        FirstImagePath = _context.TbImages
                                 .Where(d => d.ProductId == od.ProductId)
                                 .OrderBy(d => d.SortOrder)
                                 .Select(d => d.ImagePath)
                                 .FirstOrDefault()
-                        })
-                   
+                    })
+
+                })
+                .ToList();
+
+            return Ok(response);
+        }
+        [HttpGet("ToConFirmOfuserId/{ToConfirm:int}")]
+        public IActionResult GetOrdersByToConfirm(int ToConfirm )
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+
+            var orders = _context.TbOrders
+                .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm && o.ReceivedDate== null)
+                .Include(o => o.TbOrderDetails)
+                .ThenInclude(od => od.Product)
+                .Include(o => o.Shop)
+                .Include(o => o.Payment)
+                .Include(o => o.Address)
+                .ToList();
+
+            var response = orders
+                .Select(o => new
+                {
+                    OrderId = o.OrderId,
+                    Status = o.Status,
+                    UserId = o.UserId,
+                    Note = o.Note,
+                    ToConfirm = o.ToConfirm,
+                   // PaymentMethod = o.Payment.PaymentMethod??null,
+                    TotalPrice = o.TotalPrice,
+                    OrderDate = o.OrderDate,
+                    ShopId = o.ShopId,
+                    ShopName = o.Shop.ShopName,
+                    AddressId = o.AddressId,
+                    Address = o.Address.Address,
+                    AddressDetail = o.Address.AddressDetail,
+                    Phone = o.Address.Phone,
+                    NameRg = o.Address.NameRg,
+                    Items = o.TbOrderDetails.Select(od => new
+                    {
+                        Id = od.Id,
+                        ProductId = od.ProductId,
+                        ProductName = od.Product.Name,
+                        Quantity = od.Quantity,
+                        Discount = od.Discount,
+                        ProductPrice = od.ProductPrice,
+                        DiscountPrice = od.DiscountPrice,
+                        Total = od.Total,
+                        FirstImagePath = _context.TbImages
+                                .Where(d => d.ProductId == od.ProductId)
+                                .OrderBy(d => d.SortOrder)
+                                .Select(d => d.ImagePath)
+                                .FirstOrDefault()
+                    })
+
                 })
                 .ToList();
 
