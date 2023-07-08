@@ -37,6 +37,7 @@
         public string addressShop { get; set; }
         public string phoneShop { get; set; }
         public bool Status { get; set; }
+        public bool IsActive { get; set; }
     }
 
 }

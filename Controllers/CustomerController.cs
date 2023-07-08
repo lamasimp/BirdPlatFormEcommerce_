@@ -4,6 +4,7 @@ using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -35,17 +36,24 @@ namespace BirdPlatFormEcommerce.Controllers
                
             }
             int userid = int.Parse(useridClaim.Value);
+            var shop = await _context.TbShops.FindAsync(model.ShopId);
+            if (shop == null)
+            {
+                return BadRequest("No shop");
+            }
+            shop.IsVerified = true;
             var report = new TbReport
             {
                 Detail = model.Detail,
                 Status = false,
                 ShopId = model.ShopId,
                 UserId = userid,
-                CateRpId = model.categoriaId
+                CateRpId = model.categoriaId,
+                
             };
              _context.TbReports.Add(report);
             await _context.SaveChangesAsync();
-            return Ok(report);
+            return Ok("Success ");
 
         }
       
