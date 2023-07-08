@@ -214,7 +214,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     Username = user.Name,
                     
                     Email = user.Email,
-                    
+                    IsActive = (bool)shop.IsVerified,
                     PhoneHome = user.Phone ?? null,
                     AddressHome = user.Address ?? null,
                     Avatar = user.Avatar ?? null,
@@ -318,6 +318,7 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 shopId = shop.ShopId,
                 shopname = shop.ShopName,
+                IsVerifi = (bool)shop.IsVerified,
                 reports = report
             };
 
