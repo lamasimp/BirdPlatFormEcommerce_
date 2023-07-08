@@ -43,7 +43,7 @@ namespace BirdPlatFormEcommerce.Order
                     }
 
                     product.Quantity -= item.Quantity;
-       //             product.QuantitySold += item.Quantity;
+                    product.QuantitySold += item.Quantity;
 
                     _context.TbProducts.Update(product);
 
@@ -209,6 +209,7 @@ namespace BirdPlatFormEcommerce.Order
                  .ThenInclude(orderItem => orderItem.Product)
                 .Include(order => order.Payment)
                 .Include(order => order.User)
+                 .Include(order => order.Address)
                 .Where(order => orderIds.Contains(order.OrderId))
                 .ToListAsync();
 
