@@ -894,6 +894,7 @@ namespace BirdPlatFormEcommerce.Controllers
             order.CancleDate = DateTime.Now;
 
             _context.TbOrders.Update(order);
+
             await _context.SaveChangesAsync();
 
 
@@ -902,6 +903,9 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 item.ToConfirm = 4;
                 _context.TbOrderDetails.Update(item);
+                var productId = await _context.TbProducts.FindAsync(item.ProductId);
+                productId.Quantity -= item.Quantity;
+                _context.TbProducts.Update(productId);
             }
             await _context.SaveChangesAsync();
             return Ok("Cancle successfully!");
