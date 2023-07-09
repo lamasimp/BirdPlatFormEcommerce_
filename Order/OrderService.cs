@@ -121,6 +121,8 @@ namespace BirdPlatFormEcommerce.Order
                 var productId = requestItem.ProductId;
 
                 var product = await _context.TbProducts.FirstOrDefaultAsync(p => p.ProductId == productId);
+                 product.Quantity -= quantity;
+
                 if (product == null)
                 {
                     throw new Exception($"Product {productId} not found");
@@ -130,6 +132,9 @@ namespace BirdPlatFormEcommerce.Order
                 {
                     throw new Exception($"Product {productId} is out of stock");
                 }
+            
+                _context.TbProducts.Update(product);
+                await _context.SaveChangesAsync();
 
                 // Kiểm tra xem đã có đơn hàng cho shop tương ứng chưa
                 var existingOrder = orders.FirstOrDefault(o => o.ShopId == product.ShopId);
