@@ -407,6 +407,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     products.IsDelete = true;
                     _context.TbProducts.Update(products);
                 }
+                _context.TbReports.RemoveRange(reports);
                 await _context.SaveChangesAsync();
 
                 var mailRequest = new MailRequest()
