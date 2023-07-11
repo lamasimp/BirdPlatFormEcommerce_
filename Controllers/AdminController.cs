@@ -111,6 +111,8 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("TopUsers")]
         public async Task<IActionResult> GetTopUsers()
         {
+
+
             var topUsers = await _context.TbUsers
             .Join(_context.TbOrders, u => u.UserId, o => o.UserId, (u, o) => new { User = u, Order = o })
                 .Join(_context.TbOrderDetails, uo => uo.Order.UserId, od => od.OrderId, (uo, od) => new { UserOrder = uo, TbOrderDetail = od })
@@ -127,8 +129,18 @@ namespace BirdPlatFormEcommerce.Controllers
                 .OrderByDescending(u => u.TotalAmount)
                 .Take(5)
                 .ToListAsync();
+            List<decimal> totalAmounts = topUsers.Select(x => (decimal)x.TotalAmount).ToList();
+            List<string> shopNames = topUsers.Select(x => x.UserName).ToList();
 
-            return Ok(topUsers);
+            var response = new
+            {
+                TotalAmounts = totalAmounts,
+                ShopNames = shopNames
+            };
+
+            return Ok(response);
+
+           
         }
 
 
@@ -407,6 +419,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     products.IsDelete = true;
                     _context.TbProducts.Update(products);
                 }
+                _context.TbReports.RemoveRange(reports);
                 await _context.SaveChangesAsync();
 
                 var mailRequest = new MailRequest()
