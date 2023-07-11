@@ -29,7 +29,7 @@
         public string Gender { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
-        
+        public int shopId { get; set; }
         public string PhoneHome { get; set; }
         public string AddressHome { get; set; }
         public string Avatar { get; set; }
