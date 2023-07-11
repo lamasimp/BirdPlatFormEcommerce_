@@ -313,7 +313,7 @@ public partial class SwpDataBaseContext : DbContext
 
             entity.Property(e => e.ReportId).HasColumnName("ReportID");
             entity.Property(e => e.CateRpId).HasColumnName("CateRpID");
-            entity.Property(e => e.Id).HasColumnName("ID");
+            
             entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 
