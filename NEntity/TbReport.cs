@@ -15,7 +15,7 @@ public partial class TbReport
 
     public int? ShopId { get; set; }
 
-    public int? Id { get; set; }
+    
 
     public int CateRpId { get; set; }
 
