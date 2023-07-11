@@ -43,19 +43,24 @@ namespace BirdPlatForm.Controllers
                 ProductId = (int)feedback.ProductId,
                 UserId = userid,
                 Rate = feedback.Rate,
-                Detail = feedback.Detail,
                 FeedbackDate = DateTime.Now
 
             };
+
+            if (!string.IsNullOrEmpty(feedback.Detail))
+            {
+                tbfeedback.Detail = feedback.Detail;
+            }
             _context.TbFeedbacks.Add(tbfeedback);
             await _context.SaveChangesAsync();
 
             //add image
-     
-            int passcount = 0;
-           
-            int maxImageCount = 6;
-           
+            if (feedback.ImageFile != null&& feedback.ImageFile.Length > 0)
+            {
+                int passcount = 0;
+
+                int maxImageCount = 6;
+
 
                 string Filepath = GetFileProductPath(tbfeedback.Id);
                 if (!Directory.Exists(Filepath))
@@ -74,9 +79,9 @@ namespace BirdPlatForm.Controllers
 
                         var image = new TbFeedbackImage()
                         {
-                            FeedbackId= tbfeedback.Id,
-                            
-                           
+                            FeedbackId = tbfeedback.Id,
+
+
                             ImagePath = GetImageProductPath(tbfeedback.Id, file.FileName),
 
 
@@ -98,6 +103,8 @@ namespace BirdPlatForm.Controllers
                     }
                 }
                 await _context.SaveChangesAsync();
+            }
+           
 
 
             var orderDetail = await _context.TbOrderDetails.FindAsync(feedback.OrderDetailId);

@@ -36,10 +36,10 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IOrderService _oderService;
         private readonly IMailService _mailService;
 
-        public ShopController(SwpDataBaseContext swp, IMailService mailService,IManageOrderService manageOrderService, IWebHostEnvironment enviroment,IOrderService orderService )
+        public ShopController(SwpDataBaseContext swp, IMailService mailService, IManageOrderService manageOrderService, IWebHostEnvironment enviroment, IOrderService orderService)
         {
             _context = swp;
-           _manageOrderService = manageOrderService;
+            _manageOrderService = manageOrderService;
             _enviroment = enviroment;
             _oderService = orderService;
             _mailService = mailService;
@@ -73,7 +73,7 @@ namespace BirdPlatFormEcommerce.Controllers
             if (user != null)
             {
                 user.RoleId = "SP";
-                user.IsShop = true; 
+                user.IsShop = true;
                 await _context.SaveChangesAsync();
             }
             string email = user.Email;
@@ -116,13 +116,13 @@ namespace BirdPlatFormEcommerce.Controllers
         public async Task<IActionResult> getMyshop()
         {
             var myshop = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-            if(myshop == null)
+            if (myshop == null)
             {
                 return NotFound();
             }
             int userid = int.Parse(myshop.Value);
             var shop = _context.TbShops.FirstOrDefault(x => x.UserId == userid);
-            if(shop == null)
+            if (shop == null)
             {
                 return NotFound();
             }
@@ -132,8 +132,9 @@ namespace BirdPlatFormEcommerce.Controllers
                 shopName = shop.ShopName,
                 Address = shop.Address,
                 phone = shop.Phone,
+
                 Description = shop.Description ?? null
-                
+
             };
             return Ok(isshop);
         }
@@ -152,7 +153,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 throw new Exception("Shop not found");
             }
             int shopid = shop.ShopId;
-            
+
 
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
@@ -209,9 +210,9 @@ namespace BirdPlatFormEcommerce.Controllers
                     SoldPrice = (int)Math.Round((decimal)(request.Price - request.Price / 100 * (request.DiscountPercent))),
                     Decription = request.Decription,
                     Status = true,
-             //      CreateDate = request.CreateDate,
+                    //      CreateDate = request.CreateDate,
                     Quantity = request.Quantity,
-                 // ShopId = request.ShopId,
+                    // ShopId = request.ShopId,
                     ShopId = shopid,
                     CateId = request.CateId
                 };
@@ -287,7 +288,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 response.ResponseCode = 200;
                 response.Result = passcount + "File uploaded &" + errorcount + "File failed";
                 return Ok(response);
-              
+
             }
             catch
             {
@@ -297,7 +298,7 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
         [HttpPut("Update_Product")]
-        public async Task<IActionResult> UpdateProduct([FromForm]  UpdateProductViewModel request)
+        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductViewModel request)
         {
             try
             {
@@ -321,10 +322,10 @@ namespace BirdPlatFormEcommerce.Controllers
                 product.Price = request.Price;
                 product.DiscountPercent = request.DiscountPercent;
                 product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / 100 * (request.DiscountPercent)));
-               
+
                 product.Decription = request.Decription;
                 //          product.Detail = request.Detail;
-                  //  product.ShopId= request.ShopId;
+                //  product.ShopId= request.ShopId;
                 product.ShopId = shopid;
                 await _context.SaveChangesAsync();
 
@@ -334,7 +335,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 if (request.ImageFile == null || request.ImageFile.Length == 0)
                 {
                     await _context.SaveChangesAsync();
-                
+
                     return Ok("Add product successfully");
                 }
                 else
@@ -456,18 +457,18 @@ namespace BirdPlatFormEcommerce.Controllers
             }
 
             if (!ModelState.IsValid)
-                {
-                    return BadRequest();
-                }
-                var product = await _context.TbProducts.FindAsync(productId);
-                if (product == null) throw new Exception("Can not find product.");
-           
+            {
+                return BadRequest();
+            }
+            var product = await _context.TbProducts.FindAsync(productId);
+            if (product == null) throw new Exception("Can not find product.");
+
 
             product.IsDelete = false;
 
-                await _context.SaveChangesAsync();
-                return Ok("Delete Product Success");
-           
+            await _context.SaveChangesAsync();
+            return Ok("Delete Product Success");
+
         }
 
 
@@ -480,7 +481,7 @@ namespace BirdPlatFormEcommerce.Controllers
         private string GetImageProductPath(int productId, string fileName)
         {
             string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
-            return hosturl + "/user-content/product/" + productId + "/" + fileName ;
+            return hosturl + "/user-content/product/" + productId + "/" + fileName;
 
         }
 
@@ -489,7 +490,7 @@ namespace BirdPlatFormEcommerce.Controllers
         public async Task<IActionResult> GetallProduct()
         {
             var userid = User.Claims.FirstOrDefault(x => x.Type == "UserId");
-            if(userid == null)
+            if (userid == null)
             {
                 return Unauthorized();
             }
@@ -534,15 +535,15 @@ namespace BirdPlatFormEcommerce.Controllers
                 DiscountPercent = (int)product.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(product.Price - product.Price / 100 * product.DiscountPercent)),
                 Decription = product != null ? product.Decription : null,
-               
+
                 Quantity = product.Quantity,
                 ShopId = shopid,
 
-                
+
                 CateId = product.CateId,
-               
-               
-                
+
+
+
                 Images = image.Length > 0 ? image.ToList() : new List<string> { "no-image.jpg" },
 
 
@@ -570,14 +571,14 @@ namespace BirdPlatFormEcommerce.Controllers
 
             int currentYear = DateTime.Now.Year;
             var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
-            {     
-                            ShopId = shopid,
-                            Orderdate =(DateTime)p.OrderDate,
-                            OrderId = p.OrderId,
-                            TotalPrice = (decimal?)p.TotalPrice
-                        }).ToListAsync();
+            {
+                ShopId = shopid,
+                Orderdate = (DateTime)p.OrderDate,
+                OrderId = p.OrderId,
+                TotalPrice = (decimal?)p.TotalPrice
+            }).ToListAsync();
 
-           
+
 
             // Khoi tao mang chua kq TotalRevenue của moi thang
             decimal[] monthlyRevenue = new decimal[12];
@@ -587,8 +588,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 DateTime currentMonthStart = new DateTime(currentYear, i + 1, 1);
                 DateTime currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
 
-                
-              
+
+
 
                 // Tính tổng doanh thu của shop trong tháng hiện tại
                 decimal totalRevenue = query.Where(p => p.Orderdate >= currentMonthStart && p.Orderdate <= currentMonthEnd).Sum(p => p.TotalPrice ?? 0m);
@@ -628,14 +629,14 @@ namespace BirdPlatFormEcommerce.Controllers
                 TotalPrice = (decimal?)p.TotalPrice
             }).ToListAsync();
 
-        
 
-                // Tính tổng doanh thu của shop trong tháng hiện tại
-                decimal totalRevenue = query.Sum(p => p.TotalPrice ?? 0m );
 
-               
-              
-            
+            // Tính tổng doanh thu của shop trong tháng hiện tại
+            decimal totalRevenue = query.Sum(p => p.TotalPrice ?? 0m);
+
+
+
+
 
             return Ok(totalRevenue);
         }
@@ -683,7 +684,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 DateTime currentDate = FirstDateOfWeek(currentYear, currentWeek).AddDays(i);
 
                 // Tính tổng doanh thu của shop trong ngày hiện tại
-                decimal totalRevenue = query.Where(p => p.Orderdate.Date== currentDate.Date).Sum(p => p.TotalPrice ?? 0m );
+                decimal totalRevenue = query.Where(p => p.Orderdate.Date == currentDate.Date).Sum(p => p.TotalPrice ?? 0m);
 
                 // Gán giá trị tổng doanh thu vào mảng dailyRevenue
                 dailyRevenue[i] = totalRevenue;
@@ -709,7 +710,7 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 daysToFirstDayOfWeek += 7;
             }
-           int firstWeekDay = 7*(week -1) - daysToFirstDayOfWeek;
+            int firstWeekDay = 7 * (week - 1) - daysToFirstDayOfWeek;
             return jan1.AddDays(firstWeekDay);
         }
 
@@ -728,26 +729,26 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             var query = await (from o in _context.TbOrders
-                              join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
-                              join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
-                              where o.ShopId == shopid && o.ToConfirm > 1
-                              select new OrderInfo
-            {
-                orderId = o.OrderId,
-                 OrderDate = (DateTime)o.OrderDate,
-                 UserName = o.User.Name,
-                 Email = o.User.Email,
-                 Status =(bool) o.Status,
-                 TotalPrice =(decimal?) o.TotalPrice,
-                 ToConfirm = o.ToConfirm,
-                 PaymentDate = (DateTime)pay.PaymentDate,
-              //   Address = ad.Address,
-              //   PaymentMethod = pay.PaymentMethod
-              
-            }).ToListAsync();
+                               join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                               join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
+                               where o.ShopId == shopid && o.ToConfirm > 1
+                               select new OrderInfo
+                               {
+                                   orderId = o.OrderId,
+                                   OrderDate = (DateTime)o.OrderDate,
+                                   UserName = o.User.Name,
+                                   Email = o.User.Email,
+                                   Status = (bool)o.Status,
+                                   TotalPrice = (decimal?)o.TotalPrice,
+                                   ToConfirm = o.ToConfirm,
+                                   PaymentDate = (DateTime)pay.PaymentDate,
+                                   //   Address = ad.Address,
+                                   //   PaymentMethod = pay.PaymentMethod
+
+                               }).ToListAsync();
 
             return Ok(query);
-              
+
 
         }
 
@@ -770,28 +771,32 @@ namespace BirdPlatFormEcommerce.Controllers
 
             var order = await _context.TbProducts.FindAsync(orderId);
 
-            var product = await (from odt in _context.TbOrderDetails 
-                                join p in _context.TbProducts on odt.ProductId equals p.ProductId
-                                join ig in _context.TbImages on p.ProductId equals ig.ProductId into images 
-                                where odt.OrderId == orderId        
-                               select new { p, odt,
-                                   Image = images.FirstOrDefault() }).ToArrayAsync();
-           
-          
+            var product = await (from odt in _context.TbOrderDetails
+                                 join p in _context.TbProducts on odt.ProductId equals p.ProductId
+                                 join ig in _context.TbImages on p.ProductId equals ig.ProductId into images
+                                 where odt.OrderId == orderId
+                                 select new
+                                 {
+                                     p,
+                                     odt,
+                                     Image = images.FirstOrDefault()
+                                 }).ToArrayAsync();
+
+
             var query = await (from o in _context.TbOrders
-                                       
-                                        join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
-                                        join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
-                                        join u in _context.TbUsers on o.UserId equals u.UserId
-                                        where o.OrderId == orderId && o.ShopId == shopid
-                                        select new {ad,pay,u,o}).FirstOrDefaultAsync();
+
+                               join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
+                               join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                               join u in _context.TbUsers on o.UserId equals u.UserId
+                               where o.OrderId == orderId && o.ShopId == shopid
+                               select new { ad, pay, u, o }).FirstOrDefaultAsync();
 
 
             var oderDetailInfo = new OrderDetailInfo()
 
             {
                 UserName = query.u.Name,
-                Email =   query.u.Email,
+                Email = query.u.Email,
 
                 Address = query.ad.Address,
                 AddressDetail = query.ad.AddressDetail,
@@ -802,26 +807,26 @@ namespace BirdPlatFormEcommerce.Controllers
                 Status = (bool)query.o.Status,
 
                 DateOrder = (DateTime?)query.o.OrderDate,
-                ConfirmDate= (DateTime?)query.o.ConfirmDate,
-                CancleDate= (DateTime?)query.o.CancleDate,
-                OrderId= orderId,
-                ToConfirm= query.o.ToConfirm,
-               
+                ConfirmDate = (DateTime?)query.o.ConfirmDate,
+                CancleDate = (DateTime?)query.o.CancleDate,
+                OrderId = orderId,
+                ToConfirm = query.o.ToConfirm,
+
                 TotalAll = (decimal?)query.o.TotalPrice,
-                ProductDetails =    product.Select(x => new ProductDetail
+                ProductDetails = product.Select(x => new ProductDetail
                 {
                     NameProduct = x.p.Name,
                     SoldPrice = (decimal?)x.odt.ProductPrice,
-                    DiscountPrice= (decimal?)x.odt.DiscountPrice,
-                    ImagePath =  x.Image != null ? x.Image.ImagePath : "no-image.jpg",
+                    DiscountPrice = (decimal?)x.odt.DiscountPrice,
+                    ImagePath = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
 
                     Quantity = x.odt.Quantity,
                     TotalDetail = (decimal?)x.odt.Total
                 }).ToList()
 
-            } ;
+            };
 
-           
+
             return Ok(oderDetailInfo);
         }
 
@@ -835,7 +840,7 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             int userId = int.Parse(userIdClaim.Value);
             var shop = await _context.TbShops.FirstOrDefaultAsync(x => x.UserId == userId);
-           
+
             if (shop == null)
             {
                 throw new Exception("Shop not found");
@@ -849,21 +854,21 @@ namespace BirdPlatFormEcommerce.Controllers
             if (order == null) throw new Exception("Can not find order.");
 
 
-                order.ToConfirm = 3;
-                order.ConfirmDate= DateTime.Now;
+            order.ToConfirm = 3;
+            order.ConfirmDate = DateTime.Now;
 
-        _context.TbOrders.Update(order);
+            _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
 
 
             var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
-            foreach(var item in orderDetail)
+            foreach (var item in orderDetail)
             {
 
-                item.ToConfirm = 3;  
+                item.ToConfirm = 3;
                 _context.TbOrderDetails.Update(item);
             }
-             await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return Ok("Confirm successfully!");
         }
 
@@ -921,7 +926,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 return BadRequest("Can not find User");
             }
             int userId = int.Parse(userIdClaim.Value);
-         
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
@@ -936,8 +941,8 @@ namespace BirdPlatFormEcommerce.Controllers
 
             //query.RecievedStatus = true;
             order.ReceivedDate = DateTime.Now;
-        
-          
+
+
 
             _context.TbOrders.Update(order);
             await _context.SaveChangesAsync();
@@ -947,19 +952,19 @@ namespace BirdPlatFormEcommerce.Controllers
             foreach (var item in orderDetail)
             {
 
-                item.RecievedStatus= true;
-               
+                item.RecievedStatus = true;
+
                 _context.TbOrderDetails.Update(item);
 
                 var productId = await _context.TbProducts.FindAsync(item.ProductId);
                 productId.QuantitySold += item.Quantity;
-               _context.TbProducts.Update(productId);
+                _context.TbProducts.Update(productId);
 
 
             }
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
-           
+
 
             return Ok("Confirm successfully!");
         }
@@ -976,28 +981,29 @@ namespace BirdPlatFormEcommerce.Controllers
                 return null;
             }
             int userid = int.Parse(userIdclaim.Value);
-           
 
-           
+
+
 
             var query = from odt in _context.TbOrderDetails
-                          join p in _context.TbProducts on odt.ProductId equals p.ProductId
-                          join s in _context.TbShops on p.ShopId equals s.ShopId
-                          join o in _context.TbOrders on odt.OrderId equals o.OrderId
-                          join ig in _context.TbImages on p.ProductId equals ig.ProductId into images
-                          where odt.RecievedStatus==true && o.UserId == userid && odt.ToFeedback == null
-                          select new
-                          {
-                              p,
-                              odt,
-                              s,o,
-                              Image = images.FirstOrDefault()
-                          };
+                        join p in _context.TbProducts on odt.ProductId equals p.ProductId
+                        join s in _context.TbShops on p.ShopId equals s.ShopId
+                        join o in _context.TbOrders on odt.OrderId equals o.OrderId
+                        join ig in _context.TbImages on p.ProductId equals ig.ProductId into images
+                        where odt.RecievedStatus == true && o.UserId == userid && odt.ToFeedback == null
+                        select new
+                        {
+                            p,
+                            odt,
+                            s,
+                            o,
+                            Image = images.FirstOrDefault()
+                        };
 
             var product = await query.Select(x => new ProductFeedBackInfo()
 
             {
-                OrderDetailId= x.odt.Id,
+                OrderDetailId = x.odt.Id,
                 ShopName = x.s.ShopName,
                 ProductId = x.p.ProductId,
                 NameProduct = x.p.Name,
@@ -1005,11 +1011,11 @@ namespace BirdPlatFormEcommerce.Controllers
                 DiscountPrice = (decimal?)x.odt.DiscountPrice,
                 Quantity = x.odt.Quantity,
                 ImagePath = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
-                ReceivedDate =(DateTime?)x.o.ReceivedDate,
+                ReceivedDate = (DateTime?)x.o.ReceivedDate,
 
                 TotalDetail = (decimal?)x.odt.Total
-           }).ToListAsync();
-           return Ok(product);
+            }).ToListAsync();
+            return Ok(product);
         }
 
 
@@ -1021,4 +1027,3 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
 }
-
