@@ -132,6 +132,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 shopName = shop.ShopName,
                 Address = shop.Address,
                 phone = shop.Phone,
+                Description = shop.Description ?? null
                 
             };
             return Ok(isshop);

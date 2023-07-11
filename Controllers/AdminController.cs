@@ -377,11 +377,12 @@ namespace BirdPlatFormEcommerce.Controllers
 
                 }
                 user.Status = true;
+                shop.IsVerified = false;
                 _context.TbUsers.Update(user);
-                var product =await _context.TbProducts.Where(p => p.ShopId == shop.ShopId).ToListAsync();
+                var product =await _context.TbProducts.Where(p => p.ShopId == shopid).ToListAsync();
                 foreach(var products in product)
                 {
-                    products.IsDelete = false;
+                    products.IsDelete = true;
                     _context.TbProducts.Update(products);
                 }
                 await _context.SaveChangesAsync();
@@ -411,10 +412,10 @@ namespace BirdPlatFormEcommerce.Controllers
             string email = user.Email;
             user.Status = false;
             _context.TbUsers.Update(user);
-            var product = await _context.TbProducts.Where(p => p.ShopId == shop.ShopId).ToListAsync();
+            var product = await _context.TbProducts.Where(p => p.ShopId == shopid).ToListAsync();
             foreach(var products in product)
             {
-                products.IsDelete = true;
+                products.IsDelete = false;
                 _context.TbProducts.Update(products);
             }
             await _context.SaveChangesAsync();
