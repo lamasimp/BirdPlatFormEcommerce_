@@ -69,7 +69,7 @@ namespace BirdPlatForm.Controllers
         }
         [HttpPost]
         [Route("logout")]
-
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
 
