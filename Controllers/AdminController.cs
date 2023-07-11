@@ -200,19 +200,20 @@ namespace BirdPlatFormEcommerce.Controllers
         public async Task<IActionResult> getDetailShop()
         {
             var shop = await _context.TbUsers
-                
+
                 .Where(r => r.RoleId == "SP")
-                
-                .Join( _context.TbShops,
+
+                .Join(_context.TbShops,
                 user => user.UserId,
                 shop => shop.UserId,
-                (user,shop) => new Shop
+                (user, shop) => new Shop
                 {
+
                     UserId = user.UserId,
                     birth = (DateTime)(user.Dob != null ? (DateTime?)user.Dob : null),
                     Gender = user.Gender,
                     Username = user.Name,
-                    
+                    shopId = shop.ShopId,
                     Email = user.Email,
                     IsActive = (bool)shop.IsVerified,
                     PhoneHome = user.Phone ?? null,
@@ -280,12 +281,12 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
         [HttpGet("CountReport")]
-        public async Task<IActionResult> Countreport()
+        public async Task<IActionResult> Countreport(int shopid)
         {
             var shopReportCounts = await _context.TbShops
                 .Select(s => new ReportModel
                 {
-                    shopId = s.ShopId,
+                    shopId = shopid,
                     Shopname = s.ShopName,
                     Count = _context.TbReports.Count(r => r.ShopId == s.ShopId)
                 })
