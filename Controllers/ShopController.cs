@@ -65,6 +65,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 Phone = shopmodel.Phone,
                 AddressDetail = shopmodel.AddressDetail,
                 UserId = userId,
+                CreateDate =DateTime.Now,
+
 
             };
             _context.TbShops.Add(shop);
@@ -929,7 +931,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 item.ToConfirm = 4;
                 _context.TbOrderDetails.Update(item);
                 var productId = await _context.TbProducts.FindAsync(item.ProductId);
-                productId.Quantity -= item.Quantity;
+                productId.Quantity += item.Quantity;
                 _context.TbProducts.Update(productId);
             }
             await _context.SaveChangesAsync();
