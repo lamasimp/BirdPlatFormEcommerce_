@@ -42,8 +42,8 @@ namespace BirdPlatFormEcommerce.Order
                         throw new Exception($"Product {product.ProductId} is out of stock");
                     }
 
-                    product.Quantity -= item.Quantity;
-                    product.QuantitySold += item.Quantity;
+                    /*product.Quantity -= item.Quantity;
+                    product.QuantitySold += item.Quantity;*/
 
                     _context.TbProducts.Update(product);
 
@@ -64,21 +64,31 @@ namespace BirdPlatFormEcommerce.Order
                     processedOrderIds.Add(order1.OrderId);
                     foreach (TbOrderDetail item in order1.TbOrderDetails)
                     {
-                        listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> $ {item.DiscountPrice:n0} $ - x{item.Quantity}</li>";
+                        listProductHtml += $"<li>{item.Product?.Name} - <del>{item.ProductPrice:n0}</del> $ {item.DiscountPrice:n0} $ - x{item.Quantity}</li><br>";
 
                     }
                 }
                 if (processedOrderIds.Count == orders.Count)
                 {
                     var toEmail = order1.User?.Email ?? string.Empty;
+                    var fullName = order1.Address?.NameRg ?? string.Empty;
+                    var toPhone = order1.Address?.Phone ?? string.Empty;
+                    var address = order1.Address?.Address ?? string.Empty;
+                    var addressDetail = order1.Address?.AddressDetail ?? string.Empty;
                     var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
+                        <div>
+                            <h3>Thông tin nhận hàng</h3> 
+                              <span>Tên người nhận: </span> <strong>{fullName}</strong><br>
+                            <span>Số Điện thoại: </span> <strong>{toPhone:n0}</strong><br>
+                            <span>Địa Chỉ Nhận hàng: </span> <strong>{addressDetail}, {address}</strong>
+                        </div>
                         <ul>{listProductHtml} </ul>
                         <div>
                             <span>Tổng tiền: </span> <strong>{total:n0} VND</strong>
                         </div>
+                           
                         <p>Xin trân trọng cảm ơn</p>
                     </div>";
-
                     var mailRequest = new MailRequest()
                     {
                         ToEmail = toEmail,
