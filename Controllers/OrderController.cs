@@ -270,6 +270,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     AddressId = o.AddressId,
                     Address = o.Address.Address,
                     AddressDetail = o.Address.AddressDetail,
+                    CancelDate=o.CancleDate,
                     ReceivedDate= o.ReceivedDate,
                     Phone = o.Address.Phone,
                     NameRg = o.Address.NameRg,
