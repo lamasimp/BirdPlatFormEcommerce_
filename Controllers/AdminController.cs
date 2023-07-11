@@ -281,22 +281,20 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
         [HttpGet("CountReport")]
-        public async Task<IActionResult> Countreport(int shopid)
+        public async Task<IActionResult> Countreport()
         {
-            var shopReportCounts = await _context.TbShops
-                .Select(s => new ReportModel
-                {
-                    shopId = shopid,
-                    Shopname = s.ShopName,
-                    Count = _context.TbReports.Count(r => r.ShopId == s.ShopId)
-                })
-                .ToListAsync();
+            var shopReportCounts = await _context.TbReports
+                .Select(x => x.ShopId)
+                .Distinct()
+                .CountAsync();
+            
 
 
             return Ok(shopReportCounts);
 
 
         }
+        
         [HttpGet("getreport")]
         public async Task<IActionResult> getreportShop(int shopid)
         {

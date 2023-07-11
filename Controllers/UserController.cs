@@ -72,18 +72,12 @@ namespace BirdPlatForm.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-
             var userClaims = User.Claims.ToList();
-
-
             var tokenClaim = userClaims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti);
             if (tokenClaim != null)
             {
                 userClaims.Remove(tokenClaim);
             }
-
-
-
             return Ok();
         }
 
