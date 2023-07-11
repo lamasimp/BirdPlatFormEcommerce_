@@ -108,6 +108,29 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok("Open User Success");
 
         }
+        [HttpGet("TopUsers")]
+        public async Task<IActionResult> GetTopUsers()
+        {
+            var topUsers = await _context.TbUsers
+            .Join(_context.TbOrders, u => u.UserId, o => o.UserId, (u, o) => new { User = u, Order = o })
+                .Join(_context.TbOrderDetails, uo => uo.Order.UserId, od => od.OrderId, (uo, od) => new { UserOrder = uo, TbOrderDetail = od })
+                .Where(uo => uo.TbOrderDetail.ToConfirm == 3)
+                .GroupBy(uo => new { uo.UserOrder.User.UserId, uo.UserOrder.User.Name })
+                
+                .Select(g => new
+                {
+                    UserId = g.Key.UserId,
+                    UserName = g.Key.Name,
+                    TotalAmount = g.Sum(uo => uo.TbOrderDetail.Quantity * uo.TbOrderDetail.Total)
+                })
+                
+                .OrderByDescending(u => u.TotalAmount)
+                .Take(5)
+                .ToListAsync();
+
+            return Ok(topUsers);
+        }
+
 
         [HttpGet("GetUser/{id}")]
         public async Task<IActionResult> GetUserByid(int id)
@@ -346,7 +369,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 var emailBody = $"Shop Name: {shop.ShopName}\n\n";
                 emailBody += " Cảnh báo lần đầu tiên dành cho shop của nếu quá 3 lần report tài khoản của bạn sẽ bị khóa:\n" +
                     "Mọi thắc mắc hãy liên hệ với chúng tôi.\n";
-
+                shop.IsVerified = false;
                 foreach (var report in reports)
                 {
                     
