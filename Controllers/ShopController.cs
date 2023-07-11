@@ -976,7 +976,14 @@ namespace BirdPlatFormEcommerce.Controllers
                 _context.TbOrderDetails.Update(item);
 
                 var productId = await _context.TbProducts.FindAsync(item.ProductId);
-                productId.QuantitySold += item.Quantity;
+                if (productId.QuantitySold == null)
+                {
+                    productId.QuantitySold = item.Quantity;
+                }
+                else
+                {
+                    productId.QuantitySold += item.Quantity;
+                }
                 _context.TbProducts.Update(productId);
 
 
