@@ -114,7 +114,7 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             throw new InvalidOperationException("Invalid token or missing accountId claim.");
         }
-        [HttpPut("UpdateShop")]
+        [HttpPut("UpdateShop/{shopId:int}")]
         public async Task<IActionResult> UpdateShop(int shopid,ShopModel model)
         {
             var shop = _context.TbShops.Find(shopid);
@@ -125,6 +125,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 shop.Description = model.Description;
                 shop.Address = model.Address;
                 shop.AddressDetail = model.AddressDetail;
+                shop.Phone = model.Phone;
                 _context.TbShops.Update(shop);
                 _context.SaveChanges();
             }
@@ -149,11 +150,13 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             var isshop = new ViewShop
             {
-                Rate = (int)shop.Rate,
+                ShopId=(int)shop.ShopId,
+                Rate = shop.Rate ?? 0,
                 shopName = shop.ShopName,
                 Address = shop.Address,
-                phone = shop.Phone,
+                AddressDetail = shop.AddressDetail, 
 
+                phone = shop.Phone,
                 Description = shop.Description ?? null
 
             };
