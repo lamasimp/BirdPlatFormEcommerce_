@@ -32,6 +32,7 @@
         public List<string> imgFeedback { get; set; }
         public string imgAvatar { get; set; }
         public int productId { get; set; }
+        public int Quantity { get; set; }
         public string productName { get; set; }
         public string imgProduct { get; set; }
     }

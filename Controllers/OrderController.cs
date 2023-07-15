@@ -219,7 +219,7 @@ namespace BirdPlatFormEcommerce.Controllers
                             Discount = od.Discount,
                             ProductPrice = od.ProductPrice,
                             DiscountPrice = od.DiscountPrice,
-                           
+
                             Total = od.Total,
                             FirstImagePath = _context.TbImages
                                 .Where(d => d.ProductId == od.ProductId)
@@ -270,8 +270,8 @@ namespace BirdPlatFormEcommerce.Controllers
                     AddressId = o.AddressId,
                     Address = o.Address.Address,
                     AddressDetail = o.Address.AddressDetail,
-                    CancelDate=o.CancleDate,
-                    ReceivedDate= o.ReceivedDate,
+                    CancelDate = o.CancleDate,
+                    ReceivedDate = o.ReceivedDate,
                     Phone = o.Address.Phone,
                     NameRg = o.Address.NameRg,
                     Items = o.TbOrderDetails.Select(od => new
@@ -299,7 +299,7 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(response);
         }
         [HttpGet("ToConFirmOfuserId/{ToConfirm:int}")]
-        public IActionResult GetOrdersByToConfirm(int ToConfirm )
+        public IActionResult GetOrdersByToConfirm(int ToConfirm)
         {
             var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if (userIdClaim == null)
@@ -310,7 +310,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int userId = int.Parse(userIdClaim.Value);
 
             var orders = _context.TbOrders
-                .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm && o.ReceivedDate== null)
+                .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm && o.ReceivedDate == null)
                 .Include(o => o.TbOrderDetails)
                 .ThenInclude(od => od.Product)
                 .Include(o => o.Shop)
@@ -560,8 +560,198 @@ namespace BirdPlatFormEcommerce.Controllers
 
             return orderResults;
         }
+        [HttpPost("Addtocart")]
+        public async Task<IActionResult> AddToCart([FromBody] Addtocart cartItem)
+        {
+            try
+            {
+                var useridClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+                if (useridClaim == null)
+                {
+                    return Unauthorized();
+                }
+                int UserID = int.Parse(useridClaim.Value);
+                var product = _context.TbProducts
+                    .Include(p => p.Shop)
+                    .FirstOrDefault(p => p.ProductId == cartItem.ProductID);
+                if (product != null)
+                {
+                    var existingCartItem = _context.TbCarts.FirstOrDefault(c =>
+                        c.UserId == UserID && c.ProductId == cartItem.ProductID);
+
+                    if (existingCartItem != null)
+                    {
+                        if (cartItem.Quantity == 0)
+                        {
+                            return BadRequest();
+                        }
+                        else
+                        {
+                            existingCartItem.Quantity += cartItem.Quantity;
+                            if (existingCartItem.Quantity > product.Quantity)
+                            {
+                                existingCartItem.Quantity = product.Quantity;
+                                await _context.SaveChangesAsync();
+                                return Ok("Bạn đã có " + product.Quantity + " sản phẩm trong giỏ hàng. Không thể thêm số lượng đã chọn vào giỏ hàng vì sẽ vượt quá giới hạn mua hàng của bạn.");
+                            }
+                            existingCartItem.Price += cartItem.Quantity * (int)Math.Round((decimal)(product.Price - product.Price / 100 * (product.DiscountPercent)));
+                        }
+                    }
+                    else
+                    {
+                        if (cartItem.Quantity > 0)
+                        {
+                            var newCartItem = new TbCart
+                            {
+                                UserId = UserID,
+                                ProductId = (int)cartItem.ProductID,
+                                Quantity = cartItem.Quantity,
+                                Price = cartItem.Quantity * (int)Math.Round((decimal)(product.Price - product.Price / 100 * (product.DiscountPercent))),
+                                ShopName = product.Shop?.ShopName ?? ""
+                            };
+                            _context.TbCarts.Add(newCartItem);
+                        }
+                        else
+                        {
+                            return BadRequest("Invalid quantity");
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+
+
+                    return Ok("Sản phẩm đã được thêm vào Giỏ hàng!");
+                }
+                else
+                {
+                    return BadRequest("Invalid product ID");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("ViewCart")]
+        public async Task<IActionResult> ViewCart()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null) return Unauthorized();
+            int userID = int.Parse(userIdClaim.Value);
+
+            var viewCarts = await _context.TbCarts
+                .Include(p => p.Product)
+                .ThenInclude(p => p.TbImages)
+                .Where(u => u.UserId == userID)
+                .GroupBy(u => u.Product.Shop.ShopId) // Nhóm theo ShopId
+                .Select(g => new
+                {
+                    ShopId = g.Key,
+                    ShopName = g.First().Product.Shop.ShopName,
+                    Products = g.Select(u => new ViewCart
+                    {
+                        CartId = u.Id,
+                        productName = u.Product.Name,
+                        ProductId = (int)u.ProductId,
+                        quantityCart = (int)u.Quantity,
+                        quantityProduct = (int)u.Product.Quantity,
+                        PriceProduct = (int)Math.Round((decimal)(u.Product.Price - u.Product.Price / 100 * u.Product.DiscountPercent)),
+                        PriceCart = (decimal)u.Price,
+                        ImageProduct = u.Product.TbImages.FirstOrDefault().ImagePath
+                    }).ToList()
+                })
+                .ToListAsync();
+            int subid = 8;
+
+            return Ok(viewCarts);
+        }
+        [HttpGet("ViewCartQuantity")]
+        public async Task<IActionResult> ViewCartQuantity()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null) return Unauthorized();
+            int userID = int.Parse(userIdClaim.Value);
+
+            var viewCarts = await _context.TbCarts
+                .Include(p => p.Product)
+                .ThenInclude(p => p.TbImages)
+                .Where(u => u.UserId == userID)
+
+                .Select(g => new
+                {
+                    CartId = g.Id,
+                    productName = g.Product.Name,
+                    ProductId = (int)g.ProductId,
+                    quantityProduct = (int)g.Product.Quantity,
+                    PriceProduct = (int)Math.Round((decimal)(g.Product.Price - g.Product.Price / 100 * g.Product.DiscountPercent)),
+                    ImageProduct = g.Product.TbImages.FirstOrDefault().ImagePath
+
+                })
+                .ToListAsync();
+
+
+            return Ok(viewCarts);
+        }
+        [HttpPost("UpdateQuantity")]
+        public async Task<IActionResult> UpdateQuantity([FromBody] Updatequantity request)
+        {
+            try
+            {
+                var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+                if (userIdClaim == null) return Unauthorized();
+                int userID = int.Parse(userIdClaim.Value);
+
+                var cartItem = _context.TbCarts.FirstOrDefault(c =>
+                    c.UserId == userID && c.Id == request.cartID);
+
+                if (cartItem != null)
+                {
+
+                    var product = _context.TbProducts.FirstOrDefault(p => p.ProductId == cartItem.ProductId);
+                    if (request.quantity != -1 && request.quantity != 1)
+                    {
+                        cartItem.Quantity = request.quantity;
+                    }
+                    if (request.quantity == -1 || request.quantity == 1)
+                    {
+                        cartItem.Quantity += request.quantity;
+                    }
+
+                    cartItem.Price = (int)Math.Round((decimal)(product.Price - product.Price / 100 * (product.DiscountPercent))) * cartItem.Quantity;
+                    if (cartItem.Quantity > product.Quantity)
+                    {
+                        cartItem.Quantity = product.Quantity;
+                        await _context.SaveChangesAsync();
+                        return Ok("Bạn đã có " + product.Quantity + " sản phẩm trong giỏ hàng. Không thể thêm số lượng đã chọn vào giỏ hàng vì sẽ vượt quá giới hạn mua hàng của bạn.");
+                    }
+                    if (cartItem.Quantity < 1)
+                    {
+                        _context.TbCarts.Remove(cartItem);
+                        await _context.SaveChangesAsync();
+                        return Ok("delete");
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    return Ok("success");
+
+                }
+                else
+                {
+                    return BadRequest("Product not found in cart");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
 
     }
+
 }
 
 

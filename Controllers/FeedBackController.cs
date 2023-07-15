@@ -170,6 +170,7 @@ namespace BirdPlatForm.Controllers
                     feedbackID = u.Id,
                     Username = u.User.Name,
                     imgAvatar = u.User.Avatar,
+                    Quantity = (int)u.Product.Quantity,
                     rate =(int) u.Rate,
                     Detail = u.Detail,
                     CreateDate = u.FeedbackDate,
