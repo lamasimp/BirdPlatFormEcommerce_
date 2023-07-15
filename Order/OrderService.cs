@@ -131,18 +131,18 @@ namespace BirdPlatFormEcommerce.Order
                 var productId = requestItem.ProductId;
 
                 var product = await _context.TbProducts.FirstOrDefaultAsync(p => p.ProductId == productId);
-                 product.Quantity -= quantity;
+                
 
                 if (product == null)
                 {
                     throw new Exception($"Product {productId} not found");
                 }
 
-                if (product.Quantity - product.QuantitySold < quantity)
+                if (product.Quantity < quantity)
                 {
                     throw new Exception($"Product {productId} is out of stock");
                 }
-            
+                product.Quantity -= quantity;
                 _context.TbProducts.Update(product);
                 await _context.SaveChangesAsync();
 
