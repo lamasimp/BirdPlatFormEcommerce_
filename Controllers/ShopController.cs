@@ -753,7 +753,8 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             var query = await (from o in _context.TbOrders
-                               join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                               join orp in _context.TbOrders on o.ParentOrderId equals orp.OrderId
+                               join pay in _context.TbPayments on orp.PaymentId equals pay.PaymentId
                                join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
                                where o.ShopId == shopid && o.ToConfirm > 1
                                select new OrderInfo
@@ -808,9 +809,9 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
             var query = await (from o in _context.TbOrders
-
                                join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
-                               join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                               join orp in _context.TbOrders on o.ParentOrderId equals orp.OrderId
+                               join pay in _context.TbPayments on orp.PaymentId equals pay.PaymentId
                                join u in _context.TbUsers on o.UserId equals u.UserId
                                where o.OrderId == orderId && o.ShopId == shopid
                                select new { ad, pay, u, o }).FirstOrDefaultAsync();
@@ -821,7 +822,6 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 UserName = query.u.Name,
                 Email = query.u.Email,
-
                 Address = query.ad.Address,
                 AddressDetail = query.ad.AddressDetail,
                 Phone = query.ad.Phone,
