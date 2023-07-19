@@ -198,8 +198,6 @@ namespace BirdPlatFormEcommerce.Controllers
                     };
                     orShow.Add(childOrder);
                 }
-
-
             }
             var response = orShow
                 .GroupBy(o => o.ParentOrderId) // Gom nhóm các đơn hàng theo PaymentId

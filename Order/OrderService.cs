@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Features;
+using BirdPlatFormEcommerce.Order.Responses;
 
 namespace BirdPlatFormEcommerce.Order
 {
@@ -263,7 +264,8 @@ namespace BirdPlatFormEcommerce.Order
                 AddressId = (int)orderModel.AddressID,
                 TotalPrice = 0, // Sẽ được tính toán lại sau khi thêm đơn hàng con
                 ShopId = null, // Không cần thiết cho đơn hàng cha
-                ParentOrderId = null // Trường ParentOrderId của đơn hàng cha sẽ là 0
+                ParentOrderId = null, // Trường ParentOrderId của đơn hàng cha sẽ là 0
+                LastTotalPrice = 0
             };
 
             // Lưu đơn hàng cha vào danh sách đơn hàng
@@ -313,12 +315,14 @@ namespace BirdPlatFormEcommerce.Order
                         AddressId = (int)orderModel.AddressID,
                         TotalPrice = 0, // Sẽ được tính toán lại sau khi thêm đơn hàng con
                         ShopId = (int)product.ShopId,
+                        LastTotalPrice = 0,
                         ParentOrderId = parentOrder.OrderId // Trường ParentOrderId của đơn hàng con sẽ là OrderId của đơn hàng cha
                     };
 
                     var orderItem = CreateOrderItem(product, quantity);
                     childOrder.TbOrderDetails.Add(orderItem);
                     childOrder.TotalPrice = orderItem.Total ?? 0;
+       
 
                     // Lưu đơn hàng con vào danh sách đơn hàng
                     orders.Add(childOrder);
@@ -328,10 +332,12 @@ namespace BirdPlatFormEcommerce.Order
 
             // Tính toán lại tổng tiền cho đơn hàng cha sau khi đã có danh sách đơn hàng con
             parentOrder.TotalPrice = orders.Sum(o => o.TotalPrice);
+            parentOrder.LastTotalPrice = Math.Round((decimal)(orders.Sum(o => o.TotalPrice)) * 0.05M); 
 
             // Lưu các đơn hàng vào cơ sở dữ liệu
             foreach (var order in orders)
             {
+                order.LastTotalPrice = Math.Round((decimal)(order.TotalPrice * 0.95M));
                 await _context.TbOrders.AddAsync(order);
             }
 
