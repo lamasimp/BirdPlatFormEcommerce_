@@ -74,8 +74,9 @@ namespace BirdPlatFormEcommerce.Controllers
         [Authorize]
         public async Task<ActionResult<PaymentResponse>> CreatePayment([FromBody] PayOrderModel request)
         {
-            var orders = await _orderService.GetOrders(request.OrderIds);
-            if (orders == null || orders.Any(o => o.Status == true))
+            var ordersParent = await _orderService.GetOrderByParentOrderId(request.ParentOrderID);
+            var orders = await _orderService.GetOrders(request.ParentOrderID);
+            if (ordersParent == null || ordersParent.Status == true)
             {
                 return NotFound("Order(s) not found");
             }
@@ -109,19 +110,19 @@ namespace BirdPlatFormEcommerce.Controllers
                     var address = order.Address?.Address ?? string.Empty;
                     var addressDetail = order.Address?.AddressDetail ?? string.Empty;
                     var emailBody = $@"<div><h3>THÔNG TIN ĐƠN HÀNG CỦA BẠN </h3> 
-                        <div>
-                            <h3>Thông tin nhận hàng</h3> 
-                              <span>Tên người nhận: </span> <strong>{fullName}</strong><br>
-                            <span>Số Điện thoại: </span> <strong>{toPhone:n0}</strong><br>
-                            <span>Địa Chỉ Nhận hàng: </span> <strong>{addressDetail}, {address}</strong>
-                        </div>
-                        <ul>{listProductHtml} </ul>
-                        <div>
-                            <span>Tổng tiền: </span> <strong>{total:n0} VND</strong>
-                        </div>
-                           
-                        <p>Xin trân trọng cảm ơn</p>
-                    </div>";
+                          <div>
+                              <h3>Thông tin nhận hàng</h3> 
+                                <span>Tên người nhận: </span> <strong>{fullName}</strong><br>
+                              <span>Số Điện thoại: </span> <strong>{toPhone:n0}</strong><br>
+                              <span>Địa Chỉ Nhận hàng: </span> <strong>{addressDetail}, {address}</strong>
+                          </div>
+                          <ul>{listProductHtml} </ul>
+                          <div>
+                              <span>Tổng tiền: </span> <strong>{total:n0} VND</strong>
+                          </div>
+
+                          <p>Xin trân trọng cảm ơn</p>
+                      </div>";
 
                     var mailRequest = new MailRequest()
                     {
@@ -130,18 +131,16 @@ namespace BirdPlatFormEcommerce.Controllers
                         Body = emailBody
                     };
 
-
                     await _mailService.SendEmailAsync(mailRequest);
-
                 }
-
 
 
                 if (processedOrderIds.Count == orders.Count)
                 {
+
+                    var paymentUrl = await _orderService.PayOrder(ordersParent.OrderId, request.Method);
                     _context.SaveChanges();
-                    var paymentUrl = await _orderService.PayOrders(processedOrderIds, request.Method);
-                    var response = _mapper.Map<PaymentResponse>(order.Payment);
+                    var response = _mapper.Map<PaymentResponse>(ordersParent.Payment);
                     response.PaymentUrl = paymentUrl;
                     return Ok(response);
                 }
@@ -149,6 +148,7 @@ namespace BirdPlatFormEcommerce.Controllers
 
             return NotFound("Order(s) not found");
         }
+
         [HttpGet("PaymentCallback/{paymentId:int}")]
         public async Task<ActionResult> PaymentCallback([FromRoute] int paymentId, [FromQuery] VnPaymentCallbackModel request)
         {
@@ -157,24 +157,13 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 return Redirect(_configuration["Payment:Failed"]);
             }
-            var processedOrderIds = new List<int>();
-            foreach (var order in orders)
-            {
-                processedOrderIds.Add(order.OrderId);
-                if (order == null || order.Status == true)
-                {
-                    return NotFound("Order not found");
-                }
-            }
-
-
-            await _orderService.CompleteOrder(processedOrderIds);
+            await _orderService.CompleteOrder(orders.OrderId);
 
             return Redirect(_configuration["Payment:SuccessUrl"]);
 
         }
         [HttpGet("OrderFailed")]
-        public IActionResult GetOrdersByUserId()
+        public async Task<IActionResult> GetOrdersByUserId()
         {
             var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
             if (userIdClaim == null)
@@ -185,23 +174,46 @@ namespace BirdPlatFormEcommerce.Controllers
             int userId = int.Parse(userIdClaim.Value);
 
             var orders = _context.TbOrders
-                .Where(o => o.UserId == userId && o.Payment.PaymentMethod == "Vnpay" && o.Status == false)
                 .Include(o => o.TbOrderDetails)
                 .ThenInclude(od => od.Product)
-                .Include(o => o.Shop)
                 .Include(o => o.Payment)
+                 .Where(o => o.UserId == userId && o.Payment.PaymentMethod == "Vnpay" && o.Status == false)
                 .ToList();
+            var orShow = new List<TbOrder>();
+            foreach (var order in orders)
+            {
+                var orderItem = await _orderService.GetOrders(order.OrderId);
+                foreach (var childOrder in orderItem)
+                {
+                    var childOrders = new TbOrder
+                    {
+                        UserId = userId,
+                        Status = childOrder.Status,
+                        OrderDate = childOrder.OrderDate,
+                        Note = childOrder.Note,
+                        AddressId = (int)childOrder.AddressId,
+                        TotalPrice = childOrder.TotalPrice,
+                        ShopId = (int)childOrder.ShopId,
+                        ParentOrderId = childOrder.ParentOrderId
+                    };
+                    orShow.Add(childOrder);
+                }
 
-            var response = orders
-                .GroupBy(o => o.PaymentId) // Gom nhóm các đơn hàng theo PaymentId
+
+            }
+            var response = orShow
+                .GroupBy(o => o.ParentOrderId) // Gom nhóm các đơn hàng theo PaymentId
                 .Select(g => new
                 {
-                    PaymentId = g.Key,
-                    Amount = _context.TbPayments
-                    .Where(p => p.PaymentId == g.Key)
-                    .Select(p => p.Amount),
+                    Id = g.Key,
+                    Amount = _context.TbOrders
+                    .Include(o => o.ParentOrder)
+                .ThenInclude(op => op.Payment)
+                    .Where(o => o.OrderId == g.Key)
+                    .Select(o => o.TotalPrice),
                     Orders = g.Select(o => new
                     {
+                        ParentOrderId = o.ParentOrderId,
                         OrderId = o.OrderId,
                         Status = o.Status,
                         UserId = o.UserId,
@@ -209,7 +221,7 @@ namespace BirdPlatFormEcommerce.Controllers
                         TotalPrice = o.TotalPrice,
                         OrderDate = o.OrderDate,
                         ShopId = o.ShopId,
-                        ShopName = o.Shop.ShopName,
+                        ShopName = _context.TbShops.Where(or => or.ShopId == o.ShopId).Select(or => or.ShopName),
                         Items = o.TbOrderDetails.Select(od => new
                         {
                             Id = od.Id,
@@ -234,6 +246,7 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok(response);
         }
 
+
         [HttpGet("ToReceived/{ToConfirm:int}")]
         public IActionResult GetOrdersByToReceived(int ToConfirm)
         {
@@ -249,8 +262,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm && o.ReceivedDate != null)
                 .Include(o => o.TbOrderDetails)
                 .ThenInclude(od => od.Product)
-                .Include(o => o.Shop)
-                .Include(o => o.Payment)
+                .Include(o => o.ParentOrder)
+                .ThenInclude(op => op.Payment)
                 .Include(o => o.Address)
                 .ToList();
 
@@ -262,11 +275,11 @@ namespace BirdPlatFormEcommerce.Controllers
                     UserId = o.UserId,
                     Note = o.Note,
                     ToConfirm = o.ToConfirm,
-                    PaymentMethod = o.Payment.PaymentMethod,
+                    PaymentMethod = o.ParentOrder.Payment.PaymentMethod,
                     TotalPrice = o.TotalPrice,
                     OrderDate = o.OrderDate,
                     ShopId = o.ShopId,
-                    ShopName = o.Shop.ShopName,
+                    ShopName = _context.TbShops.Where(or => or.ShopId == o.ShopId).Select(or => or.ShopName),
                     AddressId = o.AddressId,
                     Address = o.Address.Address,
                     AddressDetail = o.Address.AddressDetail,
@@ -314,47 +327,52 @@ namespace BirdPlatFormEcommerce.Controllers
                 .Include(o => o.TbOrderDetails)
                 .ThenInclude(od => od.Product)
                 .Include(o => o.Shop)
-                .Include(o => o.Payment)
+                .Include(o => o.ParentOrder)
+                .ThenInclude(op => op.Payment)
                 .Include(o => o.Address)
                 .ToList();
 
             var response = orders
-                .Select(o => new
-                {
-                    OrderId = o.OrderId,
-                    Status = o.Status,
-                    UserId = o.UserId,
-                    Note = o.Note,
-                    ToConfirm = o.ToConfirm,
-                    PaymentMethod = o.Payment.PaymentMethod,
-                    TotalPrice = o.TotalPrice,
-                    OrderDate = o.OrderDate,
-                    ShopId = o.ShopId,
-                    ShopName = o.Shop.ShopName,
-                    AddressId = o.AddressId,
-                    Address = o.Address.Address,
-                    AddressDetail = o.Address.AddressDetail,
-                    Phone = o.Address.Phone,
-                    NameRg = o.Address.NameRg,
-                    Items = o.TbOrderDetails.Select(od => new
-                    {
-                        Id = od.Id,
-                        ProductId = od.ProductId,
-                        ProductName = od.Product.Name,
-                        Quantity = od.Quantity,
-                        Discount = od.Discount,
-                        ProductPrice = od.ProductPrice,
-                        DiscountPrice = od.DiscountPrice,
-                        Total = od.Total,
-                        FirstImagePath = _context.TbImages
-                                .Where(d => d.ProductId == od.ProductId)
-                                .OrderBy(d => d.SortOrder)
-                                .Select(d => d.ImagePath)
-                                .FirstOrDefault()
-                    })
+               .Select(o => new
+               {
+                   OrderId = o.OrderId,
+                   Status = o.Status,
+                   UserId = o.UserId,
+                   Note = o.Note,
+                   ToConfirm = o.ToConfirm,
+                   PaymentMethod = o.ParentOrder.Payment.PaymentMethod,
+                   TotalPrice = o.TotalPrice,
+                   OrderDate = o.OrderDate,
+                   ShopId = o.ShopId,
+                   ShopName = _context.TbShops.Where(or => or.ShopId == o.ShopId).Select(or => or.ShopName),
+                   AddressId = o.AddressId,
+                   Address = o.Address.Address,
+                   AddressDetail = o.Address.AddressDetail,
+                   CancelDate = o.CancleDate,
+                   ReceivedDate = o.ReceivedDate,
+                   Phone = o.Address.Phone,
+                   NameRg = o.Address.NameRg,
+                   Items = o.TbOrderDetails.Select(od => new
+                   {
+                       Id = od.Id,
+                       ProductId = od.ProductId,
+                       OrderDetailID = od.Id,
+                       ProductName = od.Product.Name,
+                       Quantity = od.Quantity,
+                       Discount = od.Discount,
+                       ProductPrice = od.ProductPrice,
+                       DiscountPrice = od.DiscountPrice,
+                       ToFeedback = od.ToFeedback,
+                       Total = od.Total,
+                       FirstImagePath = _context.TbImages
+                               .Where(d => d.ProductId == od.ProductId)
+                               .OrderBy(d => d.SortOrder)
+                               .Select(d => d.ImagePath)
+                               .FirstOrDefault()
+                   })
 
-                })
-                .ToList();
+               })
+               .ToList();
 
             return Ok(response);
         }
@@ -390,6 +408,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var address = _context.TbAddressReceives.Where(a => a.UserId == userid).ToList();
             return Ok(address);
         }
+
         [HttpGet("confirmed")]
         public async Task<ActionResult<List<OrderResult>>> GetConfirmedOrdersByUser(int toConfirm)
         {

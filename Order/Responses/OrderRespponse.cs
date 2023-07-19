@@ -3,8 +3,13 @@ using BirdPlatFormEcommerce.Payment.Responses;
 
 namespace BirdPlatFormEcommerce.Order.Responses
 {
-    public class OrderRespponse
+    public class OrderParentRespponse
     {
+        public int ParentOrderId { get; set; }
+    }
+        public class OrderRespponse
+    {
+        public int ParentOrderId { get; set; }
         public int OrderId { get; set; }
 
         public bool? Status { get; set; }
