@@ -56,6 +56,7 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok("Success ");
 
         }
+
       
     }
 }

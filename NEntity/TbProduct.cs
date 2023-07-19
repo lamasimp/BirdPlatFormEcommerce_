@@ -43,7 +43,7 @@ public partial class TbProduct
 
     public virtual ICollection<TbFeedback> TbFeedbacks { get; set; } = new List<TbFeedback>();
 
-    public virtual ICollection<TbImage> TbImages { get; set; } = new List<TbImage>();
+    public virtual ICollection<TbImage>? TbImages { get; set; } = new List<TbImage>();
 
     public virtual ICollection<TbOrderDetail> TbOrderDetails { get; set; } = new List<TbOrderDetail>();
 

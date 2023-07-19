@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using System;
+using System.Diagnostics.Contracts;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -468,6 +469,108 @@ namespace BirdPlatFormEcommerce.Controllers
             await _mailService.SendEmailAsync(mailRequest);
 
             return Ok("Account and products reopened successfully. Check your Email");
+        }
+       
+        [HttpGet("GettopFeedback")]
+        public async Task<IActionResult> getFeedBack()
+        {
+            var feedback = _context.TbProducts
+                .Include(u => u.TbImages)
+                .Include(u => u.Shop)
+                .Include(u => u.TbFeedbacks)
+                
+                .Select(u => new FeedbackAdmin
+                {
+                    ProductId = u.ProductId,
+                    Rate = (int)u.Rate,
+                    productName = u.Name,
+                    Price = u.Price,
+                    ImageProduct = u.TbImages.FirstOrDefault().ImagePath,
+                    shopName = u.Shop.ShopName,
+                    FeedbackCount = u.TbFeedbacks.Count()
+
+
+                })
+                .OrderByDescending(u => u.FeedbackCount)
+                .Take(5)
+                .ToList();
+
+            return Ok(feedback);
+        }
+        [HttpGet("GetquantitySold")]
+        public async Task<IActionResult> getQuantitysold()
+        {
+            var feedback = _context.TbProducts
+                .Include(u => u.TbImages)
+                .Include(u => u.Shop)
+                
+
+                .Select(u => new QuantitySold
+                {
+                    ProductId = u.ProductId,
+                    Rate = (int)u.Rate,
+                    productName = u.Name,
+                    Price = u.Price,
+                    ImageProduct = u.TbImages.FirstOrDefault().ImagePath,
+                    shopName = u.Shop.ShopName,
+                    Quantitysold = (int)u.QuantitySold,
+
+
+                })
+                .OrderByDescending(u => u.Quantitysold)
+                .Take(5)
+                .ToList();
+
+            return Ok(feedback);
+        }
+        [HttpGet("totalOrder")]
+        public async Task<IActionResult> totalOrderCha()
+        {
+            var refund = _context.TbOrders.Where(x => x.ParentOrderId != null).Sum(o => o.LastTotalPrice);
+            var profit = _context.TbOrders.Where(x => x.ParentOrderId == null).Sum(o => o.LastTotalPrice);
+            var amount = _context.TbOrders.Where(x => x.ParentOrderId == null).Sum(o => o.TotalPrice);
+            var countoderCha = _context.TbOrders.Where(x => x.ParentOrderId == null).Count();
+            var totalorderCha = _context.TbOrders.Where(x => x.ParentOrderId == null).Sum(x => x.TotalPrice);
+            decimal averagePriceForParentIdNull = countoderCha > 0
+        ? totalorderCha / countoderCha
+             :    0;
+
+            var view = new ListtotalOrder()
+            {
+                TotalOrderCha = 
+                
+                    new totalOrderCha
+                    {
+                    countOrder = countoderCha,
+                totalPriceOrdercha = totalorderCha,
+                price1Ordercha = averagePriceForParentIdNull,
+                    }
+                ,
+                Profit = 
+                
+                    new ProfitAdmin
+                    {
+                        profitAdmin = profit
+                    }
+                ,
+                AmountSystem = 
+                
+                    new TotalAmountSystem
+                    {
+                        totalAmountSystem = amount
+                    }
+                ,
+                refundAmout = 
+                
+                    new refundAmountShop
+                    {
+                        refundamout = refund
+                    }
+                
+                
+                
+            };
+            return Ok(view);
         }
 
     }
