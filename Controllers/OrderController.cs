@@ -319,9 +319,72 @@ namespace BirdPlatFormEcommerce.Controllers
             }
 
             int userId = int.Parse(userIdClaim.Value);
-
             var orders = _context.TbOrders
                 .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm && o.ReceivedDate == null)
+                .Include(o => o.TbOrderDetails)
+                .ThenInclude(od => od.Product)
+                .Include(o => o.Shop)
+                .Include(o => o.ParentOrder)
+                .ThenInclude(op => op.Payment)
+                .Include(o => o.Address)
+                .ToList();
+
+            var response = orders
+               .Select(o => new
+               {
+                   OrderId = o.OrderId,
+                   Status = o.Status,
+                   UserId = o.UserId,
+                   Note = o.Note,
+                   ToConfirm = o.ToConfirm,
+                   PaymentMethod = o.ParentOrder.Payment.PaymentMethod,
+                   TotalPrice = o.TotalPrice,
+                   OrderDate = o.OrderDate,
+                   ShopId = o.ShopId,
+                   ShopName = _context.TbShops.Where(or => or.ShopId == o.ShopId).Select(or => or.ShopName),
+                   AddressId = o.AddressId,
+                   Address = o.Address.Address,
+                   AddressDetail = o.Address.AddressDetail,
+                   CancelDate = o.CancleDate,
+                   ReceivedDate = o.ReceivedDate,
+                   Phone = o.Address.Phone,
+                   NameRg = o.Address.NameRg,
+                   Items = o.TbOrderDetails.Select(od => new
+                   {
+                       Id = od.Id,
+                       ProductId = od.ProductId,
+                       OrderDetailID = od.Id,
+                       ProductName = od.Product.Name,
+                       Quantity = od.Quantity,
+                       Discount = od.Discount,
+                       ProductPrice = od.ProductPrice,
+                       DiscountPrice = od.DiscountPrice,
+                       ToFeedback = od.ToFeedback,
+                       Total = od.Total,
+                       FirstImagePath = _context.TbImages
+                               .Where(d => d.ProductId == od.ProductId)
+                               .OrderBy(d => d.SortOrder)
+                               .Select(d => d.ImagePath)
+                               .FirstOrDefault()
+                   })
+
+               })
+               .ToList();
+
+            return Ok(response);
+        }
+        [HttpGet("FailedOfuserId/{ToConfirm:int}")]
+        public IActionResult GetOrdersByFailed(int ToConfirm)
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            int userId = int.Parse(userIdClaim.Value);
+            var orders = _context.TbOrders
+                .Where(o => o.UserId == userId && o.ToConfirm == ToConfirm && o.CancleDate != null)
                 .Include(o => o.TbOrderDetails)
                 .ThenInclude(od => od.Product)
                 .Include(o => o.Shop)
@@ -660,7 +723,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var viewCarts = await _context.TbCarts
                 .Include(p => p.Product)
                 .ThenInclude(p => p.TbImages)
-                .Where(u => u.UserId == userID)
+                .Where(u => u.UserId == userID && u.Product.IsDelete != false)
                 .GroupBy(u => u.Product.Shop.ShopId) // Nhóm theo ShopId
                 .Select(g => new
                 {
