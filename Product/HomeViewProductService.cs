@@ -51,6 +51,7 @@ namespace BirdPlatFormEcommerce.Product
             return data;
         }
 
+
         public async Task<DetailProductViewModel> GetProductById(int productId)
         {
             var product = await _context.TbProducts.FindAsync(productId);
@@ -175,6 +176,43 @@ namespace BirdPlatFormEcommerce.Product
 
             };
             return detailShop;
+        }
+
+        public async Task<List<ProductHotInfo>> GetProductByQuantitySold()
+        {
+            var query = (from p in _context.TbProducts
+                        join s in _context.TbShops on p.ShopId equals s.ShopId
+                        join c in _context.TbProductCategories on p.CateId equals c.CateId
+                        join u in _context.TbUsers on s.UserId equals u.UserId
+                        join img in _context.TbImages on p.ProductId equals img.ProductId into images
+
+                        orderby p.QuantitySold descending 
+                        where p.DiscountPercent > 0 && p.IsDelete == true && p.Status == true && u.Status == false && p.Quantity > 0
+                        select new
+                        {
+                            p,
+                            c,
+                            s,
+                            Image = images.FirstOrDefault()
+                        }).Take(5);
+
+            var data = await query.Select(x => new ProductHotInfo()
+            {
+                ProductId = x.p.ProductId,
+                ProductName = x.p.Name,
+                CateName = x.c.CateName,
+                Status = x.p.Status,
+                Price = x.p.Price,
+               
+                DiscountPercent = x.p.DiscountPercent,
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * (x.p.DiscountPercent))),
+             
+                QuantitySold = x.p.QuantitySold,
+               Rate = x.p.Rate, 
+                Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
+
+            }).ToListAsync();
+            return data;
         }
     }
 }

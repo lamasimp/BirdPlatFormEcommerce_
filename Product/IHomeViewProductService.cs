@@ -12,5 +12,7 @@
         Task<List<HomeViewProductModel>> GetAllProduct();
 
         Task<DetailShopViewProduct> GetShopById(int id);
+
+        Task<List<ProductHotInfo>> GetProductByQuantitySold();
     }
 }
