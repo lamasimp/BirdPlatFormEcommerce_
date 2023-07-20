@@ -35,14 +35,17 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IWebHostEnvironment _enviroment;
         private readonly IOrderService _oderService;
         private readonly IMailService _mailService;
+        private readonly IHomeViewProductService _homeViewProductService;
 
-        public ShopController(SwpDataBaseContext swp, IMailService mailService, IManageOrderService manageOrderService, IWebHostEnvironment enviroment, IOrderService orderService)
+        public ShopController(SwpDataBaseContext swp, IMailService mailService, IManageOrderService manageOrderService,
+            IWebHostEnvironment enviroment, IOrderService orderService, IHomeViewProductService homeViewProductService)
         {
             _context = swp;
             _manageOrderService = manageOrderService;
             _enviroment = enviroment;
             _oderService = orderService;
             _mailService = mailService;
+            _homeViewProductService = homeViewProductService;
         }
         [HttpPost("registerShop")]
 
@@ -650,19 +653,28 @@ namespace BirdPlatFormEcommerce.Controllers
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.TotalPrice,
+                LastTotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
 
             // Tính tổng doanh thu của shop trong tháng hiện tại
             decimal totalRevenue = query.Sum(p => p.TotalPrice ?? 0m);
+            decimal lastTotalP = query.Sum(p => p.LastTotalPrice ?? 0m);
+            decimal fee = totalRevenue-lastTotalP;
+            
 
 
 
+            var result = new
+            {
+                TotalRevenue = totalRevenue,           
+                Fee = fee,
+                LastTotalP = lastTotalP
+            };
 
-
-            return Ok(totalRevenue);
+            return Ok(result);
         }
 
         [HttpGet("Revenue_week")]
@@ -736,6 +748,63 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             int firstWeekDay = 7 * (week - 1) - daysToFirstDayOfWeek;
             return jan1.AddDays(firstWeekDay);
+        }
+
+        [HttpGet("Get_Top5_HotProduct")]
+        public async Task<IActionResult> GetTopHotProduct()
+        {
+            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdclaim == null)
+            {
+                return null;
+            }
+            int userid = int.Parse(userIdclaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+                return null;
+            int shopid = shop.ShopId;
+
+            var product = await _homeViewProductService.GetProductByQuantitySold();
+            return Ok(product);
+        }
+
+
+        [HttpGet("Average_Revenue/Order")]
+        public async Task<IActionResult> GetAverageRevenue()
+        {
+
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+
+
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            {
+                ShopId = shopid,
+                Orderdate = (DateTime)p.OrderDate,
+                OrderId = p.OrderId,
+                TotalPrice = (decimal?)p.TotalPrice
+            }).ToListAsync();
+
+
+
+            // Tính tổng doanh thu của shop trong tháng hiện tại
+            decimal totalRevenue = query.Average(p => p.TotalPrice ?? 0m);
+
+
+
+
+
+            return Ok(totalRevenue);
         }
 
         [HttpGet("orders")]
