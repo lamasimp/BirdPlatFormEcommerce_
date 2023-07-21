@@ -723,7 +723,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var viewCarts = await _context.TbCarts
                 .Include(p => p.Product)
                 .ThenInclude(p => p.TbImages)
-                .Where(u => u.UserId == userID && u.Product.IsDelete != false)
+                .Where(u => u.UserId == userID && u.Product.IsDelete != false && u.Product.Quantity > 0)
                 .GroupBy(u => u.Product.Shop.ShopId) // Nhóm theo ShopId
                 .Select(g => new
                 {
