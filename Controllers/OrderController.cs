@@ -827,7 +827,34 @@ namespace BirdPlatFormEcommerce.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpPost("DeleteCarts")]
+        public async Task<IActionResult> DeleteCarts([FromBody] List<int> cartIds)
+        {
+            try
+            {
+                var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UserId");
+                if (userIdClaim == null) return Unauthorized();
+                int userID = int.Parse(userIdClaim.Value);
 
+                var cartsToDelete = _context.TbCarts
+                    .Where(cart => cart.UserId == userID && cartIds.Contains(cart.Id))
+                    .ToList();
+
+                if (cartsToDelete.Count == 0)
+                {
+                    return NotFound("No carts found with the provided cartIds.");
+                }
+
+                _context.TbCarts.RemoveRange(cartsToDelete);
+                await _context.SaveChangesAsync();
+
+                return Ok("Carts have been successfully deleted.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
 
     }
