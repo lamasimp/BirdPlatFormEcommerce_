@@ -597,12 +597,12 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             int currentYear = DateTime.Now.Year;
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
@@ -648,7 +648,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -701,12 +701,12 @@ namespace BirdPlatFormEcommerce.Controllers
             int currentWeek = cal.GetWeekOfYear(today, dfi.CalendarWeekRule, dfi.FirstDayOfWeek);
             int currentYear = today.Year;
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
@@ -787,12 +787,12 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
