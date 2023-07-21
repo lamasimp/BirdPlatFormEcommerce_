@@ -602,7 +602,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
@@ -706,7 +706,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
@@ -792,7 +792,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
