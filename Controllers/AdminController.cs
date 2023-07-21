@@ -112,36 +112,31 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("TopUsers")]
         public async Task<IActionResult> GetTopUsers()
         {
-
-
             var topUsers = await _context.TbUsers
-            .Join(_context.TbOrders, u => u.UserId, o => o.UserId, (u, o) => new { User = u, Order = o })
-                .Join(_context.TbOrderDetails, uo => uo.Order.UserId, od => od.OrderId, (uo, od) => new { UserOrder = uo, TbOrderDetail = od })
-                .Where(uo => uo.TbOrderDetail.ToConfirm == 3)
-                .GroupBy(uo => new { uo.UserOrder.User.UserId, uo.UserOrder.User.Name })
-                
+                .Join(_context.TbOrders, u => u.UserId, o => o.UserId, (u, o) => new { User = u, Order = o })
+                .Where(uo => uo.Order.ToConfirm == 3 && uo.Order.ReceivedDate != null)
+                .GroupBy(uo => new { uo.User.UserId, uo.User.Name })
                 .Select(g => new
                 {
                     UserId = g.Key.UserId,
                     UserName = g.Key.Name,
-                    TotalAmount = g.Sum(uo => uo.TbOrderDetail.Quantity * uo.TbOrderDetail.Total)
+                    TotalAmount = g.Sum(uo => uo.Order.TotalPrice)
                 })
-                
                 .OrderByDescending(u => u.TotalAmount)
                 .Take(5)
                 .ToListAsync();
-            List<decimal> totalAmounts = topUsers.Select(x => (decimal)x.TotalAmount).ToList();
-            List<string> shopNames = topUsers.Select(x => x.UserName).ToList();
+
+            List<decimal> totalAmounts = topUsers.Select(x => x.TotalAmount).ToList();
+            List<string> UserName = topUsers.Select(x => x.UserName).ToList();
 
             var response = new
             {
                 TotalAmounts = totalAmounts,
-                ShopNames = shopNames
+                Name = UserName
             };
 
             return Ok(response);
 
-           
         }
 
 
