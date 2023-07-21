@@ -188,6 +188,7 @@ namespace BirdPlatFormEcommerce.Product
 
                         orderby p.QuantitySold descending 
                         where p.DiscountPercent > 0 && p.IsDelete == true && p.Status == true && u.Status == false && p.Quantity > 0
+                        
                         select new
                         {
                             p,
