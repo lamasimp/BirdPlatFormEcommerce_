@@ -15,6 +15,6 @@ namespace BirdPlatFormEcommerce.Product
 
         Task<DetailShopViewProduct> GetShopById(int id);
 
-        Task<List<ProductHotInfo>> GetProductByQuantitySold();
+        Task<List<ProductHotInfo>> GetProductByQuantitySold(int shopid);
     }
 }

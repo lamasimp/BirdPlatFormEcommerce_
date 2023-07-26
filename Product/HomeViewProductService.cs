@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using BirdPlatFormEcommerce.NEntity;
 using BirdPlatFormEcommerce.ProductModel;
+using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -179,8 +180,10 @@ namespace BirdPlatFormEcommerce.Product
             return detailShop;
         }
 
-        public async Task<List<ProductHotInfo>> GetProductByQuantitySold()
+        public async Task<List<ProductHotInfo>> GetProductByQuantitySold(int shopid)
         {
+            var product = await _context.TbShops.FindAsync(shopid);
+            if (shopid == 0) throw new Exception("Can not find shopId");
             var query = (from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
@@ -188,7 +191,8 @@ namespace BirdPlatFormEcommerce.Product
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
 
                         orderby p.QuantitySold descending 
-                        where p.DiscountPercent > 0 && p.IsDelete == true && p.Status == true && u.Status == false && p.Quantity > 0
+                        where p.DiscountPercent > 0 && p.IsDelete == true && p.Status == true 
+                        && u.Status == false && p.Quantity > 0 && s.ShopId == shopid
                         
                         select new
                         {

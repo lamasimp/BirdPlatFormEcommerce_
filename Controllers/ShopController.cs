@@ -765,8 +765,14 @@ namespace BirdPlatFormEcommerce.Controllers
                 return null;
             int shopid = shop.ShopId;
 
-            var product = await _homeViewProductService.GetProductByQuantitySold();
+            var product = await _homeViewProductService.GetProductByQuantitySold(shopid);
+            if (product == null)
+
+                return BadRequest("Cannot find product");
+
             return Ok(product);
+
+           
         }
 
 
@@ -837,7 +843,7 @@ namespace BirdPlatFormEcommerce.Controllers
                                    TotalPrice = (decimal?)o.TotalPrice,
                                    ToConfirm = o.ToConfirm,
                                    PaymentDate = (DateTime)pay.PaymentDate,
-                                   ReasonCancle = o.ReasonCancle,
+                                  
                                    //   Address = ad.Address,
                                    //   PaymentMethod = pay.PaymentMethod
 
@@ -967,6 +973,8 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok("Confirm successfully!");
         }
 
+        
+
         [HttpPut("Cancle_Order")]
         public async Task<IActionResult> CancleToConfirm(int orderId, ReasonCancleOrderRequest request)
         {
@@ -1005,7 +1013,7 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 ToEmail = Email,
                 Subject = "[BIRD TRADING PLATFORM] HỦY ĐƠN HÀNG",
-                Body = "  Đơn hàng của bạn đã bị hủy do :" + request.ReasonCancle                
+                Body = "  Đơn hàng của bạn đã bị hủy do :" + request.ReasonCancle
             };
 
 
