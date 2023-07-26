@@ -1,4 +1,6 @@
-﻿namespace BirdPlatFormEcommerce.Product
+﻿using BirdPlatFormEcommerce.ProductModel;
+
+namespace BirdPlatFormEcommerce.Product
 {
     public interface IHomeViewProductService
     {
