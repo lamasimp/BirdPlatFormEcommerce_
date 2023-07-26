@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using BirdPlatFormEcommerce.NEntity;
+using BirdPlatFormEcommerce.ProductModel;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;

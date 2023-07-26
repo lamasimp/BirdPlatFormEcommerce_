@@ -107,6 +107,9 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public DateTime? PaymentDate { get; set; }
         public decimal? TotalPrice { get; set; }
         public int? ToConfirm { get; set; }
+
+        public string? ReasonCancle { get; set; }
+
         public TbUser User { get; set; }
     }
 
@@ -155,6 +158,12 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public int? ToConfirm { get; set; }
         public decimal? TotalDetail { get; set; }
 
+    }
+
+    public class ReasonCancleOrderRequest    
+    {
+       
+        public string? ReasonCancle { get; set; }
     }
 
     public class ProductFeedBackInfo
