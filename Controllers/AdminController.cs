@@ -230,29 +230,24 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("DetailShop")]
         public async Task<IActionResult> getDetailShop()
         {
-            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
-            if (userIdClaim == null)
-            {
-                throw new Exception("User not found");
-            }
-            int userid = int.Parse(userIdClaim.Value);
+           
 
             var query = from  s in _context.TbShops                
-                        join p in _context.TbProducts on s.ShopId equals p.ShopId
+                       
                         join u in _context.TbUsers on s.UserId equals u.UserId
                      
-                        where  u.IsShop == true && s.IsVerified == true
-                        select new { s,p, u};
+                        where  u.IsShop == true 
+                        select new { s, u};
 
             var totalRevenueQuery = from s in _context.TbShops
-                                    join o in _context.TbOrders on s.ShopId equals o.ShopId into shopOrders
-                                    from o in shopOrders.DefaultIfEmpty()
-                                    where o != null && o.ReceivedDate != null
+                                      join o in _context.TbOrders on s.ShopId equals o.ShopId 
+                                    //where o != null
+                                    //&& o.ReceivedDate != null 
                                     group o by s.ShopId into g
                                     select new
                                     {
                                         ShopId = g.Key,
-                                        TotalRevenue = (decimal?)g.Sum(x => (decimal?)x.LastTotalPrice)
+                                        TotalRevenue = (decimal?)g.Sum(x => (decimal?)x.LastTotalPrice) ?? null
                                     };
 
 
@@ -269,7 +264,7 @@ namespace BirdPlatFormEcommerce.Controllers
                       Username = x.FirstOrDefault().u.Name,
                       
                       Email = x.FirstOrDefault().u.Email,
-                      IsActive = (bool)x.FirstOrDefault().s.IsVerified,
+                      IsActive = (bool)x.FirstOrDefault().s.IsVerified ,
                       PhoneHome = x.FirstOrDefault().u.Phone ?? null,
                       AddressHome = x.FirstOrDefault().u.Address ?? null,
                       Avatar = x.FirstOrDefault().u.Avatar ?? null,
@@ -277,11 +272,11 @@ namespace BirdPlatFormEcommerce.Controllers
                       AddressShop = x.FirstOrDefault().s.Address ?? null,
                       PhoneShop = x.FirstOrDefault().s.Phone ?? null,
                       Status = x.FirstOrDefault().u.Status,
-                      RateShop = x.FirstOrDefault().s.Rate,
+                      RateShop = x.FirstOrDefault().s.Rate ?? null,
                       
-                      TotalRevenue = totalRevenueQuery.Where(t => t.ShopId == x.Key).Select(t => t.TotalRevenue).FirstOrDefault(),
-                      TotalProducct = x.Count(),
-                      TotalQuantitySold = (int?)x.Sum(x => (int?)x.p.QuantitySold)
+                      TotalRevenue = totalRevenueQuery.Where(t => t.ShopId == x.Key).Select(t => t.TotalRevenue).FirstOrDefault() ?? null,
+                     
+                      
 
 
                   }).ToListAsync();
@@ -440,7 +435,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     emailBody += $"  Detail: {report.CateRp.Detail} , {report.Detail}\n";
 
                 }
-                user.Status = true;
+                user.RoleId = "CUS" ;
                 shop.IsVerified = false;
                 _context.TbUsers.Update(user);
                 var product =await _context.TbProducts.Where(p => p.ShopId == shopid).ToListAsync();
@@ -475,7 +470,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var user = await _context.TbUsers.FindAsync(shop.UserId);
             if (user == null) { return BadRequest("No user"); }
             string email = user.Email;
-            user.Status = false;
+            user.RoleId = "SP";
             _context.TbUsers.Update(user);
             var product = await _context.TbProducts.Where(p => p.ShopId == shopid).ToListAsync();
             foreach(var products in product)
