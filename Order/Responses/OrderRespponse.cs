@@ -142,6 +142,7 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public DateTime? CancleDate { get; set; }
 
         public decimal? TotalAll  { get; set; }
+        public DateTime? ReceivedDate { get; set; }
 
         public List<ProductDetail> ProductDetails { get; set; }
 
