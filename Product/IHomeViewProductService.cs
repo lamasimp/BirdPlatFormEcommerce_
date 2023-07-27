@@ -1,4 +1,6 @@
-﻿namespace BirdPlatFormEcommerce.Product
+﻿using BirdPlatFormEcommerce.ProductModel;
+
+namespace BirdPlatFormEcommerce.Product
 {
     public interface IHomeViewProductService
     {
@@ -13,6 +15,6 @@
 
         Task<DetailShopViewProduct> GetShopById(int id);
 
-        Task<List<ProductHotInfo>> GetProductByQuantitySold();
+        Task<List<ProductHotInfo>> GetProductByQuantitySold(int shopid);
     }
 }

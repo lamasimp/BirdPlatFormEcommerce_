@@ -23,6 +23,8 @@ using BirdPlatFormEcommerce.Order.Responses;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Win32;
 using BirdPlatFormEcommerce.Helper.Mail;
+using BirdPlatFormEcommerce.ProductModel;
+
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -180,7 +182,6 @@ namespace BirdPlatFormEcommerce.Controllers
                 throw new Exception("Shop not found");
             }
             int shopid = shop.ShopId;
-
 
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
@@ -597,7 +598,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             int currentYear = DateTime.Now.Year;
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null ).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -648,7 +649,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -701,7 +702,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int currentWeek = cal.GetWeekOfYear(today, dfi.CalendarWeekRule, dfi.FirstDayOfWeek);
             int currentYear = today.Year;
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -764,8 +765,14 @@ namespace BirdPlatFormEcommerce.Controllers
                 return null;
             int shopid = shop.ShopId;
 
-            var product = await _homeViewProductService.GetProductByQuantitySold();
+            var product = await _homeViewProductService.GetProductByQuantitySold(shopid);
+            if (product == null)
+
+                return BadRequest("Cannot find product");
+
             return Ok(product);
+
+           
         }
 
 
@@ -787,7 +794,7 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3 && x.ReceivedDate != null).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
@@ -836,6 +843,8 @@ namespace BirdPlatFormEcommerce.Controllers
                                    TotalPrice = (decimal?)o.TotalPrice,
                                    ToConfirm = o.ToConfirm,
                                    PaymentDate = (DateTime)pay.PaymentDate,
+                                   ReceivedDate = o.ReceivedDate
+                                  
                                    //   Address = ad.Address,
                                    //   PaymentMethod = pay.PaymentMethod
 
@@ -904,7 +913,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 CancleDate = (DateTime?)query.o.CancleDate,
                 OrderId = orderId,
                 ToConfirm = query.o.ToConfirm,
-
+                ReceivedDate = query.o.ReceivedDate,
                 TotalAll = (decimal?)query.o.TotalPrice,
                 ProductDetails = product.Select(x => new ProductDetail
                 {
@@ -965,8 +974,10 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok("Confirm successfully!");
         }
 
+        
+
         [HttpPut("Cancle_Order")]
-        public async Task<IActionResult> CancleToConfirm(int orderId)
+        public async Task<IActionResult> CancleToConfirm(int orderId, ReasonCancleOrderRequest request)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
             if (userIdClaim == null)
@@ -991,11 +1002,23 @@ namespace BirdPlatFormEcommerce.Controllers
 
             order.ToConfirm = 4;
             order.CancleDate = DateTime.Now;
+            order.ReasonCancle = (string?)request.ReasonCancle;
 
             _context.TbOrders.Update(order);
 
             await _context.SaveChangesAsync();
 
+            var user = await _context.TbUsers.FindAsync(order.UserId);
+            string Email = user.Email;
+            var mailRequest = new MailRequest()
+            {
+                ToEmail = Email,
+                Subject = "[BIRD TRADING PLATFORM] HỦY ĐƠN HÀNG",
+                Body = "  Đơn hàng của bạn đã bị hủy do :" + request.ReasonCancle
+            };
+
+
+            await _mailService.SendEmailAsync(mailRequest);
 
             var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
             foreach (var item in orderDetail)

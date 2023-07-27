@@ -230,33 +230,67 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("DetailShop")]
         public async Task<IActionResult> getDetailShop()
         {
-            var shop = await _context.TbUsers
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
 
-                .Where(r => r.RoleId == "SP")
+            var query = from  s in _context.TbShops                
+                        join p in _context.TbProducts on s.ShopId equals p.ShopId
+                        join u in _context.TbUsers on s.UserId equals u.UserId
+                     
+                        where  u.IsShop == true && s.IsVerified == true
+                        select new { s,p, u};
 
-                .Join(_context.TbShops,
-                user => user.UserId,
-                shop => shop.UserId,
-                (user, shop) => new Shop
-                {
+            var totalRevenueQuery = from s in _context.TbShops
+                                    join o in _context.TbOrders on s.ShopId equals o.ShopId into shopOrders
+                                    from o in shopOrders.DefaultIfEmpty()
+                                    where o != null && o.ReceivedDate != null
+                                    group o by s.ShopId into g
+                                    select new
+                                    {
+                                        ShopId = g.Key,
+                                        TotalRevenue = (decimal?)g.Sum(x => (decimal?)x.LastTotalPrice)
+                                    };
 
-                    UserId = user.UserId,
-                    birth = (DateTime)(user.Dob != null ? (DateTime?)user.Dob : null),
-                    Gender = user.Gender,
-                    Username = user.Name,
-                    shopId = shop.ShopId,
-                    Email = user.Email,
-                    IsActive = (bool)shop.IsVerified,
-                    PhoneHome = user.Phone ?? null,
-                    AddressHome = user.Address ?? null,
-                    Avatar = user.Avatar ?? null,
-                    shopName = shop.ShopName,
-                    addressShop = shop.Address ?? null,
-                    phoneShop = shop.Phone ?? null,
-                    Status = user.Status
-                }).ToListAsync();
-            return Ok(shop);
+
+            var results = await query
+                  .GroupBy(x => x.s.ShopId)
+                  .Select(x => new ShopAdmin()
+                  {
+
+                      ShopId = x.Key,
+                      ShopName = x.FirstOrDefault().s.ShopName,
+                      UserId = x.FirstOrDefault().u.UserId,
+                      birth = (DateTime)(x.FirstOrDefault().u.Dob != null ? (DateTime?)x.FirstOrDefault().u.Dob : null),
+                      Gender = x.FirstOrDefault().u.Gender,
+                      Username = x.FirstOrDefault().u.Name,
+                      
+                      Email = x.FirstOrDefault().u.Email,
+                      IsActive = (bool)x.FirstOrDefault().s.IsVerified,
+                      PhoneHome = x.FirstOrDefault().u.Phone ?? null,
+                      AddressHome = x.FirstOrDefault().u.Address ?? null,
+                      Avatar = x.FirstOrDefault().u.Avatar ?? null,
+                      
+                      AddressShop = x.FirstOrDefault().s.Address ?? null,
+                      PhoneShop = x.FirstOrDefault().s.Phone ?? null,
+                      Status = x.FirstOrDefault().u.Status,
+                      RateShop = x.FirstOrDefault().s.Rate,
+                      
+                      TotalRevenue = totalRevenueQuery.Where(t => t.ShopId == x.Key).Select(t => t.TotalRevenue).FirstOrDefault(),
+                      TotalProducct = x.Count(),
+                      TotalQuantitySold = (int?)x.Sum(x => (int?)x.p.QuantitySold)
+
+
+                  }).ToListAsync();
+          
+           
+            return Ok(results);
         }
+
+
         private async Task<int> CountShop()
         {
             var countcus = await _context.TbUsers.CountAsync(x => x.RoleId == "SP");

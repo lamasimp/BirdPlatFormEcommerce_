@@ -32,6 +32,7 @@ public partial class TbOrder
     public DateTime? ReceivedDate { get; set; }
     public int? ParentOrderId { get; set; } 
 
+    public string? ReasonCancle { get; set; }
     public virtual TbOrder? ParentOrder { get; set; } 
 
     public virtual ICollection<TbOrder>? ChildOrders { get; set; }= new List<TbOrder>();
