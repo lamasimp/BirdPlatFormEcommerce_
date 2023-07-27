@@ -200,7 +200,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 }
             }
             var response = orShow
-                .GroupBy(o => o.ParentOrderId) // Gom nhóm các đơn hàng theo PaymentId
+                .GroupBy(o => o.ParentOrderId)
                 .Select(g => new
                 {
                     Id = g.Key,
@@ -488,7 +488,7 @@ namespace BirdPlatFormEcommerce.Controllers
             foreach (var order in orders)
             {
                 var group = order.TbOrderDetails
-                    .Where(d => d.ToConfirm == toConfirm) // Lọc chỉ những OrderDetail có ToConfirm=2
+                    .Where(d => d.ToConfirm == toConfirm)
                     .GroupBy(d => new
                     {
                         d.Product.Shop.ShopId,
@@ -724,7 +724,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 .Include(p => p.Product)
                 .ThenInclude(p => p.TbImages)
                 .Where(u => u.UserId == userID && u.Product.IsDelete != false && u.Product.Quantity > 0)
-                .GroupBy(u => u.Product.Shop.ShopId) // Nhóm theo ShopId
+                .GroupBy(u => u.Product.Shop.ShopId)
                 .Select(g => new
                 {
                     ShopId = g.Key,
