@@ -913,7 +913,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 CancleDate = (DateTime?)query.o.CancleDate,
                 OrderId = orderId,
                 ToConfirm = query.o.ToConfirm,
-
+                ReceivedDate = query.o.ReceivedDate,
                 TotalAll = (decimal?)query.o.TotalPrice,
                 ProductDetails = product.Select(x => new ProductDetail
                 {
