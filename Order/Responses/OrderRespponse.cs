@@ -109,6 +109,7 @@ namespace BirdPlatFormEcommerce.Order.Responses
         public int? ToConfirm { get; set; }
 
         public string? ReasonCancle { get; set; }
+        public DateTime? ReceivedDate { get; set; }
 
         public TbUser User { get; set; }
     }

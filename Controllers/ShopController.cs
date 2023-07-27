@@ -794,12 +794,12 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
@@ -843,6 +843,7 @@ namespace BirdPlatFormEcommerce.Controllers
                                    TotalPrice = (decimal?)o.TotalPrice,
                                    ToConfirm = o.ToConfirm,
                                    PaymentDate = (DateTime)pay.PaymentDate,
+                                   ReceivedDate = o.ReceivedDate
                                   
                                    //   Address = ad.Address,
                                    //   PaymentMethod = pay.PaymentMethod
