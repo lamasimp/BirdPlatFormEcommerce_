@@ -23,13 +23,13 @@ public partial class TbShop
     public string AddressDetail { get; set; }
     public string? Phone { get; set; }
 
-    public virtual ICollection<TbOrder> TbOrders { get; set; } = new List<TbOrder>();
+    public virtual ICollection<TbOrder>? TbOrders { get; set; } = new List<TbOrder>();
 
     public virtual ICollection<TbPost> TbPosts { get; set; } = new List<TbPost>();
 
-    public virtual ICollection<TbProduct> TbProducts { get; set; } = new List<TbProduct>();
+    public virtual ICollection<TbProduct>? TbProducts { get; set; } = new List<TbProduct>();
 
-    public virtual ICollection<TbReport> TbReports { get; set; } = new List<TbReport>();
+    public virtual ICollection<TbReport>? TbReports { get; set; } = new List<TbReport>();
 
     public virtual TbUser? User { get; set; }
 }
