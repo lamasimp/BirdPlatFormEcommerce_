@@ -348,6 +348,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 if (product == null) throw new Exception("Can not found.");
                 product.Name = request.Name;
                 product.Price = request.Price;
+                product.Quantity = request.Quantity;
                 product.DiscountPercent = request.DiscountPercent;
                 product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / 100 * (request.DiscountPercent)));
 
