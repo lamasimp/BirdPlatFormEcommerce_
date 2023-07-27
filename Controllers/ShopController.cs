@@ -548,6 +548,7 @@ namespace BirdPlatFormEcommerce.Controllers
             //find product by ProductId
             var product = await _context.TbProducts.FindAsync(productId);
             var image = await _context.TbImages.Where(x => x.ProductId == productId).Select(x => x.ImagePath).ToArrayAsync();
+
             var cate = await (from c in _context.TbProductCategories
                               join p in _context.TbProducts on c.CateId equals p.CateId
                               where p.ProductId == productId && p.IsDelete == true && p.Status == true
