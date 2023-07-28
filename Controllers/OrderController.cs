@@ -200,7 +200,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 }
             }
             var response = orShow
-                .GroupBy(o => o.ParentOrderId) // Gom nhóm các đơn hàng theo PaymentId
+                .GroupBy(o => o.ParentOrderId)
                 .Select(g => new
                 {
                     Id = g.Key,
@@ -274,6 +274,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     Note = o.Note,
                     ToConfirm = o.ToConfirm,
                     PaymentMethod = o.ParentOrder.Payment.PaymentMethod,
+                    PaymentDate= o.ParentOrder.Payment.PaymentDate,
                     TotalPrice = o.TotalPrice,
                     OrderDate = o.OrderDate,
                     ShopId = o.ShopId,
@@ -282,6 +283,8 @@ namespace BirdPlatFormEcommerce.Controllers
                     Address = o.Address.Address,
                     AddressDetail = o.Address.AddressDetail,
                     CancelDate = o.CancleDate,
+                    ReasonCancle = o.ReasonCancle,
+                    ConfirmDate = o.ConfirmDate,
                     ReceivedDate = o.ReceivedDate,
                     Phone = o.Address.Phone,
                     NameRg = o.Address.NameRg,
@@ -338,6 +341,7 @@ namespace BirdPlatFormEcommerce.Controllers
                    Note = o.Note,
                    ToConfirm = o.ToConfirm,
                    PaymentMethod = o.ParentOrder.Payment.PaymentMethod,
+                   PaymentDate = o.ParentOrder.Payment.PaymentDate,
                    TotalPrice = o.TotalPrice,
                    OrderDate = o.OrderDate,
                    ShopId = o.ShopId,
@@ -346,6 +350,8 @@ namespace BirdPlatFormEcommerce.Controllers
                    Address = o.Address.Address,
                    AddressDetail = o.Address.AddressDetail,
                    CancelDate = o.CancleDate,
+                   ReasonCancle = o.ReasonCancle,
+                   ConfirmDate = o.ConfirmDate,
                    ReceivedDate = o.ReceivedDate,
                    Phone = o.Address.Phone,
                    NameRg = o.Address.NameRg,
@@ -402,14 +408,17 @@ namespace BirdPlatFormEcommerce.Controllers
                    Note = o.Note,
                    ToConfirm = o.ToConfirm,
                    PaymentMethod = o.ParentOrder.Payment.PaymentMethod,
+                   PaymentDate = o.ParentOrder.Payment.PaymentDate,
                    TotalPrice = o.TotalPrice,
                    OrderDate = o.OrderDate,
+                   ReasonCancle=o.ReasonCancle,
                    ShopId = o.ShopId,
                    ShopName = _context.TbShops.Where(or => or.ShopId == o.ShopId).Select(or => or.ShopName),
                    AddressId = o.AddressId,
                    Address = o.Address.Address,
                    AddressDetail = o.Address.AddressDetail,
                    CancelDate = o.CancleDate,
+                   ConfirmDate= o.ConfirmDate,
                    ReceivedDate = o.ReceivedDate,
                    Phone = o.Address.Phone,
                    NameRg = o.Address.NameRg,
@@ -488,7 +497,7 @@ namespace BirdPlatFormEcommerce.Controllers
             foreach (var order in orders)
             {
                 var group = order.TbOrderDetails
-                    .Where(d => d.ToConfirm == toConfirm) // Lọc chỉ những OrderDetail có ToConfirm=2
+                    .Where(d => d.ToConfirm == toConfirm)
                     .GroupBy(d => new
                     {
                         d.Product.Shop.ShopId,
