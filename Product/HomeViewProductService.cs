@@ -1,5 +1,7 @@
 ﻿using Azure.Core;
 using BirdPlatFormEcommerce.NEntity;
+using BirdPlatFormEcommerce.ProductModel;
+using BirdPlatFormEcommerce.ViewModel;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -25,7 +27,7 @@ namespace BirdPlatFormEcommerce.Product
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
                         
                         orderby  p.QuantitySold descending , p.Rate descending
-                        where p.DiscountPercent >0 && p.IsDelete == true && p.Status == true && u.Status == false
+                        where p.DiscountPercent >0 && p.IsDelete == true && p.Status == true && u.Status == false && p.Quantity > 0
                         select new { p, c ,s,
                             Image = images.FirstOrDefault()
                         };
@@ -37,6 +39,7 @@ namespace BirdPlatFormEcommerce.Product
                 CateName = x.c.CateName,
                 Status = x.p.Status,
                 Price = x.p.Price,
+                Quantity = x.p.Quantity,
                 DiscountPercent = x.p.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * (x.p.DiscountPercent))),
               ShopId= x.s.ShopId,
@@ -50,6 +53,7 @@ namespace BirdPlatFormEcommerce.Product
             return data;
         }
 
+
         public async Task<DetailProductViewModel> GetProductById(int productId)
         {
             var product = await _context.TbProducts.FindAsync(productId);
@@ -58,7 +62,7 @@ namespace BirdPlatFormEcommerce.Product
             var cate =  await (from c in _context.TbProductCategories 
                        join p in _context.TbProducts on c.CateId equals p.CateId
 
-                       where p.ProductId == productId && p.IsDelete == true && p.Status == true
+                       where p.ProductId == productId && p.IsDelete == true && p.Status == true && p.Quantity > 0
                                select c).FirstOrDefaultAsync();
 
 
@@ -96,7 +100,7 @@ namespace BirdPlatFormEcommerce.Product
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join u in _context.TbUsers on s.UserId equals u.UserId
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
-                        where p.ShopId.Equals(shopId) && p.IsDelete == true && p.Status == true && u.Status == false
+                        where p.ShopId.Equals(shopId) && p.IsDelete == true && p.Status == true && u.Status == false && p.Quantity > 0
                         select new { p, c,s, Image = images.FirstOrDefault() };
 
 
@@ -109,6 +113,7 @@ namespace BirdPlatFormEcommerce.Product
                 CateName = x.c.CateName,
                 Status = x.p.Status,
                 Price = x.p.Price,
+                Quantity = x.p.Quantity,    
                 DiscountPercent = x.p.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * (x.p.DiscountPercent))),
                 ShopId = x.s.ShopId,
@@ -128,7 +133,7 @@ namespace BirdPlatFormEcommerce.Product
                         join c in _context.TbProductCategories on p.CateId equals c.CateId
                         join u in _context.TbUsers on s.UserId equals u.UserId
                         join img in _context.TbImages on p.ProductId equals img.ProductId into images
-                        where p.IsDelete == true && p.Status == true && u.Status == false
+                        where p.IsDelete == true && p.Status == true && u.Status == false &&p.Quantity > 0
                         select new { p, c ,s, Image = images.FirstOrDefault() };
 
             var data = await query.Select(x => new HomeViewProductModel()
@@ -138,6 +143,7 @@ namespace BirdPlatFormEcommerce.Product
                 CateName = x.c.CateName,
                 Status = x.p.Status,
                 Price = x.p.Price,
+                Quantity = x.p.Quantity,
                 DiscountPercent = x.p.DiscountPercent,
                 SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * (x.p.DiscountPercent))),
                 ShopId = x.s.ShopId,
@@ -156,7 +162,7 @@ namespace BirdPlatFormEcommerce.Product
             //var shopId = await _context.TbShops.FindAsync(id);
             var tb_shop = await _context.TbShops.Where(x=>x.ShopId == id).FirstOrDefaultAsync();
             var user = await _context.TbUsers.Where(x=>x.UserId == tb_shop.UserId && x.IsShop == true).Select(x => x.Avatar).FirstOrDefaultAsync();
-            var totalProduct = await _context.TbProducts.CountAsync(p => p.ShopId == id);
+            var totalProduct = await _context.TbProducts.CountAsync(p => p.ShopId == id );
 
             var detailShop = new DetailShopViewProduct()
             {
@@ -172,6 +178,47 @@ namespace BirdPlatFormEcommerce.Product
 
             };
             return detailShop;
+        }
+
+        public async Task<List<ProductHotInfo>> GetProductByQuantitySold(int shopid)
+        {
+            var product = await _context.TbShops.FindAsync(shopid);
+            if (shopid == 0) throw new Exception("Can not find shopId");
+            var query = (from p in _context.TbProducts
+                        join s in _context.TbShops on p.ShopId equals s.ShopId
+                        join c in _context.TbProductCategories on p.CateId equals c.CateId
+                        join u in _context.TbUsers on s.UserId equals u.UserId
+                        join img in _context.TbImages on p.ProductId equals img.ProductId into images
+
+                        orderby p.QuantitySold descending 
+                        where p.DiscountPercent > 0 && p.IsDelete == true && p.Status == true 
+                        && u.Status == false && p.Quantity > 0 && s.ShopId == shopid
+                        
+                        select new
+                        {
+                            p,
+                            c,
+                            s,
+                            Image = images.FirstOrDefault()
+                        }).Take(5);
+
+            var data = await query.Select(x => new ProductHotInfo()
+            {
+                ProductId = x.p.ProductId,
+                ProductName = x.p.Name,
+                CateName = x.c.CateName,
+                Status = x.p.Status,
+                Price = x.p.Price,
+               
+                DiscountPercent = x.p.DiscountPercent,
+                SoldPrice = (int)Math.Round((decimal)(x.p.Price - x.p.Price / 100 * (x.p.DiscountPercent))),
+             
+                QuantitySold = x.p.QuantitySold,
+               Rate = x.p.Rate, 
+                Thumbnail = x.Image != null ? x.Image.ImagePath : "no-image.jpg",
+
+            }).ToListAsync();
+            return data;
         }
     }
 }

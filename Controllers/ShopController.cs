@@ -23,6 +23,8 @@ using BirdPlatFormEcommerce.Order.Responses;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Win32;
 using BirdPlatFormEcommerce.Helper.Mail;
+using BirdPlatFormEcommerce.ProductModel;
+
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -35,14 +37,17 @@ namespace BirdPlatFormEcommerce.Controllers
         private readonly IWebHostEnvironment _enviroment;
         private readonly IOrderService _oderService;
         private readonly IMailService _mailService;
+        private readonly IHomeViewProductService _homeViewProductService;
 
-        public ShopController(SwpDataBaseContext swp, IMailService mailService, IManageOrderService manageOrderService, IWebHostEnvironment enviroment, IOrderService orderService)
+        public ShopController(SwpDataBaseContext swp, IMailService mailService, IManageOrderService manageOrderService,
+            IWebHostEnvironment enviroment, IOrderService orderService, IHomeViewProductService homeViewProductService)
         {
             _context = swp;
             _manageOrderService = manageOrderService;
             _enviroment = enviroment;
             _oderService = orderService;
             _mailService = mailService;
+            _homeViewProductService = homeViewProductService;
         }
         [HttpPost("registerShop")]
 
@@ -65,6 +70,8 @@ namespace BirdPlatFormEcommerce.Controllers
                 Phone = shopmodel.Phone,
                 AddressDetail = shopmodel.AddressDetail,
                 UserId = userId,
+                CreateDate =DateTime.Now,
+
 
             };
             _context.TbShops.Add(shop);
@@ -112,7 +119,7 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             throw new InvalidOperationException("Invalid token or missing accountId claim.");
         }
-        [HttpPut("UpdateShop")]
+        [HttpPut("UpdateShop/{shopId:int}")]
         public async Task<IActionResult> UpdateShop(int shopid,ShopModel model)
         {
             var shop = _context.TbShops.Find(shopid);
@@ -123,6 +130,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 shop.Description = model.Description;
                 shop.Address = model.Address;
                 shop.AddressDetail = model.AddressDetail;
+                shop.Phone = model.Phone;
                 _context.TbShops.Update(shop);
                 _context.SaveChanges();
             }
@@ -147,11 +155,13 @@ namespace BirdPlatFormEcommerce.Controllers
             }
             var isshop = new ViewShop
             {
-                Rate = (int)shop.Rate,
+                ShopId=(int)shop.ShopId,
+                Rate = shop.Rate ?? 0,
                 shopName = shop.ShopName,
                 Address = shop.Address,
-                phone = shop.Phone,
+                AddressDetail = shop.AddressDetail, 
 
+                phone = shop.Phone,
                 Description = shop.Description ?? null
 
             };
@@ -172,7 +182,6 @@ namespace BirdPlatFormEcommerce.Controllers
                 throw new Exception("Shop not found");
             }
             int shopid = shop.ShopId;
-
 
             var query = from p in _context.TbProducts
                         join s in _context.TbShops on p.ShopId equals s.ShopId
@@ -339,6 +348,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 if (product == null) throw new Exception("Can not found.");
                 product.Name = request.Name;
                 product.Price = request.Price;
+                product.Quantity = request.Quantity;
                 product.DiscountPercent = request.DiscountPercent;
                 product.SoldPrice = (int)Math.Round((decimal)(product.Price - request.Price / 100 * (request.DiscountPercent)));
 
@@ -539,7 +549,6 @@ namespace BirdPlatFormEcommerce.Controllers
             //find product by ProductId
             var product = await _context.TbProducts.FindAsync(productId);
             var image = await _context.TbImages.Where(x => x.ProductId == productId).Select(x => x.ImagePath).ToArrayAsync();
-
             var cate = await (from c in _context.TbProductCategories
                               join p in _context.TbProducts on c.CateId equals p.CateId
                               where p.ProductId == productId && p.IsDelete == true && p.Status == true
@@ -589,12 +598,12 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             int currentYear = DateTime.Now.Year;
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null ).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
@@ -640,24 +649,33 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.TotalPrice,
+                LastTotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
 
             // Tính tổng doanh thu của shop trong tháng hiện tại
             decimal totalRevenue = query.Sum(p => p.TotalPrice ?? 0m);
+            decimal lastTotalP = query.Sum(p => p.LastTotalPrice ?? 0m);
+            decimal fee = totalRevenue-lastTotalP;
+            
 
 
 
+            var result = new
+            {
+                TotalRevenue = totalRevenue,           
+                Fee = fee,
+                LastTotalP = lastTotalP
+            };
 
-
-            return Ok(totalRevenue);
+            return Ok(result);
         }
 
         [HttpGet("Revenue_week")]
@@ -684,12 +702,12 @@ namespace BirdPlatFormEcommerce.Controllers
             int currentWeek = cal.GetWeekOfYear(today, dfi.CalendarWeekRule, dfi.FirstDayOfWeek);
             int currentYear = today.Year;
 
-            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ToConfirm == 3).Select(p => new
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null).Select(p => new
             {
                 ShopId = shopid,
                 Orderdate = (DateTime)p.OrderDate,
                 OrderId = p.OrderId,
-                TotalPrice = (decimal?)p.TotalPrice
+                TotalPrice = (decimal?)p.LastTotalPrice
             }).ToListAsync();
 
 
@@ -733,6 +751,69 @@ namespace BirdPlatFormEcommerce.Controllers
             return jan1.AddDays(firstWeekDay);
         }
 
+        [HttpGet("Get_Top5_HotProduct")]
+        public async Task<IActionResult> GetTopHotProduct()
+        {
+            var userIdclaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdclaim == null)
+            {
+                return null;
+            }
+            int userid = int.Parse(userIdclaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+                return null;
+            int shopid = shop.ShopId;
+
+            var product = await _homeViewProductService.GetProductByQuantitySold(shopid);
+            if (product == null)
+
+                return BadRequest("Cannot find product");
+
+            return Ok(product);
+
+           
+        }
+
+
+        [HttpGet("Average_Revenue/Order")]
+        public async Task<IActionResult> GetAverageRevenue()
+        {
+
+            var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
+            if (userIdClaim == null)
+            {
+                throw new Exception("User not found");
+            }
+            int userid = int.Parse(userIdClaim.Value);
+            var shop = await _context.TbShops.FirstOrDefaultAsync(s => s.UserId == userid);
+            if (shop == null)
+            {
+                throw new Exception("Shop not found");
+            }
+            int shopid = shop.ShopId;
+
+
+            var query = await _context.TbOrders.Where(x => x.ShopId == shopid && x.ReceivedDate != null).Select(p => new
+            {
+                ShopId = shopid,
+                Orderdate = (DateTime)p.OrderDate,
+                OrderId = p.OrderId,
+                TotalPrice = (decimal?)p.LastTotalPrice
+            }).ToListAsync();
+
+
+
+            // Tính tổng doanh thu của shop trong tháng hiện tại
+            decimal totalRevenue = query.Average(p => p.TotalPrice ?? 0m);
+
+
+
+
+
+            return Ok(totalRevenue);
+        }
+
         [HttpGet("orders")]
         public async Task<ActionResult<List<OrderInfo>>> GetOrdersByShopId()
         {
@@ -748,7 +829,8 @@ namespace BirdPlatFormEcommerce.Controllers
             int shopid = shop.ShopId;
 
             var query = await (from o in _context.TbOrders
-                               join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                               join orp in _context.TbOrders on o.ParentOrderId equals orp.OrderId
+                               join pay in _context.TbPayments on orp.PaymentId equals pay.PaymentId
                                join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
                                where o.ShopId == shopid && o.ToConfirm > 1
                                select new OrderInfo
@@ -761,6 +843,8 @@ namespace BirdPlatFormEcommerce.Controllers
                                    TotalPrice = (decimal?)o.TotalPrice,
                                    ToConfirm = o.ToConfirm,
                                    PaymentDate = (DateTime)pay.PaymentDate,
+                                   ReceivedDate = o.ReceivedDate
+                                  
                                    //   Address = ad.Address,
                                    //   PaymentMethod = pay.PaymentMethod
 
@@ -803,9 +887,9 @@ namespace BirdPlatFormEcommerce.Controllers
 
 
             var query = await (from o in _context.TbOrders
-
                                join ad in _context.TbAddressReceives on o.AddressId equals ad.AddressId
-                               join pay in _context.TbPayments on o.PaymentId equals pay.PaymentId
+                               join orp in _context.TbOrders on o.ParentOrderId equals orp.OrderId
+                               join pay in _context.TbPayments on orp.PaymentId equals pay.PaymentId
                                join u in _context.TbUsers on o.UserId equals u.UserId
                                where o.OrderId == orderId && o.ShopId == shopid
                                select new { ad, pay, u, o }).FirstOrDefaultAsync();
@@ -816,7 +900,6 @@ namespace BirdPlatFormEcommerce.Controllers
             {
                 UserName = query.u.Name,
                 Email = query.u.Email,
-
                 Address = query.ad.Address,
                 AddressDetail = query.ad.AddressDetail,
                 Phone = query.ad.Phone,
@@ -830,7 +913,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 CancleDate = (DateTime?)query.o.CancleDate,
                 OrderId = orderId,
                 ToConfirm = query.o.ToConfirm,
-
+                ReceivedDate = query.o.ReceivedDate,
                 TotalAll = (decimal?)query.o.TotalPrice,
                 ProductDetails = product.Select(x => new ProductDetail
                 {
@@ -891,8 +974,10 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok("Confirm successfully!");
         }
 
+        
+
         [HttpPut("Cancle_Order")]
-        public async Task<IActionResult> CancleToConfirm(int orderId)
+        public async Task<IActionResult> CancleToConfirm(int orderId, ReasonCancleOrderRequest request)
         {
             var userIdClaim = User.Claims.FirstOrDefault(u => u.Type == "UserId");
             if (userIdClaim == null)
@@ -917,11 +1002,23 @@ namespace BirdPlatFormEcommerce.Controllers
 
             order.ToConfirm = 4;
             order.CancleDate = DateTime.Now;
+            order.ReasonCancle = (string?)request.ReasonCancle;
 
             _context.TbOrders.Update(order);
 
             await _context.SaveChangesAsync();
 
+            var user = await _context.TbUsers.FindAsync(order.UserId);
+            string Email = user.Email;
+            var mailRequest = new MailRequest()
+            {
+                ToEmail = Email,
+                Subject = "[BIRD TRADING PLATFORM] HỦY ĐƠN HÀNG",
+                Body = "  Đơn hàng của bạn đã bị hủy do :" + request.ReasonCancle
+            };
+
+
+            await _mailService.SendEmailAsync(mailRequest);
 
             var orderDetail = await _context.TbOrderDetails.Where(x => x.OrderId == orderId).ToListAsync();
             foreach (var item in orderDetail)
@@ -929,7 +1026,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 item.ToConfirm = 4;
                 _context.TbOrderDetails.Update(item);
                 var productId = await _context.TbProducts.FindAsync(item.ProductId);
-                productId.Quantity -= item.Quantity;
+                productId.Quantity += item.Quantity;
                 _context.TbProducts.Update(productId);
             }
             await _context.SaveChangesAsync();
@@ -976,7 +1073,14 @@ namespace BirdPlatFormEcommerce.Controllers
                 _context.TbOrderDetails.Update(item);
 
                 var productId = await _context.TbProducts.FindAsync(item.ProductId);
-                productId.QuantitySold += item.Quantity;
+                if (productId.QuantitySold == null)
+                {
+                    productId.QuantitySold = item.Quantity;
+                }
+                else
+                {
+                    productId.QuantitySold += item.Quantity;
+                }
                 _context.TbProducts.Update(productId);
 
 

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using System;
+using System.Diagnostics.Contracts;
 
 namespace BirdPlatFormEcommerce.Controllers
 {
@@ -108,6 +109,36 @@ namespace BirdPlatFormEcommerce.Controllers
             return Ok("Open User Success");
 
         }
+        [HttpGet("TopUsers")]
+        public async Task<IActionResult> GetTopUsers()
+        {
+            var topUsers = await _context.TbUsers
+                .Join(_context.TbOrders, u => u.UserId, o => o.UserId, (u, o) => new { User = u, Order = o })
+                .Where(uo => uo.Order.ToConfirm == 3 && uo.Order.ReceivedDate != null)
+                .GroupBy(uo => new { uo.User.UserId, uo.User.Name })
+                .Select(g => new
+                {
+                    UserId = g.Key.UserId,
+                    UserName = g.Key.Name,
+                    TotalAmount = g.Sum(uo => uo.Order.TotalPrice)
+                })
+                .OrderByDescending(u => u.TotalAmount)
+                .Take(5)
+                .ToListAsync();
+
+            List<decimal> totalAmounts = topUsers.Select(x => x.TotalAmount).ToList();
+            List<string> UserName = topUsers.Select(x => x.UserName).ToList();
+
+            var response = new
+            {
+                TotalAmounts = totalAmounts,
+                Name = UserName
+            };
+
+            return Ok(response);
+
+        }
+
 
         [HttpGet("GetUser/{id}")]
         public async Task<IActionResult> GetUserByid(int id)
@@ -199,33 +230,62 @@ namespace BirdPlatFormEcommerce.Controllers
         [HttpGet("DetailShop")]
         public async Task<IActionResult> getDetailShop()
         {
-            var shop = await _context.TbUsers
+           
 
-                .Where(r => r.RoleId == "SP")
+            var query = from  s in _context.TbShops                
+                       
+                        join u in _context.TbUsers on s.UserId equals u.UserId
+                     
+                        where  u.IsShop == true 
+                        select new { s, u};
 
-                .Join(_context.TbShops,
-                user => user.UserId,
-                shop => shop.UserId,
-                (user, shop) => new Shop
-                {
+            var totalRevenueQuery = from s in _context.TbShops
+                                      join o in _context.TbOrders on s.ShopId equals o.ShopId 
+                                    //where o != null
+                                    //&& o.ReceivedDate != null 
+                                    group o by s.ShopId into g
+                                    select new
+                                    {
+                                        ShopId = g.Key,
+                                        TotalRevenue = (decimal?)g.Sum(x => (decimal?)x.LastTotalPrice) ?? null
+                                    };
 
-                    UserId = user.UserId,
-                    birth = (DateTime)(user.Dob != null ? (DateTime?)user.Dob : null),
-                    Gender = user.Gender,
-                    Username = user.Name,
-                    shopId = shop.ShopId,
-                    Email = user.Email,
-                    IsActive = (bool)shop.IsVerified,
-                    PhoneHome = user.Phone ?? null,
-                    AddressHome = user.Address ?? null,
-                    Avatar = user.Avatar ?? null,
-                    shopName = shop.ShopName,
-                    addressShop = shop.Address ?? null,
-                    phoneShop = shop.Phone ?? null,
-                    Status = user.Status
-                }).ToListAsync();
-            return Ok(shop);
+
+            var results = await query
+                  .GroupBy(x => x.s.ShopId)
+                  .Select(x => new ShopAdmin()
+                  {
+
+                      ShopId = x.Key,
+                      ShopName = x.FirstOrDefault().s.ShopName,
+                      UserId = x.FirstOrDefault().u.UserId,
+                      birth = (DateTime)(x.FirstOrDefault().u.Dob != null ? (DateTime?)x.FirstOrDefault().u.Dob : null),
+                      Gender = x.FirstOrDefault().u.Gender,
+                      Username = x.FirstOrDefault().u.Name,
+                      
+                      Email = x.FirstOrDefault().u.Email,
+                      IsActive = (bool)x.FirstOrDefault().s.IsVerified ,
+                      PhoneHome = x.FirstOrDefault().u.Phone ?? null,
+                      AddressHome = x.FirstOrDefault().u.Address ?? null,
+                      Avatar = x.FirstOrDefault().u.Avatar ?? null,
+                      
+                      AddressShop = x.FirstOrDefault().s.Address ?? null,
+                      PhoneShop = x.FirstOrDefault().s.Phone ?? null,
+                      Status = x.FirstOrDefault().u.Status,
+                      RateShop = x.FirstOrDefault().s.Rate ?? null,
+                      
+                      TotalRevenue = totalRevenueQuery.Where(t => t.ShopId == x.Key).Select(t => t.TotalRevenue).FirstOrDefault() ?? null,
+                     
+                      
+
+
+                  }).ToListAsync();
+          
+           
+            return Ok(results);
         }
+
+
         private async Task<int> CountShop()
         {
             var countcus = await _context.TbUsers.CountAsync(x => x.RoleId == "SP");
@@ -281,22 +341,20 @@ namespace BirdPlatFormEcommerce.Controllers
         }
 
         [HttpGet("CountReport")]
-        public async Task<IActionResult> Countreport(int shopid)
+        public async Task<IActionResult> Countreport()
         {
-            var shopReportCounts = await _context.TbShops
-                .Select(s => new ReportModel
-                {
-                    shopId = shopid,
-                    Shopname = s.ShopName,
-                    Count = _context.TbReports.Count(r => r.ShopId == s.ShopId)
-                })
-                .ToListAsync();
+            var shopReportCounts = await _context.TbReports
+                .Select(x => x.ShopId)
+                .Distinct()
+                .CountAsync();
+            
 
 
             return Ok(shopReportCounts);
 
 
         }
+        
         [HttpGet("getreport")]
         public async Task<IActionResult> getreportShop(int shopid)
         {
@@ -348,7 +406,7 @@ namespace BirdPlatFormEcommerce.Controllers
                 var emailBody = $"Shop Name: {shop.ShopName}\n\n";
                 emailBody += " Cảnh báo lần đầu tiên dành cho shop của nếu quá 3 lần report tài khoản của bạn sẽ bị khóa:\n" +
                     "Mọi thắc mắc hãy liên hệ với chúng tôi.\n";
-
+                shop.IsVerified = false;
                 foreach (var report in reports)
                 {
                     
@@ -377,7 +435,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     emailBody += $"  Detail: {report.CateRp.Detail} , {report.Detail}\n";
 
                 }
-                user.Status = true;
+                user.RoleId = "CUS" ;
                 shop.IsVerified = false;
                 _context.TbUsers.Update(user);
                 var product =await _context.TbProducts.Where(p => p.ShopId == shopid).ToListAsync();
@@ -386,6 +444,7 @@ namespace BirdPlatFormEcommerce.Controllers
                     products.IsDelete = true;
                     _context.TbProducts.Update(products);
                 }
+                _context.TbReports.RemoveRange(reports);
                 await _context.SaveChangesAsync();
 
                 var mailRequest = new MailRequest()
@@ -411,7 +470,7 @@ namespace BirdPlatFormEcommerce.Controllers
             var user = await _context.TbUsers.FindAsync(shop.UserId);
             if (user == null) { return BadRequest("No user"); }
             string email = user.Email;
-            user.Status = false;
+            user.RoleId = "SP";
             _context.TbUsers.Update(user);
             var product = await _context.TbProducts.Where(p => p.ShopId == shopid).ToListAsync();
             foreach(var products in product)
@@ -434,6 +493,108 @@ namespace BirdPlatFormEcommerce.Controllers
             await _mailService.SendEmailAsync(mailRequest);
 
             return Ok("Account and products reopened successfully. Check your Email");
+        }
+       
+        [HttpGet("GettopFeedback")]
+        public async Task<IActionResult> getFeedBack()
+        {
+            var feedback = _context.TbProducts
+                .Include(u => u.TbImages)
+                .Include(u => u.Shop)
+                .Include(u => u.TbFeedbacks)
+                
+                .Select(u => new FeedbackAdmin
+                {
+                    ProductId = u.ProductId,
+                    Rate = (int)u.Rate,
+                    productName = u.Name,
+                    Price = u.Price,
+                    ImageProduct = u.TbImages.FirstOrDefault().ImagePath,
+                    shopName = u.Shop.ShopName,
+                    FeedbackCount = u.TbFeedbacks.Count()
+
+
+                })
+                .OrderByDescending(u => u.FeedbackCount)
+                .Take(5)
+                .ToList();
+
+            return Ok(feedback);
+        }
+        [HttpGet("GetquantitySold")]
+        public async Task<IActionResult> getQuantitysold()
+        {
+            var feedback = _context.TbProducts
+                .Include(u => u.TbImages)
+                .Include(u => u.Shop)
+                
+
+                .Select(u => new QuantitySold
+                {
+                    ProductId = u.ProductId,
+                    Rate = (int)u.Rate,
+                    productName = u.Name,
+                    Price = u.Price,
+                    ImageProduct = u.TbImages.FirstOrDefault().ImagePath,
+                    shopName = u.Shop.ShopName,
+                    Quantitysold = (int)u.QuantitySold,
+
+
+                })
+                .OrderByDescending(u => u.Quantitysold)
+                .Take(5)
+                .ToList();
+
+            return Ok(feedback);
+        }
+        [HttpGet("totalOrder")]
+        public async Task<IActionResult> totalOrderCha()
+        {
+            var refund = _context.TbOrders.Where(x => x.ParentOrderId != null).Sum(o => o.LastTotalPrice);
+            var profit = _context.TbOrders.Where(x => x.ParentOrderId == null).Sum(o => o.LastTotalPrice);
+            var amount = _context.TbOrders.Where(x => x.ParentOrderId == null).Sum(o => o.TotalPrice);
+            var countoderCha = _context.TbOrders.Where(x => x.ParentOrderId == null).Count();
+            var totalorderCha = _context.TbOrders.Where(x => x.ParentOrderId == null).Sum(x => x.TotalPrice);
+            decimal averagePriceForParentIdNull = countoderCha > 0
+        ? totalorderCha / countoderCha
+             :    0;
+
+            var view = new ListtotalOrder()
+            {
+                TotalOrderCha = 
+                
+                    new totalOrderCha
+                    {
+                    countOrder = countoderCha,
+                totalPriceOrdercha = totalorderCha,
+                price1Ordercha = averagePriceForParentIdNull,
+                    }
+                ,
+                Profit = 
+                
+                    new ProfitAdmin
+                    {
+                        profitAdmin = profit
+                    }
+                ,
+                AmountSystem = 
+                
+                    new TotalAmountSystem
+                    {
+                        totalAmountSystem = amount
+                    }
+                ,
+                refundAmout = 
+                
+                    new refundAmountShop
+                    {
+                        refundamout = refund
+                    }
+                
+                
+                
+            };
+            return Ok(view);
         }
 
     }

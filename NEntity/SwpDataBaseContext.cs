@@ -53,8 +53,12 @@ public partial class SwpDataBaseContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=ADMIN-PC\\SQLEXPRESS;Initial Catalog=swpDatabase;Integrated Security=True;TrustServerCertificate=True");
 
+<<<<<<< HEAD
+        => optionsBuilder.UseSqlServer("Data Source=LAPTOP-I2GP951T\\LONGNHAT;Initial Catalog=SWP301Database;Integrated Security=True;TrustServerCertificate=True");
+=======
+        => optionsBuilder.UseSqlServer("Data Source=ROG-HOANGCHIDUO\\SQLEXPRESS;Initial Catalog=swpp;Integrated Security=True;TrustServerCertificate=True");
+>>>>>>> parent of 1d8b32b (Revert "Revert "Revert "pushlast""")
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<TbAddressReceive>(entity =>
@@ -171,9 +175,11 @@ public partial class SwpDataBaseContext : DbContext
             entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 0)");
             entity.Property(e => e.UserId).HasColumnName("UserID");
-            entity.Property(e => e.ConfirmDate).HasColumnType("datetime");          
+            entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
             entity.Property(e => e.CancleDate).HasColumnType("datetime");
             entity.Property(e => e.ReceivedDate).HasColumnType("datetime");
+            entity.Property(e => e.ReasonCancle).HasMaxLength(500);
+            entity.Property(e => e.ParentOrderId).HasColumnName("ParentOrderID"); 
             entity.HasOne(d => d.Address).WithMany(p => p.TbOrders)
                 .HasForeignKey(d => d.AddressId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -183,15 +189,20 @@ public partial class SwpDataBaseContext : DbContext
                 .HasForeignKey(d => d.PaymentId)
                 .HasConstraintName("FK_tb_Order_tb_Payment");
 
-            entity.HasOne(d => d.Shop).WithMany(p => p.TbOrders)
-                .HasForeignKey(d => d.ShopId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_tb_Order_tb_Shop");
+           entity.HasOne(d => d.Shop).WithMany(p => p.TbOrders)
+              .HasForeignKey(d => d.ShopId)
+             .OnDelete(DeleteBehavior.ClientSetNull)
+               .HasConstraintName("FK_tb_Order_tb_Shop");
 
             entity.HasOne(d => d.User).WithMany(p => p.TbOrders)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_tb_Order_tb_User");
+
+            entity.HasOne(d => d.ParentOrder).WithMany(d => d.ChildOrders) 
+           .HasForeignKey(d => d.ParentOrderId)
+           .OnDelete(DeleteBehavior.ClientSetNull)
+           .HasConstraintName("FK_tb_Order_tb_Order_ParentOrderID");
         });
 
         modelBuilder.Entity<TbOrderDetail>(entity =>
@@ -313,7 +324,7 @@ public partial class SwpDataBaseContext : DbContext
 
             entity.Property(e => e.ReportId).HasColumnName("ReportID");
             entity.Property(e => e.CateRpId).HasColumnName("CateRpID");
-            entity.Property(e => e.Id).HasColumnName("ID");
+
             entity.Property(e => e.ShopId).HasColumnName("ShopID");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 

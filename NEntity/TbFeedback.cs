@@ -17,7 +17,7 @@ public partial class TbFeedback
     public DateTime FeedbackDate { get; set; }
     public virtual TbProduct Product { get; set; } = null!;
 
-    public virtual ICollection<TbFeedbackImage> TbFeedbackImages { get; set; } = new List<TbFeedbackImage>();
+    public virtual ICollection<TbFeedbackImage>? TbFeedbackImages { get; set; } = new List<TbFeedbackImage>();
 
     public virtual TbUser User { get; set; } = null!;
 }

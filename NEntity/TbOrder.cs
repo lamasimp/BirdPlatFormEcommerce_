@@ -14,6 +14,7 @@ public partial class TbOrder
     public string? Note { get; set; }
 
     public decimal TotalPrice { get; set; }
+    public decimal LastTotalPrice { get; set; }
 
     public DateTime OrderDate { get; set; }
 
@@ -21,7 +22,7 @@ public partial class TbOrder
 
     public int AddressId { get; set; }
 
-    public int ShopId { get; set; }
+    public int? ShopId { get; set; }
 
     public int? ToConfirm { get; set; }
     public DateTime? ConfirmDate { get; set; }
@@ -29,11 +30,18 @@ public partial class TbOrder
     public DateTime? CancleDate { get; set; }
 
     public DateTime? ReceivedDate { get; set; }
+    public int? ParentOrderId { get; set; } 
+
+    public string? ReasonCancle { get; set; }
+    public virtual TbOrder? ParentOrder { get; set; } 
+
+    public virtual ICollection<TbOrder>? ChildOrders { get; set; }= new List<TbOrder>();
+
     public virtual TbAddressReceive Address { get; set; } = null!;
 
     public virtual TbPayment? Payment { get; set; }
 
-    public virtual TbShop Shop { get; set; } = null!;
+    public virtual TbShop? Shop { get; set; } = null!;
 
     public virtual ICollection<TbOrderDetail> TbOrderDetails { get; set; } = new List<TbOrderDetail>();
 
